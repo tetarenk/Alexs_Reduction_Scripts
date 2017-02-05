@@ -1,0 +1,21 @@
+#data set params
+ms_name='/mnt/bigdata/tetarenk/test_scripts/vla/GRS1736_Feb262016_X_x11.ms'
+obsDate='Feb262016'
+target='GRS1736'
+spw=''
+band='X'
+subband='x11'
+ref_ant='ea17'
+#general image params
+use_auto='T'
+mythreshold='0.02mJy'
+myimsize=512
+mycell='0.6arcsec'
+mynterms=1
+myniter=5000
+mystokes='I'
+#mask options
+mymask=''
+combi='n'
+#uv fitting
+uv_fit='T'

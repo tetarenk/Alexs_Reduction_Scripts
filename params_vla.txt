@@ -1,0 +1,22 @@
+#data set params
+ms_name='/mnt/bigdata/tetarenk/GRS1736/JACPOT_GRS1736/GRS1736/lustre/aoc/ftp/e2earchive/stage/CE5902/16A-428.sb31887816.eb31892110.57444.460174328706.ms'
+obsDate='Feb262016'
+target='GRS1736'
+spw_bands=['2~33']
+bands=['X']
+scans=['4~16']
+bitdata=3
+remakems='F'
+doImage='F'
+#general image params
+use_auto='F'
+mythreshold='0.02mJy'
+myimsize=512
+mycell='0.6arcsec'
+mynterms=2
+myniter=5000
+mystokes='I'
+#mask options
+mymask=''
+#uv fitting
+uv_fit='F'
