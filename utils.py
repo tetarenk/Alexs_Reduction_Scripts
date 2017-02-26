@@ -6,9 +6,18 @@ from scipy.stats import norm
 import matplotlib.pyplot as pp
 import numpy as np
 from scipy.stats import chi2
-import casac
-from tasks import *
-from taskinit import *
+try:
+  import casac
+except ImportError:
+  pass
+try:
+  from tasks import *
+except ImportError:
+  pass
+try:
+  from taskinit import *
+except ImportError:
+  pass
 
 
 def convert_param_format(filename, to="json"):
