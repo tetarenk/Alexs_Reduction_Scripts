@@ -1,4 +1,4 @@
-#################################################
+\#################################################
 #VLA CASA Continuum Reduction Script
 #################################################
 '''CASA script to be used for the flagging, calibration and imaging of VLA Continuum Data
@@ -1111,13 +1111,13 @@ for kk in range(0,len(ms_name_list)):
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
 		if mynterms>1:
-			imagenb=my_dir+target+date+'_both_clean1.image.tt0'
+			imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
 		else:
-			imagenb=my_dir+target+date+'_both_clean1.image'
+			imagenb=my_dir+target+'_'+date+'_both_clean1.image'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenb+'.pbcor')
 		os.system('rm -rf '+imagenb+'.pbcor.fits')
-		immath(imagename=[imagenb,my_dir+target+date+'_both_clean1.flux'],\
+		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
 			expr='IM0/IM1',outfile=imagenb+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
