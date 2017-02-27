@@ -4,10 +4,10 @@
 '''CASA script to be used for imaging and selfcal of VLA/SMA continuum data
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) continuum image  -- [target]_[obsDate]_[band]_[subband]_clean1.image(.tt0).pbcor
-		(2) File of flux densities from image/UV plane fitting -- [target]_[obsDate]_[subbband]_imfit(uvfit)_results.txt
+        (2) File of flux densities from image/UV plane fitting -- [target]_[obsDate]_[subbband]_imfit(uvfit)_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
-	   - All output images are also converted to fits format (just append .fits to end of images 1 above)
-	   - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
+       - All output images are also converted to fits format (just append .fits to end of images 1 above)
+       - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
 Written by: Alex J. Tetarenko
 Last Updated: Jan 5 2016'''
 
@@ -16,7 +16,6 @@ print 'Welcome to Alexs CASA Continuum Imaging/Selfcal Script'
 print '##################################################\n'
 
 
-#packages you may need
 #packages you may need
 from astropy.io import fits
 import numpy as np
