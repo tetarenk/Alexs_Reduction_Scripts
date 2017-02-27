@@ -7,7 +7,7 @@ from taskinit import *
 from collections import OrderedDict
 
 def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-	date,bband,combi):
+	date,bband,combi,spw):
 	cal_table_prefix=my_dir+target+'_'+date+'_'+bband
 	cont0='y'
 	attemptnum=1
@@ -23,7 +23,7 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		#light clean to get source model
 		print 'Interactive Clean to get source model...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=T,\
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw=spw,interactive=T,\
 			cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms)
 		raw_input('Please press enter when ready to continue.')
 		#solve for phase gains
@@ -62,7 +62,7 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 				interp=['nearest'], calwt=[False])
 		print 'Interactive Cleaning selfcaled data...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=T,\
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw=spw,interactive=T,\
 			cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
