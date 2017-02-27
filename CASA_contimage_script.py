@@ -96,13 +96,13 @@ if mymask=='':
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Using interactive mode so you can make a mask...'
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw='',interactive=T,\
+	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=T,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
 		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=F,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
 		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
 if mynterms>1:
@@ -122,7 +122,7 @@ print 'Flux density of ',flux,' +/- ',err, unit
 dopsc=raw_input('Do you want to do phase selfcal?y or n-->')
 if dopscl=='y':
 	selfcal,scim=phselfcal(ms_name,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-obsDate,subband,combi)
+obsDate,subband,combi,spw)
 	flux_sc,err_sc,unit_sc,freq_sc=imfit_point(scim,my_dir)
 
 #writing imfit result to file
@@ -148,7 +148,7 @@ if uv_fit=='T':
 	comb=ms_name.strip('.ms')
 	mstransform(vis=ms_name, outputvis=comb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
 	uvvis=comb+'_mstrans.ms'
-	fitfulluv=uvm.uvmultifit(vis=uvvis, spw='', column = "data", \
+	fitfulluv=uvm.uvmultifit(vis=uvvis, spw=spw, column = "data", \
 		uniform=False, model=[comp_uv],stokes = stokes_param, \
 		var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
 	src_uv_init=fitfulluv.result['Parameters'][2]
