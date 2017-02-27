@@ -37,7 +37,7 @@ mypars=/home/ubuntu/CASA_reduction_scripts/mypars.lis
 
 #download data
 #echo 'Downloading data...'
-#wget --http-user=tetarenk --http-password=skateBEC --content-disposition -i $file_lst
+#wget --http-user=CADC_USER --http-password=CADC_PASSWORD --content-disposition -i $file_lst
 
 echo '###############################################'
 echo 'Welcome to Alexs JCMT SCUBA-2 Reduction Script'
