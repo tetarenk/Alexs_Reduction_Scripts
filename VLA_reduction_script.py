@@ -1,19 +1,20 @@
-\#################################################
+#################################################
 #VLA CASA Continuum Reduction Script
 #################################################
 '''CASA script to be used for the flagging, calibration and imaging of VLA Continuum Data
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for each band (and base-band) -- [target]_[obsDate]_[band]_[baseband].ms
-		(2) Continuum images in each band (and base-band) -- [target]_[obsDate]_[band]_[baseband]_clean1.image(.tt0).pbcor
-		(3) File of flux densities from image/UV plane fitting -- imfit_results.txt/uvfit_results.txt
+        (2) Continuum images in each band (and base-band) -- [target]_[obsDate]_[band]_[baseband]_clean1.image(.tt0).pbcor
+        (3) File of flux densities from image/UV plane fitting -- imfit_results.txt/uvfit_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
-	   - All output images are also converted to fits format (just append .fits to end of images above)
-	   - This script is intended to be used with raw data.
-	   - All input logged in user_input.log.
-	   - If autoflag is used summary presented in autoflag_log.txt
+       - All output images are also converted to fits format (just append .fits to end of images above)
+       - This script is intended to be used with raw data.
+       - All input logged in user_input.log.
+       - If autoflag is used summary presented in autoflag_log.txt
 Written by: Alex J. Tetarenko
 Last Updated: Jan 3 2017'''
 #Still need to add pol cal!!!!
+
 print '##################################################'
 print 'Welcome to Alexs VLA Continuum Reduction Script'
 print '##################################################\n'
