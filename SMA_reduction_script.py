@@ -4,17 +4,17 @@
 '''CASA script to be used for the flagging, calibration and imaging of SMA Continuum Data
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for each side-band (and full band) -- [target]_[obsDate]_[band]_[sideband].ms
-		(2) Continuum images in each side-band (and full band) -- [target]_[obsDate]_[band]_[sideband]_clean1.image(.tt0).pbcor
-		(3) File of flux densities from image/UV plane fitting -- imfit_results.txt/uvfit_results.txt
+        (2) Continuum images in each side-band (and full band) -- [target]_[obsDate]_[band]_[sideband]_clean1.image(.tt0).pbcor
+        (3) File of flux densities from image/UV plane fitting -- imfit_results.txt/uvfit_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
-	   - All output images are also converted to fits format (just append .fits to end of images above)
-	   - All input logged in user_input.log.
-	   - This script is intended to be used with raw data that has been converted to CASA MS format; either
+       - All output images are also converted to fits format (just append .fits to end of images above)
+       - All input logged in user_input.log.
+       - This script is intended to be used with raw data that has been converted to CASA MS format; either
 	   	 through the SMA scripts method (1) or the Miriad method (2).
-	   	 (1) -run python sma2casa.py /projects/mnt/JACPOT/JACPOT_V404_Cyg/SMA/raw/150622_10:17:28 (asic only)
- 		     -run python sma2casa.py /Users/atetarenk/Desktop/sma2casa/150622_10:17:28 -w 49,50 -n 49:0:16383:128 50:0:16383:128 (asic+swarm)
-         Remember: When on mac, make sure to change tflagdata to flagdata and ulimit -n 4096 to avoid too many files error when concatenating.
-         You may need to recompile C module to get it to work without -P flag. Just run make with correct paths to python in Makefile and .c file.
+         (1) -run python sma2casa.py /projects/mnt/JACPOT/JACPOT_V404_Cyg/SMA/raw/150622_10:17:28 (asic only)
+             -run python sma2casa.py /Users/atetarenk/Desktop/sma2casa/150622_10:17:28 -w 49,50 -n 49:0:16383:128 50:0:16383:128 (asic+swarm)
+             Remember: When on mac, make sure to change tflagdata to flagdata and ulimit -n 4096 to avoid too many files error when concatenating.
+             You may need to recompile C module to get it to work without -P flag. Just run make with correct paths to python in Makefile and .c file.
              -run execfile("smaImportFix.py") within CASA within same directory as sma2casa.py.
          (2) -run miriad bash script (miriad2fits.sh)-need raw miriad files from CfA as swarmsplt task not publicably available yet!
              -run CASA script (fits2casa.py)
