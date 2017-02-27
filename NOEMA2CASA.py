@@ -4,11 +4,11 @@
 '''CASA script to be used for importing, viewing visibilities, and imaging calibrated NOEMA/PdBI data in CASA.
 INPUT: Parameters defined in section below, uvfits files of calibratedNOEMA/PdBI data sets
 OUTPUT: (1) MS for each NOEMA/PdBI data set
-		(2) Continuum images for each data set
+        (2) Continuum images for each data set
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
-	   - All output images are also converted to fits format (just append .fits to end of images above)
-	   - This script is intended to be used with calibrated data that has been converted to uvfits format
-	     following instructions here; http://www.iram.fr/IRAMFR/ARC/documents/filler/casa-gildas.pdf
+       - All output images are also converted to fits format (just append .fits to end of images above)
+       - This script is intended to be used with calibrated data that has been converted to uvfits format
+         following instructions here; http://www.iram.fr/IRAMFR/ARC/documents/filler/casa-gildas.pdf
 Written by: Alex J. Tetarenko
 Last Updated: Jan 4 2017'''
 
