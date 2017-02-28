@@ -2,7 +2,7 @@
 #NOEMA/PdBI data in CASA Script
 ##########################################
 '''CASA script to be used for importing, viewing visibilities, and imaging calibrated NOEMA/PdBI data in CASA.
-INPUT: Parameters defined in section below, uvfits files of calibratedNOEMA/PdBI data sets
+INPUT: Parameters defined in section below, uvfits files of calibrated NOEMA/PdBI data sets
 OUTPUT: (1) MS for each NOEMA/PdBI data set
         (2) Continuum images for each data set
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
@@ -16,6 +16,7 @@ Last Updated: Jan 4 2017'''
 #needed packages
 import os
 import glob
+#only needed to automatically set image size and cell size when use_auto='T'
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 
 ############################
