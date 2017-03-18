@@ -22,8 +22,7 @@ date=20150622
 scan8=(42 41)
 #len8=${#scan8[@]}
 scan4=(42 41)
-numscans=1
-#enter N_scans-1 in numscans
+numscans=2
 cal_scan4=32
 cal_scan8=32
 cal='crl2688'
@@ -83,7 +82,8 @@ then
 	fi
 fi
 read -r -p 'Please press enter when ready to continue >>> '
-for i in $(seq 0 $numscans)
+Nscans=$(expr $numscans - 1)
+for i in $(seq 0 $Nscans)
 do
 	scan8=${scan8[$i]}
 	scan4=${scan4[$i]}
