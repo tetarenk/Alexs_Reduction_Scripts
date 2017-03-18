@@ -23,6 +23,7 @@ scan8=(42 41)
 #len8=${#scan8[@]}
 scan4=(42 41)
 numscans=1
+#enter N_scans-1 in numscans
 cal_scan4=32
 cal_scan8=32
 cal='crl2688'
