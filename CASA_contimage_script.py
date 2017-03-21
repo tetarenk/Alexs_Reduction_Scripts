@@ -118,24 +118,25 @@ immath(imagename=[imagen,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1
 print 'Making fits image...'
 exportfits(imagename=imagen+'.pbcor',fitsimage=imagen+'.pbcor.fits')
 imagen=imagen+'.pbcor'
-flux,err,unit,freq=imfit_point(imagen,my_dir)
+flux,err,unit,freq,err_real=imfit_point(imagen,my_dir)
 print 'Flux density of ',flux,' +/- ',err, unit
+print 'Local RMS in image is: ',err_real,' Jy'
 dopsc=raw_input('Do you want to do phase selfcal?y or n-->')
 if dopsc=='y':
 	selfcal,scim=phselfcal(ms_name,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 obsDate,subband,combi,spw,outlierf)
-	flux_sc,err_sc,unit_sc,freq_sc=imfit_point(scim,my_dir)
+	flux_sc,err_sc,unit_sc,freq_sc,err_real_sc=imfit_point(scim,my_dir)
 
 #writing imfit result to file
 print 'Writing imfit results to file...'
 resul_file=open(my_dir+target+'_'+obsDate+'_'+subband+'_imfit_results.txt','w')
 if dopsc=='n':
-	resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freq,flux,err,unit))
+	resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freq,flux,err,unit,err_real))
 else:
 	resul_file.write('Pre-selfcal:\n')
-	resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freq,flux,err,unit))
+	resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freq,flux,err,unit,err_real))
 	resul_file.write('Post selfcal:\n')
-	resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freq_sc,flux_sc,err_sc,unit_sc))
+	resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freq_sc,flux_sc,err_sc,unit_sc,err_real_sc))
 resul_file.close()
 ###########################################
 

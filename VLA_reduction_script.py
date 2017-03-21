@@ -1047,14 +1047,15 @@ for kk in range(0,len(ms_name_list)):
 		print 'Making fits image...'
 		exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
 		imagenl=imagenl+'.pbcor'
-		fluxl,errl,unitl,freql=imfit_point(imagenl,my_dir)
+		fluxl,errl,unitl,freql,errl_real=imfit_point(imagenl,my_dir)
 		print 'Lower base-band flux density of ',fluxl,' +/- ',errl, unitl
+		print 'Local RMS in Lower base-band image is: ',errl_real,' Jy'
 		dopscl=raw_input('Do you want to do phase selfcal?y or n-->')
 		dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
 		if dopscl=='y':
 			selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		date,band_low,'n',spw_low)
-			fluxl_sc,errl_sc,unitl_sc,freql_sc=imfit_point(scim_low,my_dir)
+			fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
 		
 		print 'Upper base-band...'
 		if use_auto=='T':
@@ -1085,14 +1086,15 @@ for kk in range(0,len(ms_name_list)):
 		print 'Making fits image...'
 		exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
 		imagenu=imagenu+'.pbcor'
-		fluxu,erru,unitu,frequ=imfit_point(imagenu,my_dir)
+		fluxu,erru,unitu,frequ,erru_real=imfit_point(imagenu,my_dir)
 		print 'Upper base-band flux density of ',fluxu,' +/- ',erru, unitu
+		print 'Local RMS in Upper base-band image is: ',erru_real,' Jy'
 		dopscu=raw_input('Do you want to do phase selfcal?y or n-->')
 		dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
 		if dopscu=='y':
 			selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		date,band_low,'n',spw_high)
-			fluxu_sc,erru_sc,unitu_sc,frequ_sc=imfit_point(scim_high,my_dir)
+			fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
 
 		print 'Combined base-band...'
 		if use_auto=='T':
@@ -1123,14 +1125,15 @@ for kk in range(0,len(ms_name_list)):
 		print 'Making fits image...'
 		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
 		imagenb=imagenb+'.pbcor'
-		fluxb,errb,unitb,freqb=imfit_point(imagenb,my_dir)
+		fluxb,errb,unitb,freqb,errb_real=imfit_point(imagenb,my_dir)
 		print 'Combined base-band flux density of ',fluxb,' +/- ',errb, unitb
+		print 'Local RMS in Combined base-band image is: ',errb_real,' Jy'
 		dopscb=raw_input('Do you want to do phase selfcal?y or n-->')
 		dict_log.append((ms_name_prefix+'_phself_both',dopscb))
 		if dopscb=='y':
 			selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		date,band_low,'n',spw_full)
-			fluxb_sc,errb_sc,unitb_sc,freqb_sc=imfit_point(scim_both,my_dir)
+			fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
 
 		#writing imfit result to file
 		print 'Writing imfit results to file...'
@@ -1139,21 +1142,21 @@ for kk in range(0,len(ms_name_list)):
 		else:
 			resul_file=open(my_dir+'imfit_results.txt','a')
 		if dopscl=='n' and dopscu=='n' and dopscb=='n':
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freql,fluxl,errl,unitl))
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,frequ,fluxu,erru,unitu))
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freqb,fluxb,errb,unitb))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
 		else:
 			resul_file.write('Pre-selfcal:\n')
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freql,fluxl,errl,unitl))
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,frequ,fluxu,erru,unitu))
-			resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freqb,fluxb,errb,unitb))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
 			resul_file.write('Post selfcal:\n')
 			if dopscl=='y':
-				resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc,errl_real_sc))
 			if dopscu=='y':
-				resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc,erru_real_sc))
 			if dopscb=='y':
-				resul_file.write('{0} {1} {2} {3} {4}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc,errb_real_sc))
 		resul_file.close()
 		###########################################
 

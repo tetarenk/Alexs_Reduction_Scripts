@@ -82,6 +82,14 @@ def imfit_point(pbimage,my_dir):
 	imview(pbimage)
 	raw_input('Please press enter when ready to continue.')
 	box=raw_input('Please enter target box. e.g., x1,y1,x2,y2-->')
+	annulus_rad_inner=raw_input('Please enter inner annulus radius for RMS estimation (e.g., 20)-->')
+	annulus_rad_outer=raw_input('Please enter outer annulus radius for RMS estimation (e.g., 30)-->')
+	x_sizel=float(box.split(',')[0])
+	x_sizeu=float(box.split(',')[2])
+	y_sizel=float(box.split(',')[1])
+	y_sizeu=float(box.split(',')[3])
+	cen_annulus='['+str(((x_sizeu-x_sizel)/2.)+x_sizel)+'pix,'+str(((y_sizeu-y_sizel)/2.)+y_sizel)+'pix]'
+	cen_radius='['+str(annulus_rad_inner)+'pix,'+str(annulus_rad_outer)+'pix]'
 	print 'Fitting point source...'
 	beamMajor = imhead(imagename=pbimage,mode='get',hdkey='beammajor')
 	beamMajor = str(beamMajor['value'])+'arcsec'
@@ -100,9 +108,10 @@ def imfit_point(pbimage,my_dir):
 	tempFile.write(mystring)
 	tempFile.close()
 	fit_res=imfit(imagename=pbimage, box=box, estimates=tempFile.name, append=False, overwrite = True)
+	result_box1=imstat(imagename=pbimage,region='annulus['+cen_annulus+','+cen_radius+']')
 	os.system('rm -rf '+my_dir+'tempfile_fit.txt')
 	return(fit_res['results']['component0']['flux']['value'][0],fit_res['results']['component0']['flux']['error'][0],\
-		fit_res['results']['component0']['flux']['unit'],fit_res['results']['component0']['spectrum']['frequency']['m0']['value'])
+		fit_res['results']['component0']['flux']['unit'],fit_res['results']['component0']['spectrum']['frequency']['m0']['value'],result_box1['rms'][0])
 
 def writeDict(dicti, filename,logdate):
 	ordd=OrderedDict(dicti)
@@ -110,9 +119,6 @@ def writeDict(dicti, filename,logdate):
 		f.write(logdate+':'+'\n')
 		for i in ordd.keys():            
 			f.write(i + " : " + str(ordd[i]) + "\n")
-
-
-
 	
 
 
