@@ -121,7 +121,7 @@ imagen=imagen+'.pbcor'
 flux,err,unit,freq=imfit_point(imagen,my_dir)
 print 'Flux density of ',flux,' +/- ',err, unit
 dopsc=raw_input('Do you want to do phase selfcal?y or n-->')
-if dopscl=='y':
+if dopsc=='y':
 	selfcal,scim=phselfcal(ms_name,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 obsDate,subband,combi,spw,outlierf)
 	flux_sc,err_sc,unit_sc,freq_sc=imfit_point(scim,my_dir)
