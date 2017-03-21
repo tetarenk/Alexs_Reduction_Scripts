@@ -14,6 +14,7 @@ mycell='0.6arcsec'
 mynterms=1
 myniter=5000
 mystokes='I'
+outlierf=''
 #mask options
 mymask=''
 combi='n'

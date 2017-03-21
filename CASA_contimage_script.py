@@ -77,6 +77,7 @@ mycell=data_params.mycell
 mynterms=data_params.mynterms
 myniter=data_params.myniter
 mystokes=data_params.mystokes
+outlierf=data_params.outlierf
 combi=data_params.combi
 #mask options
 mymask=data_params.mymask
@@ -98,13 +99,13 @@ if mymask=='':
 	print 'Cleaning...'
 	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=T,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,outlierfile=outlierf)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 	print 'Cleaning...'
 	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=F,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf)
 if mynterms>1:
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image.tt0'
 else:
@@ -122,7 +123,7 @@ print 'Flux density of ',flux,' +/- ',err, unit
 dopsc=raw_input('Do you want to do phase selfcal?y or n-->')
 if dopscl=='y':
 	selfcal,scim=phselfcal(ms_name,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-obsDate,subband,combi,spw)
+obsDate,subband,combi,spw,outlierf)
 	flux_sc,err_sc,unit_sc,freq_sc=imfit_point(scim,my_dir)
 
 #writing imfit result to file
