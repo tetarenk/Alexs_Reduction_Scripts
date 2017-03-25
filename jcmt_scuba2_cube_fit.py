@@ -97,32 +97,36 @@ print 'Reading in parameters...'
 my_dir='/Users/atetarenk/Desktop/V404_mm_radio_timing_res/jcmt_timing/'
 band=850
 date='jun22'
-do_timing='y'
+do_timing='y'#'n' only fits full data set
 #########
-scan_list8=[36,37,41,42,46,47,52]#850
-flux_ratio8=[2.359/630.371,2.359/630.371,2.359/630.371,2.359/630.371,2.347/645.264,2.347/645.264,2.347/645.264]#850
+scan_list8=[36,37,41,42,46,47,52]#scan numbers at 850
+scan_list4=[36,37,41,42,46]#scan numbers at 450
+w850=1.63#width of gaussian beam in pixels at 850
+w450=2.17#width of gaussian beam in pixels at 450
 ranges8=[[123,133,129,139],[122,132,128,138],[110,125,118,135],[120,130,125,135],[110,135,130,155],\
-[93,123,116,146],[107,123,121,137]]#850
-w850=1.63
-pixrad8=1.2
-psf_dim8=[0,48,0,48]
+[93,123,116,146],[107,123,121,137]]#pixel ranges x1,y1,x2,y2 at 850
+ranges4=[[252,262,267,275],[250,260,266,276],[240,250,260,270],\
+[240,250,245,255],[243,253,278,288]]#pixel ranges x1,y1,x2,y2 at 450
+full_fixed_params=np.array([True, False, False, False, False,False, True], dtype=bool)
+cube_fixed_params=np.array([True, False, True,True,True,True,True], dtype=bool)
+#calibrator scan
+psf_dim8=[0,48,0,48]#dimensions of calibrator scan at 850
+psf_dim4=[0,50,0,50]#dimensions of calibrator scan at 450
 psf_fit_guess8=[0.0,0.8,24,24,1.0,1.0,0.0]#height,amplitude,X,Y,width_x,width_y,rota
-psf_string8=my_dir+'out_crl2688_32_cal_psf.fits'#or54
+psf_string8=my_dir+'out_crl2688_32_cal_psf.fits'#calibrator fits file
 full_fit_guess8=[0.0,1.0,1.0,1.0,1.63,1.63,0.0]#height,amplitude,X,Y,width_x,width_y,rota
-#########
-scan_list4=[36,37,41,42,46]#450
-flux_ratio4=[7.873/641.625,7.873/641.625,7.873/641.625,7.873/641.625,9.701/638.043]#450
-ranges4=[[252,262,267,275],[250,260,266,276],[240,250,260,270],[240,250,245,255],[243,253,278,288]]#450
-w450=2.17
-pixrad4=1.4
-psf_dim4=[0,50,0,50]
 psf_fit_guess4=[0.0,0.8,25,25,1.0,1.0,0.0]#height,amplitude,X,Y,width_x,width_y,rota
 psf_string4=my_dir+'out_crl2688_32_cal4_psf.fits'#or54
 full_fit_guess4=[0.0,1.0,1.0,1.0,2.17,2.17,0.0]#height,amplitude,X,Y,width_x,width_y,rota
-#########
 psf_fixed_params=np.array([True, False, False, False, False, False, True], dtype=bool)
-full_fixed_params=np.array([True, False, False, False, False,False, True], dtype=bool)
-cube_fixed_params=np.array([True, False, True,True,True,True,True], dtype=bool)
+#for aperature photometry, just used as a check against gaussian fit!!
+flux_ratio8=[2.359/630.371,2.359/630.371,2.359/630.371,2.359/630.371,2.347/645.264,2.347/645.264,2.347/645.264]#FCF_aperature/FCF_beam
+flux_ratio4=[7.873/641.625,7.873/641.625,7.873/641.625,7.873/641.625,9.701/638.043]#FCF_aperature/FCF_beam
+pixrad8=1.2#aperature size in pixels
+pixrad4=1.4#aperature size in pixels
+#########################################
+
+
 ####################################
 if band==850:
 	scan_list=scan_list8
