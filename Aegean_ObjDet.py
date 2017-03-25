@@ -9,21 +9,19 @@ OUTPUT: (1) Data file of the parameters of objects found in image--> [tab_file]
         (4) Image of detected sources--> [path_dir]_detected_sources.pdf
 NOTE: - Needs to be run with lmfit 0.7.4, otherwise it won't work.
         (casa-pip install git+git://github.com/lmfit/lmfit-py.git@0.7.4)
-      - Set path to aegean directory at line 20.
+      - Make sure aegean code is in your python path.
 
 Written by: A. Tetarenko
-Last Updated: February 2 2017'''
+Last Updated: February 2 2017
+
+TO RUN SCRIPT independently, go to line 155, set variables in User Input Section and Setup &
+Reading in Params sections, then run either,
+python Aegean_ObjDet.py or casa -c  Aegean_ObjDet.py
+'''
 
 # Import modules
-# Make sure aegean tree of directories in path so you can import it
-import sys
-path_ag='/home/ubuntu/Aegean'
-if os.path.isdir(path_ag):
-  sys.path.append(path_ag)
-else: 
-  raise Exception('Please set the path to the Aegean directory correctly.')
-import aegean
 from AegeanTools.catalogs import save_catalog
+from AegeanTools.source_finder import scope2lat, SourceFinder
 import numpy as np
 from multiprocessing import cpu_count
 import re
@@ -47,33 +45,35 @@ def objdet(tele,lat,out_file0,fits_file,seed,flood,tab_file,catalog_input_name,c
   sources = []
 
   # get latitude for telescope
-  
+
   # adding SMA and NOEMA to list
   if tele == 'SMA':
     lat = 19.8243
   elif tele == 'NOEMA':
     lat = 44.6339
   else:
-    lat = aegean.scope2lat(tele)
-  
+    lat = scope2lat(tele)
+
 
   out_file = open(out_file0, 'w')
 
+  sf = SourceFinder()
+
   print 'Running Aegean Object Detection -->'
-  detections = aegean.find_sources_in_image(fits_file,
-                                          outfile=out_file,
-                                          hdu_index=0,
-                                          rms=None,
-                                          max_summits=None,
-                                          innerclip=seed,
-                                          outerclip=flood,
-                                          cores=cpu_count(),
-                                          rmsin=None,
-                                          bkgin=None, beam=None,
-                                          doislandflux=False,
-                                          nonegative=not False,
-                                          nopositive=False,
-                                          mask=None, lat=lat, imgpsf=None)
+  detections = sf.find_sources_in_image(fits_file,
+                                        outfile=out_file,
+                                        hdu_index=0,
+                                        rms=None,
+                                        max_summits=None,
+                                        innerclip=seed,
+                                        outerclip=flood,
+                                        cores=cpu_count(),
+                                        rmsin=None,
+                                        bkgin=None, beam=None,
+                                        doislandflux=False,
+                                        nonegative=not False,
+                                        nopositive=False,
+                                        mask=None, lat=lat, imgpsf=None)
   out_file.flush()
   out_file.close()
   if len(detections) == 0:
@@ -163,15 +163,20 @@ if __name__ == "__main__":
   ##################################
   #Reading in Parameters
   ##################################
-  # Label for casa output directories and files.
+  ## Label for casa output directories and files.
   fits_file = path_dir+'target_source_image.fits'
   out_file0 = path_dir+'Source_XXGHz_Date_whole_dataset_aegean.txt'
-  # aegean parameters
+  ## aegean parameters
   seed = 10
   flood = 4
   tele = 'VLA'
-  lat=''
+  lat=''#only need if you get error that telescope not in predefined list; in degrees
   cellSize_string = '0.2arcsec'
+  ## params for displayed image of detetced sources
+  imsize=1024
+  imunit='m'#intensity unit in image; 'm'=mJy, 'u'=uJy, 'n'=nJy, ''=Jy
+  gam=0.3#powerlaw scaling in image intensity; 1=linear scaling
+  vmax=15.#max intensity in image in imunit units
   ##################################
 
   ##################################
@@ -183,27 +188,40 @@ if __name__ == "__main__":
   #run aegean
   src_l, ra_l, dec_l, maj_l, min_l, pos_l=objdet(tele,lat,out_file0,fits_file,seed,\
     flood,tab_file,catalog_input_name,cellSize_string)
+  print 'The number of sources detected is: ', len(src_l)
   ##################################
 
   ##################################
-  #Plotting and Region Files 
+  #Plotting and Region Files
   #of Detected Sources
   ##################################
   if len(src_l)>0:
+    print 'Writing rgeion files and plotting labelled map of detected sources...'
     #read in fits image file for plotting and get wcs header
     fits_file1=fits_file
     hdulist1 = fits.open(fits_file1)[0]
     data1=hdulist1.data
     wmap1=wcs.WCS(hdulist1.header)
     #write region files of detected sources
+    os.system('rm -rf '+path_dir+'casa_region.txt')
+    os.system('rm -rf '+path_dir+'ds9_region.reg')
     casa_reg_file(src_l,ra_l,dec_l,maj_l,min_l,pos_l,path_dir+'casa_region.txt',wmap1)
     ds9_reg_file(src_l,ra_l,dec_l,maj_l,min_l,pos_l,path_dir+'ds9_region.reg',3)
+    #set units
+    if imunit=='m':
+      scaler=1e3
+    elif imunit=='u':
+      scaler=1e6
+    elif imunit=='n':
+      scaler=1e9
+    elif imunit=='':
+      scaler=1.
     #plot map with all detected sources labelled
     fig=plt.figure()
     plt.rc('xtick.major', size=4)
     plt.rc('xtick', color='w', labelsize='large')
     ax1 = fig.add_subplot(111, projection=wmap1.celestial)
-    im=plt.imshow(np.nan_to_num(data1[0,0,:,:])*1e6,origin="lower",cmap=cm.get_cmap('jet', 500),norm=colors.PowerNorm(gamma=0.5),vmin=0.0,vmax=300.)
+    im=plt.imshow(np.nan_to_num(data1[0,0,:,:])*scaler,origin="lower",cmap=cm.get_cmap('jet', 500),norm=colors.PowerNorm(gamma=gam),vmin=0.0,vmax=vmax)
     cbar=plt.colorbar(im, orientation='vertical',fraction=0.04,pad=0)
     cbar.set_label('uJy/beam')
     for i in range(0,len(src_l)):
@@ -222,10 +240,18 @@ if __name__ == "__main__":
     ax1.coords['ra'].set_axislabel('Right Ascension')
     ax1.coords['dec'].set_axislabel('Declination',minpad=-0.1)
     ax1.coords['ra'].set_major_formatter('hh:mm:ss.s')
-    ax1.set_ylim(0,2048)
-    ax1.set_xlim(0,2048)
+    ax1.set_ylim(0,imsize)
+    ax1.set_xlim(0,imsize)
     plt.savefig(path_dir+'detected_sources.pdf',bbox_inches='tight')
     plt.show()
   else:
     print 'No sources detected, so no region files or plot written.'
+  ##################################
+
+  #remove temp files and .last/.log files created by CASA/ipython
+  os.system('rm -rf *.last')
+  os.system('rm -rf *.log')
+  print '*********************************************************'
+  print 'Script finished. Please inspect resulting data products'
+  print '*********************************************************'
   ##################################
