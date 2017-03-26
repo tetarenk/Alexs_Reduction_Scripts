@@ -37,7 +37,7 @@ mypars=$my_dir/mypars.lis
 
 #download data
 #echo 'Downloading data...'
-#wget --http-user=tetarenk --http-password=skateBEC --content-disposition -i $file_lst
+#wget --http-user=[cadc_user] --http-password=[cadc_password] --content-disposition -i $file_lst
 
 echo '###############################################'
 echo 'Welcome to Alexs JCMT SCUBA-2 Reduction Script'
