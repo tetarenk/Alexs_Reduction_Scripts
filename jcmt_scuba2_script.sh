@@ -379,6 +379,11 @@ then
 	fi
 fi
 
+#remove adam directories that starlink creates
+echo 'Cleaning up...'
+rm -rf $my_dir/adam*
+rm -rf adam*
+
 echo '********************************************************************'
 echo 'The script is finished. Please inspect the resulting data products.'
 echo '********************************************************************'
