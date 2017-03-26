@@ -81,7 +81,7 @@ then
 		echo "   shortmap=$shortm4" >> $my_dir/dimmconfig'_'bright'_'compact_shortmap4.lis
 	fi
 fi
-read -r -p 'Please press enter when ready to continue >>> '
+#read -r -p 'Please press enter when ready to continue >>> '
 Nscans=$(expr $numscans - 1)
 for i in $(seq 0 $Nscans)
 do
@@ -96,16 +96,16 @@ do
 	rm -rf $my_dir/$target'_'450'_'$scan4.lst
 	ls $data_dir/s8*$date'_'000$scan8*.sdf > $my_dir/$target'_'850'_'$scan8.lst
 	ls $data_dir/s4*$date'_'000$scan4*.sdf > $my_dir/$target'_'450'_'$scan4.lst
-	read -r -p 'Please press enter when ready to continue >>> '
+	#read -r -p 'Please press enter when ready to continue >>> '
 	#make full scan maps
 	rm -rf $my_dir/$target'_'$scan8'_850_fullmap.sdf'
 	rm -rf $my_dir/$target'_'$scan4'_450_fullmap.sdf'
 	echo 'Making 850um map for full target scan...'
 	makemap in=^$my_dir/$target'_'850'_'$scan8.lst out=$my_dir/$target'_'$scan8'_850_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
-	read -r -p 'Please press enter when ready to continue >>> '
+	#read -r -p 'Please press enter when ready to continue >>> '
 	echo 'Making 450um map for full target scan...'
 	makemap in=^$my_dir/$target'_'450'_'$scan4.lst out=$my_dir/$target'_'$scan4'_450_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
-	read -r -p 'Please press enter when ready to continue >>> '
+	#read -r -p 'Please press enter when ready to continue >>> '
 
 	#calibrate to Jy
 	#reduce cal scan
@@ -120,7 +120,7 @@ do
 		ls $data_dir/s8*$date'_'000$cal_scan8*.sdf > $my_dir/$cal'_'850'_'$cal_scan8.lst 
 		echo 'Making 850um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'850'_'$cal_scan8.lst out=$my_dir/$cal'_'$cal_scan8'_850_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		# run picard recipe,sf prints to screen and log file (-log sf)
 		echo 'Running SCUBA2_CHECK_CAL recipe for 850um cal scan...'
 		picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$cal_scan8'_850_fullmap.sdf'
@@ -135,7 +135,7 @@ do
 		ls $data_dir/s4*$date'_'000$cal_scan4*.sdf > $my_dir/$cal'_'450'_'$cal_scan4.lst
 		echo 'Making 450um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'450'_'$cal_scan4.lst out=$my_dir/$cal'_'$cal_scan4'_450_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		# run picard recipe,sf prints to screen and log file (-log sf)
 		echo 'Running SCUBA2_CHECK_CAL recipe for 450um cal scan...'
 		picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$cal_scan4'_450_fullmap.sdf'
@@ -263,10 +263,10 @@ do
 		rm -rf $my_dir/$target'_'$scan4'_450_shortmap_cube_cal.fits'
 		echo 'Making 850 shortmaps cube...'
 		makemap in=^$my_dir/$target'_'850'_'$scan8.lst out=$my_dir/$target'_'$scan8'_850_shortmap' config=^$my_dir/dimmconfig'_'bright'_'compact_shortmap8.lis
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Stacking all 850um shortmaps...'
 		stackframes $my_dir/$target'_'$scan8'_850_shortmap.more.smurf.shortmaps' sort=true sortby=MJD-AVG $my_dir/$target'_'$scan8'_850_shortmap_cube.sdf'
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		FILE_CALTIM8=$my_dir/$cal'_'$cal_scan8'_850_shortmap.sdf'
 		if [ -f $FILE_CALTIM8 ]
 		then
@@ -274,7 +274,7 @@ do
 		else
 			echo 'Making 850um shortmaps for cal scan...'
 			makemap in=^$my_dir/$cal'_'850'_'$cal_scan8.lst out=$my_dir/$cal'_'$cal_scan8'_850_shortmap' config=^$my_dir/dimmconfig'_'bright'_'compact_shortmap8.lis
-			read -r -p 'Please press enter when ready to continue >>> '
+			#read -r -p 'Please press enter when ready to continue >>> '
 			echo 'Stacking all 850um cal shortmaps...'
 			stackframes $my_dir/$cal'_'$cal_scan8'_850_shortmap.more.smurf.shortmaps' sort=true sortby=MJD-AVG $my_dir/$cal'_'$cal_scan8'_850_shortmap_cube.sdf'
 			echo 'Running SCUBA2_CHECK_CAL recipe for 850um cal shortmap cube...'
@@ -284,13 +284,13 @@ do
 		fi
 		echo 'Running cmult to do absolute flux calibration on target shortmaps cube...'
 		cmult in=$my_dir/$target'_'$scan8'_850_shortmap_cube.sdf' out=$my_dir/$target'_'$scan8'_850_shortmap_cube_cal.sdf' scalar=$fcf8short
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Making 450 shortmaps cube...'
 		makemap in=^$my_dir/$target'_'450'_'$scan4.lst out=$my_dir/$target'_'$scan4'_450_shortmap' config=^$my_dir/dimmconfig'_'bright'_'compact_shortmap4.lis
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Stacking all 450um shortmaps...'
 		stackframes $my_dir/$target'_'$scan4'_450_shortmap.more.smurf.shortmaps' sort=true sortby=MJD-AVG $my_dir/$target'_'$scan4'_450_shortmap_cube.sdf'
-		read -r -p 'Please press enter when ready to continue >>> '
+		#read -r -p 'Please press enter when ready to continue >>> '
 		FILE_CALTIM4=$my_dir/$cal'_'$cal_scan4'_450_shortmap.sdf'
 		if [ -f $FILE_CALTIM4 ]
 		then
@@ -298,7 +298,7 @@ do
 		else
 			echo 'Making 450um shortmaps for cal scan...'
 			makemap in=^$my_dir/$cal'_'450'_'$cal_scan4.lst out=$my_dir/$cal'_'$cal_scan4'_450_shortmap' config=^$my_dir/dimmconfig'_'bright'_'compact_shortmap4.lis
-			read -r -p 'Please press enter when ready to continue >>> '
+			#read -r -p 'Please press enter when ready to continue >>> '
 			echo 'Stacking all 450um cal shortmaps...'
 			stackframes $my_dir/$cal'_'$cal_scan4'_450_shortmap.more.smurf.shortmaps' sort=true sortby=MJD-AVG $my_dir/$cal'_'$cal_scan4'_450_shortmap_cube.sdf'
 			echo 'Running SCUBA2_CHECK_CAL recipe for 450um cal shortmap cube...'
