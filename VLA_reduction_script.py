@@ -998,208 +998,214 @@ for kk in range(0,len(ms_name_list)):
 	##########################################
 	##split out target
 	##########################################
-	os.system('rm -rf '+split_low)
-	os.system('rm -rf '+split_high)
-	os.system('rm -rf '+split_full)
-	print 'Splitting out target data for both base-bands...'
-	split(vis=ms_name,outputvis=split_low,\
-		datacolumn='corrected',field=target_id,antenna='',spw=spw_low)
-	split(vis=ms_name,outputvis=split_high,\
-		datacolumn='corrected',field=target_id,antenna='',spw=spw_high)
-	split(vis=ms_name,outputvis=split_full,\
-		datacolumn='corrected',field=target_id,antenna='',spw=spw_full)
-	##########################################
-	if doImage=='T':
-		###########################################
-		##Imaging
-		###########################################
-		if intera=='n':
-			print '**********************************************'
-			print 'Entering interactive part of script again...'
-			print '**********************************************'
-		print 'Imaging...'
-		if use_auto=='T':
-			myimsize=set_imagesize(split_low,0,'0')
-			mycell=set_cellsize(split_low,0)
-		print 'Lower base-band...'
-		if mymask=='':
-			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
-			print 'Using interactive mode so you can make a mask...'
-			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
-		else:
-			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
-			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
-		if mynterms>1:
-			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
-		else:
-			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
-		print 'Correcting for PB...'
-		os.system('rm -rf '+imagenl+'.pbcor')
-		os.system('rm -rf '+imagenl+'.pbcor.fits')
-		immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.flux'],\
-			expr='IM0/IM1',outfile=imagenl+'.pbcor')
-		print 'Making fits image...'
-		exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
-		imagenl=imagenl+'.pbcor'
-		fluxl,errl,unitl,freql,errl_real=imfit_point(imagenl,my_dir)
-		print 'Lower base-band flux density of ',fluxl,' +/- ',errl, unitl
-		print 'Local RMS in Lower base-band image is: ',errl_real,' Jy'
-		dopscl=raw_input('Do you want to do phase selfcal?y or n-->')
-		dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
-		if dopscl=='y':
-			selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'n',spw_low)
-			fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
-		
-		print 'Upper base-band...'
-		if use_auto=='T':
-			myimsize=set_imagesize(split_high,0,'0')
-			mycell=set_cellsize(split_high,0)
-		if mymask=='':
-			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
-			print 'Using interactive mode so you can make a mask...'
-			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
-		else:
-			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
-			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
-		if mynterms>1:
-			imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
-		else:
-			imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
-		print 'Correcting for PB...'
-		os.system('rm -rf '+imagenu+'.pbcor')
-		os.system('rm -rf '+imagenu+'.pbcor.fits')
-		immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.flux'],\
-			expr='IM0/IM1',outfile=imagenu+'.pbcor')
-		print 'Making fits image...'
-		exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
-		imagenu=imagenu+'.pbcor'
-		fluxu,erru,unitu,frequ,erru_real=imfit_point(imagenu,my_dir)
-		print 'Upper base-band flux density of ',fluxu,' +/- ',erru, unitu
-		print 'Local RMS in Upper base-band image is: ',erru_real,' Jy'
-		dopscu=raw_input('Do you want to do phase selfcal?y or n-->')
-		dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
-		if dopscu=='y':
-			selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'n',spw_high)
-			fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
-
-		print 'Combined base-band...'
-		if use_auto=='T':
-			myimsize=set_imagesize(split_full,0,'0')
-			mycell=set_cellsize(split_full,0)
-		if mymask=='':
-			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
-			print 'Using interactive mode so you can make a mask...'
-			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
-		else:
-			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
-			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
-		if mynterms>1:
-			imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
-		else:
-			imagenb=my_dir+target+'_'+date+'_both_clean1.image'
-		print 'Correcting for PB...'
-		os.system('rm -rf '+imagenb+'.pbcor')
-		os.system('rm -rf '+imagenb+'.pbcor.fits')
-		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
-			expr='IM0/IM1',outfile=imagenb+'.pbcor')
-		print 'Making fits image...'
-		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
-		imagenb=imagenb+'.pbcor'
-		fluxb,errb,unitb,freqb,errb_real=imfit_point(imagenb,my_dir)
-		print 'Combined base-band flux density of ',fluxb,' +/- ',errb, unitb
-		print 'Local RMS in Combined base-band image is: ',errb_real,' Jy'
-		dopscb=raw_input('Do you want to do phase selfcal?y or n-->')
-		dict_log.append((ms_name_prefix+'_phself_both',dopscb))
-		if dopscb=='y':
-			selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'n',spw_full)
-			fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
-
-		#writing imfit result to file
-		print 'Writing imfit results to file...'
-		if firstf=='y':
-			resul_file=open(my_dir+'imfit_results.txt','w')
-		else:
-			resul_file=open(my_dir+'imfit_results.txt','a')
-		if dopscl=='n' and dopscu=='n' and dopscb=='n':
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
-		else:
-			resul_file.write('Pre-selfcal:\n')
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
-			resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
-			resul_file.write('Post selfcal:\n')
-			if dopscl=='y':
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc,errl_real_sc))
-			if dopscu=='y':
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc,erru_real_sc))
-			if dopscb=='y':
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc,errb_real_sc))
-		resul_file.close()
-		###########################################
-
-		###########################################
-		#UVfitting
-		###########################################
-		if uv_fit=='T':
-			print 'Performing UV fitting...'
-			comp_uv='delta'
-			stokes_param=mystokes
+	for iii in range(0,len(target_lst)):
+		os.system('rm -rf '+split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
+		os.system('rm -rf '+split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
+		os.system('rm -rf '+split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
+		print 'Splitting out target data for both base-bands...'
+		split(vis=ms_name,outputvis=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_low)
+		split(vis=ms_name,outputvis=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_high)
+		split(vis=ms_name,outputvis=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_full)
+		split_low=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
+		split_high=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
+		split_full=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
+		##########################################
+		if doImage=='T':
+			###########################################
+			##Imaging
+			###########################################
+			if intera=='n':
+				print '**********************************************'
+				print 'Entering interactive part of script again...'
+				print '**********************************************'
+			print 'Imaging...'
+			if use_auto=='T':
+				myimsize=set_imagesize(split_low,0,'0')
+				mycell=set_cellsize(split_low,0)
 			print 'Lower base-band...'
-			comblsb=split_low.strip('.ms')
-			mstransform(vis=split_low, outputvis=comblsb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-			fitfulluv_low=uvm.uvmultifit(vis=comblsb+'_mstrans.ms', spw='', column = "data", \
-				uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'lsbmodelfit.dat',\
-				var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
-			src_uv_init_low=fitfulluv_low.result['Parameters'][2]
-			src_uv_err_low=fitfulluv_low.result['Uncertainties'][2]
-			print 'Upper base-band...'
-			combusb=split_high.strip('.ms')
-			mstransform(vis=split_high, outputvis=combusb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-			fitfulluv_high=uvm.uvmultifit(vis=combusb+'_mstrans.ms', spw='', column = "data", \
-				uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'usbmodelfit.dat',\
-				var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
-			src_uv_init_high=fitfulluv_high.result['Parameters'][2]
-			src_uv_err_high=fitfulluv_high.result['Uncertainties'][2]
-			print 'Combined base-band...'
-			combboth=split_full.strip('.ms')
-			mstransform(vis=split_full, outputvis=combboth+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-			fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data", \
-				uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'combmodelfit.dat',\
-				var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
-			src_uv_init=fitfulluv.result['Parameters'][2]
-			src_uv_err=fitfulluv.result['Uncertainties'][2]
-			print 'Writing uvfit results to file...'
-			if firstf=='y':
-				resuluv_file=open(my_dir+'uvfit_results.txt','w')
+			if mymask=='':
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
+				print 'Using interactive mode so you can make a mask...'
+				print 'Cleaning...'
+				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
 			else:
-				resuluv_file=open(my_dir+'uvfit_results.txt','a')
-			resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'lower',src_uv_init_low,src_uv_err_low))
-			resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'upper',src_uv_init_high,src_uv_err_high))
-			resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'combined',src_uv_init,src_uv_err))
-			resuluv_file.close()
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
+				print 'Cleaning...'
+				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+			if mynterms>1:
+				imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
+			else:
+				imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
+			print 'Correcting for PB...'
+			os.system('rm -rf '+imagenl+'.pbcor')
+			os.system('rm -rf '+imagenl+'.pbcor.fits')
+			immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.flux'],\
+				expr='IM0/IM1',outfile=imagenl+'.pbcor')
+			print 'Making fits image...'
+			exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
+			imagenl=imagenl+'.pbcor'
+			fluxl,errl,unitl,freql,errl_real=imfit_point(imagenl,my_dir)
+			print 'Lower base-band flux density of ',fluxl,' +/- ',errl, unitl
+			print 'Local RMS in Lower base-band image is: ',errl_real,' Jy'
+			dopscl=raw_input('Do you want to do phase selfcal?y or n-->')
+			dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
+			if dopscl=='y':
+				selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+			date,band_low,'n',spw_low)
+				fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
+			
+			print 'Upper base-band...'
+			if use_auto=='T':
+				myimsize=set_imagesize(split_high,0,'0')
+				mycell=set_cellsize(split_high,0)
+			if mymask=='':
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
+				print 'Using interactive mode so you can make a mask...'
+				print 'Cleaning...'
+				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+			else:
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
+				print 'Cleaning...'
+				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+			if mynterms>1:
+				imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
+			else:
+				imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
+			print 'Correcting for PB...'
+			os.system('rm -rf '+imagenu+'.pbcor')
+			os.system('rm -rf '+imagenu+'.pbcor.fits')
+			immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.flux'],\
+				expr='IM0/IM1',outfile=imagenu+'.pbcor')
+			print 'Making fits image...'
+			exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
+			imagenu=imagenu+'.pbcor'
+			fluxu,erru,unitu,frequ,erru_real=imfit_point(imagenu,my_dir)
+			print 'Upper base-band flux density of ',fluxu,' +/- ',erru, unitu
+			print 'Local RMS in Upper base-band image is: ',erru_real,' Jy'
+			dopscu=raw_input('Do you want to do phase selfcal?y or n-->')
+			dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
+			if dopscu=='y':
+				selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+			date,band_low,'n',spw_high)
+				fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
+
+			print 'Combined base-band...'
+			if use_auto=='T':
+				myimsize=set_imagesize(split_full,0,'0')
+				mycell=set_cellsize(split_full,0)
+			if mymask=='':
+				os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
+				print 'Using interactive mode so you can make a mask...'
+				print 'Cleaning...'
+				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+			else:
+				os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
+				print 'Cleaning...'
+				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+			if mynterms>1:
+				imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
+			else:
+				imagenb=my_dir+target+'_'+date+'_both_clean1.image'
+			print 'Correcting for PB...'
+			os.system('rm -rf '+imagenb+'.pbcor')
+			os.system('rm -rf '+imagenb+'.pbcor.fits')
+			immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
+				expr='IM0/IM1',outfile=imagenb+'.pbcor')
+			print 'Making fits image...'
+			exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
+			imagenb=imagenb+'.pbcor'
+			fluxb,errb,unitb,freqb,errb_real=imfit_point(imagenb,my_dir)
+			print 'Combined base-band flux density of ',fluxb,' +/- ',errb, unitb
+			print 'Local RMS in Combined base-band image is: ',errb_real,' Jy'
+			dopscb=raw_input('Do you want to do phase selfcal?y or n-->')
+			dict_log.append((ms_name_prefix+'_phself_both',dopscb))
+			if dopscb=='y':
+				selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+			date,band_low,'n',spw_full)
+				fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
+
+			#writing imfit result to file
+			print 'Writing imfit results to file...'
+			if firstf=='y':
+				resul_file=open(my_dir+'imfit_results.txt','w')
+			else:
+				resul_file=open(my_dir+'imfit_results.txt','a')
+			if dopscl=='n' and dopscu=='n' and dopscb=='n':
+				resul_file.write('Target'+str(target_id[iii])+':\n')
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
+			else:
+				resul_file.write('Target'+str(target_id[iii])+':\n')
+				resul_file.write('Pre-selfcal:\n')
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
+				resul_file.write('Post selfcal:\n')
+				if dopscl=='y':
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc,errl_real_sc))
+				if dopscu=='y':
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc,erru_real_sc))
+				if dopscb=='y':
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc,errb_real_sc))
+			resul_file.close()
+			###########################################
+
+			###########################################
+			#UVfitting
+			###########################################
+			if uv_fit=='T':
+				print 'Performing UV fitting...'
+				comp_uv='delta'
+				stokes_param=mystokes
+				print 'Lower base-band...'
+				comblsb=split_low.strip('.ms')
+				mstransform(vis=split_low, outputvis=comblsb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
+				fitfulluv_low=uvm.uvmultifit(vis=comblsb+'_mstrans.ms', spw='', column = "data", \
+					uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'lsbmodelfit.dat',\
+					var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+				src_uv_init_low=fitfulluv_low.result['Parameters'][2]
+				src_uv_err_low=fitfulluv_low.result['Uncertainties'][2]
+				print 'Upper base-band...'
+				combusb=split_high.strip('.ms')
+				mstransform(vis=split_high, outputvis=combusb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
+				fitfulluv_high=uvm.uvmultifit(vis=combusb+'_mstrans.ms', spw='', column = "data", \
+					uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'usbmodelfit.dat',\
+					var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+				src_uv_init_high=fitfulluv_high.result['Parameters'][2]
+				src_uv_err_high=fitfulluv_high.result['Uncertainties'][2]
+				print 'Combined base-band...'
+				combboth=split_full.strip('.ms')
+				mstransform(vis=split_full, outputvis=combboth+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
+				fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data", \
+					uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'combmodelfit.dat',\
+					var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+				src_uv_init=fitfulluv.result['Parameters'][2]
+				src_uv_err=fitfulluv.result['Uncertainties'][2]
+				print 'Writing uvfit results to file...'
+				if firstf=='y':
+					resuluv_file=open(my_dir+'uvfit_results.txt','w')
+				else:
+					resuluv_file=open(my_dir+'uvfit_results.txt','a')
+				resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'lower',src_uv_init_low,src_uv_err_low))
+				resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'upper',src_uv_init_high,src_uv_err_high))
+				resuluv_file.write('{0} {1} {2} {3}\n'.format(band,'combined',src_uv_init,src_uv_err))
+				resuluv_file.close()
 
 	if ms_name_list[kk]==ms_name_list[-1]:
 		print 'Finished ', ms_name,'.'
