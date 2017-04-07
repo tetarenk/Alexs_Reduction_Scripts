@@ -86,6 +86,10 @@ mycell=data_params.mycell
 myniter=data_params.myniter
 mynterms=data_params.mynterms
 mystokes=data_params.mystokes
+outlierfile=data_params.outlierfile
+multiscale=data_params.multiscale
+robust=data_params.robust
+weighting=data_params.weighting
 #mask options
 mymask=data_params.mymask
 #uv fitting
@@ -1041,14 +1045,14 @@ for kk in range(0,len(ms_name_list)):
 				print 'Using interactive mode so you can make a mask...'
 				print 'Cleaning...'
 				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 			else:
 				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 				print 'Cleaning...'
 				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 			if mynterms>1:
 				imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
 			else:
@@ -1068,7 +1072,7 @@ for kk in range(0,len(ms_name_list)):
 			dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
 			if dopscl=='y':
 				selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_low)
+			date,band_low,'n',spw_low,outlierfile,multiscale,robust,weighting)
 				fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
 			
 			print 'Upper base-band...'
@@ -1080,14 +1084,14 @@ for kk in range(0,len(ms_name_list)):
 				print 'Using interactive mode so you can make a mask...'
 				print 'Cleaning...'
 				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robustoutlierfile=outlierfile)
 			else:
 				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 				print 'Cleaning...'
 				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robustoutlierfile=outlierfile)
 			if mynterms>1:
 				imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
 			else:
@@ -1107,7 +1111,7 @@ for kk in range(0,len(ms_name_list)):
 			dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
 			if dopscu=='y':
 				selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_high)
+			date,band_low,'n',spw_high,outlierfile,multiscale,robust,weighting)
 				fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
 
 			print 'Combined base-band...'
@@ -1119,14 +1123,14 @@ for kk in range(0,len(ms_name_list)):
 				print 'Using interactive mode so you can make a mask...'
 				print 'Cleaning...'
 				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 			else:
 				os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 				print 'Cleaning...'
 				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes)
+					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 			if mynterms>1:
 				imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
 			else:
@@ -1146,7 +1150,7 @@ for kk in range(0,len(ms_name_list)):
 			dict_log.append((ms_name_prefix+'_phself_both',dopscb))
 			if dopscb=='y':
 				selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_full)
+			date,band_low,'n',spw_full,outlierfile,multiscale,robust,weighting)
 				fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
 
 			#writing imfit result to file

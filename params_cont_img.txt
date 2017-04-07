@@ -15,6 +15,9 @@ mynterms=1
 myniter=5000
 mystokes='I'
 outlierf=''
+multiscale=[]
+robust=0.0
+weighting='natural'
 #mask options
 mymask=''
 combi='n'

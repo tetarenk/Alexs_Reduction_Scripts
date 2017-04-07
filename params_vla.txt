@@ -16,6 +16,10 @@ mycell='0.6arcsec'
 mynterms=2
 myniter=5000
 mystokes='I'
+outlierf=''
+multiscale=[]
+robust=0.0
+weighting='natural'
 #mask options
 mymask=''
 #uv fitting

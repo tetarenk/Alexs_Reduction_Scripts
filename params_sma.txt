@@ -18,6 +18,9 @@ myimsize=512
 mycell='0.2arcsec'
 mynterms=2
 myniter=5000
+multiscale=[]
+robust=0.0
+weighting='natural'
 #mask options
 mymask=''
 #uv fitting

@@ -79,6 +79,9 @@ myniter=data_params.myniter
 mystokes=data_params.mystokes
 outlierf=data_params.outlierf
 combi=data_params.combi
+multiscale=data_params.multiscale
+robust=data_params.robust
+weighting=data_params.weighting
 #mask options
 mymask=data_params.mymask
 #uv fitting
@@ -98,14 +101,14 @@ if mymask=='':
 	print 'Using interactive mode so you can make a mask...'
 	print 'Cleaning...'
 	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=T,\
-		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,outlierfile=outlierf)
+		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 	print 'Cleaning...'
 	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=F,\
-		cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',threshold=mythreshold,\
-		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf)
+		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 if mynterms>1:
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image.tt0'
 else:
@@ -124,7 +127,7 @@ print 'Local RMS in image is: ',err_real,' Jy'
 dopsc=raw_input('Do you want to do phase selfcal?y or n-->')
 if dopsc=='y':
 	selfcal,scim=phselfcal(ms_name,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-obsDate,subband,combi,spw,outlierf)
+obsDate,subband,combi,spw,outlierf,multiscale,robust,weighting)
 	flux_sc,err_sc,unit_sc,freq_sc,err_real_sc=imfit_point(scim,my_dir)
 
 #writing imfit result to file
