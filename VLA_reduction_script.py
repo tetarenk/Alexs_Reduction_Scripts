@@ -931,54 +931,64 @@ for kk in range(0,len(ms_name_list)):
 			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
 		raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
 		print '(3) Second cal phase spectra'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
-			coloraxis='corr',spw=spw_low)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
+				coloraxis='corr',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
 		print '(4) Second cal amp vs phase'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
-			plotrange=[-180,180,0,3],coloraxis='field',spw=spw_low)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
+				plotrange=[-180,180,0,3],coloraxis='field',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
 		print '(5) Target amp vs uvdist'
-		plotms(vis=ms_name,field=target_id,correlation='',timerange='',antenna='',avgtime='60s',\
-			xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(target_lst)):
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+				xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
 		print '(6) Target amp vs time'
-		plotms(vis=ms_name,field=target_id,correlation='',timerange='',antenna='',avgtime='60s',\
-			xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(target_lst)):
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+				xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
 		print 'Upper base-band...'
 		print '(1) BP spectra amp'
 		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',\
 			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
 		raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
 		print '(3) Second cal phase spectra'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
-			coloraxis='corr',spw=spw_high)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
+				coloraxis='corr',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
 		print '(4) Second cal amp vs phase'
-		plotms(vis=ms_name,field=second_cal,correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
-			xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
-			plotrange=[-180,180,0,3],coloraxis='field',spw=spw_high)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(second_lst)):
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+				xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
+				plotrange=[-180,180,0,3],coloraxis='field',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
 		print '(5) Target amp vs uvdist'
-		plotms(vis=ms_name,field=target_id,correlation='',timerange='',antenna='',avgtime='60s',\
-			xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(target_lst)):
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+				xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
 		print '(6) Target amp vs time'
-		plotms(vis=ms_name,field=target_id,correlation='',timerange='',antenna='',avgtime='60s',\
-			xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
-		raw_input('Please press enter when ready to continue.')
+		for i in range(0,len(target_lst)):
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+				xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
 		extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		dict_log.append((ms_name_prefix+'_check_flag',extraf))
 		if extraf=='y':
