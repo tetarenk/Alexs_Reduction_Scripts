@@ -1019,17 +1019,20 @@ for kk in range(0,len(ms_name_list)):
 		os.system('rm -rf '+split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
 		os.system('rm -rf '+split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
 		print 'Splitting out target data for both base-bands...'
-		split(vis=ms_name,outputvis=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+		split(vis=ms_name,outputvis=cal_table_prefix+'_'+band_low+'_TID'+str(target_lst[iii])+'.ms',\
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_low)
-		split(vis=ms_name,outputvis=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+		split(vis=ms_name,outputvis=cal_table_prefix+'_'+band_high+'_TID'+str(target_lst[iii])+'.ms',\
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_high)
-		split(vis=ms_name,outputvis=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
+		split(vis=ms_name,outputvis=cal_table_prefix+'_comb.ms'+'_TID'+str(target_lst[iii])+'.ms',\
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_full)
-		split_low=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
-		split_high=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
-		split_full=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
 		##########################################
 		if doImage=='T':
+			split_low=cal_table_prefix+'_'+band_low+'.ms'
+			split_high=cal_table_prefix+'_'+band_high+'.ms'
+			split_full=cal_table_prefix+'_comb.ms'
+			split_low=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
+			split_high=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
+			split_full=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
 			###########################################
 			##Imaging
 			###########################################
