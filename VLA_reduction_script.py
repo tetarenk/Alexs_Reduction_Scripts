@@ -995,16 +995,18 @@ for kk in range(0,len(ms_name_list)):
 			raw_input('Please press enter when ready to continue.')
 		extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		dict_log.append((ms_name_prefix+'_check_flag',extraf))
-		if extraf=='y':
+		while extraf=='y':
 			badasfextra=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
 			dict_log.append((ms_name_prefix+'_check_flag_antspwfield',badasfextra))
 			if badasfextra=='':
 				print 'Nothing to flag.'
+				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 			else:
 				print 'Flagging selected data.'
 				for i in range(0,len(badasfextra)):
 					strge=badasfextra[i].split(';')
 					flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2])
+				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		else:
 			print 'No extra flagging requested.'
 	##########################################
