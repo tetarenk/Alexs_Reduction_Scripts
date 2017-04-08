@@ -1020,11 +1020,11 @@ for kk in range(0,len(ms_name_list)):
 		os.system('rm -rf '+split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms')
 		print 'Splitting out target data for both base-bands...'
 		split(vis=ms_name,outputvis=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
-			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_low)
+			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_low)
 		split(vis=ms_name,outputvis=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
-			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_high)
+			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_high)
 		split(vis=ms_name,outputvis=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms',\
-			datacolumn='corrected',field=target_id[iii],antenna='',spw=spw_full)
+			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_full)
 		split_low=split_low.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
 		split_high=split_high.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
 		split_full=split_full.strip('.ms')+'_TID'+str(target_lst[iii])+'.ms'
