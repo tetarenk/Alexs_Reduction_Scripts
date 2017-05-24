@@ -5,15 +5,17 @@
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for each band (and base-band) -- [target]_[obsDate]_[band]_[baseband].ms
         (2) Continuum images in each band (and base-band) -- [target]_[obsDate]_[band]_[baseband]_clean1.image(.tt0).pbcor
-        (3) File of flux densities from image/UV plane fitting -- imfit_results.txt/uvfit_results.txt
+		(3) (optional) Stokes Cube in each full band -- [target]_[obsDate]_[band]_polcube_IQUV.image(.tt0).pbcor
+		(4) (optional) Individual Stokes images in each full band -- [target]_[obsDate]_[band]_polcube.[I,Q,U, or V]
+		(5) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_polcube.[PA or FP]
+        (3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results.txt/uvfit_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
        - This script is intended to be used with raw data.
        - All input logged in user_input.log.
        - If autoflag is used summary presented in autoflag_log.txt
 Written by: Alex J. Tetarenko
-Last Updated: Jan 3 2017'''
-#Still need to add pol cal!!!!
+Last Updated: May 22 2017'''
 
 print '##################################################'
 print 'Welcome to Alexs VLA Continuum Reduction Script'
@@ -37,7 +39,7 @@ from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize
 import uvmultifit as uvm
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/test_scripts/vla/'
+my_dir='/mnt/bigdata/tetarenk/test_pol/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -48,7 +50,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/home/ubuntu/CASA_reduction_scripts/params_vla.txt'
+param_dir_file='/mnt/bigdata/tetarenk/test_pol/params_vla_testpol.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -78,6 +80,8 @@ scans=data_params.scans
 bitdata=data_params.bitdata
 remakems=data_params.remakems
 doImage=data_params.doImage
+bandsIM=data_params.bandsIM
+pol_calib=data_params.pol_calib
 #general image params
 use_auto=data_params.use_auto
 mythreshold=data_params.mythreshold
@@ -86,10 +90,10 @@ mycell=data_params.mycell
 myniter=data_params.myniter
 mynterms=data_params.mynterms
 mystokes=data_params.mystokes
-outlierfile=data_params.outlierfile
 multiscale=data_params.multiscale
 robust=data_params.robust
 weighting=data_params.weighting
+outlierfile=data_params.outlierfile
 #mask options
 mymask=data_params.mymask
 #uv fitting
@@ -98,8 +102,8 @@ uv_fit=data_params.uv_fit
 #write all variables to log dictionary
 dict_log.extend([('ms_name_input',ms_name),('ms_name_prefix_input',ms_name_prefix),('obsDate', obsDate),('target',target),\
 	('bands_input',bands),('spw_bands_input',spw_bands),('scans_input',scans),('bitdata',bitdata),('remakeMS',remakems),\
-	('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('myniter',myniter),('mynterms',mynterms),\
-	('mystokes',mystokes),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('use_auto',use_auto)])
+	('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('myniter',myniter),('mynterms',mynterms),('pol_calib',pol_calib),\
+	('mystokes',mystokes),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('bandsIM',bandsIM),('use_auto',use_auto)])
 #################################################
 
 
@@ -115,13 +119,11 @@ else:
 seelo=raw_input('Do you want to see the listobs? y or n-->')
 if seelo=='y':
 	os.system('pluma '+my_dir+obsDate+'_listfile.txt &')
-	raw_input('Please press enter to continue when you are done.')
 else:
 	print 'Okay. Moving on.'
 seeurl=raw_input('Do you want to open the log file in your web browser?y or n-->')
 if seeurl =='y':
 	webbrowser.open('http://www.vla.nrao.edu/cgi-bin/oplogs.cgi', new=0, autoraise=True)
-	raw_input('Please press enter to continue when you are done.')
 	print 'Moving on to making split data sets.'
 else:
 	print 'Okay. Moving on to making split data sets.'
@@ -170,7 +172,7 @@ for kk in range(0,len(ms_name_list)):
 	os.system('rm -rf '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
 	listobs(ms_name_list[i],listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
 	os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt &')
-	raw_input('Please press enter to continue when you are done.')
+	raw_input('Please press enter when ready to continue.')
 	#define variables specific to each band
 	print 'Please enter the following data set specifics:'
 	bpf_cal=raw_input('Please enter field id for bandpass cal (if >1 seperate by comma)-->')
@@ -185,6 +187,16 @@ for kk in range(0,len(ms_name_list)):
 	target_id=raw_input('Please enter field id for target (if >1 seperate by comma)-->')
 	target_lst=target_id.split(',')
 	timerbp=raw_input('Please enter the time range of the bandpass cal scan(s). e.g., 11:43:30.0~11:47:27.0-->')
+	if pol_calib=='y':
+		id_polPA,id_leak=raw_input('Please enter field ids for pol PA cal, and leakage cal (e.g., polPA,leak)-->').split(',')
+		pol_angL,frac_polL=raw_input('For lower baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
+		pol_angU,frac_polU=raw_input('For upper baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
+		dict_log.append(('id_polPA',id_polPA))
+		dict_log.append(('id_polleak',id_leak))
+		dict_log.append(('pola_angL',pol_angL))
+		dict_log.append(('frac_pol_decimalL',frac_polL))
+		dict_log.append(('pola_angU',pol_angU))
+		dict_log.append(('frac_pol_decimalU',frac_polU))
 	field_lst=[]
 	[field_lst.append(i) for i in bpf_lst]
 	[field_lst.append(i) for i in second_lst]
@@ -453,7 +465,7 @@ for kk in range(0,len(ms_name_list)):
 		print 'Flagging...'
 		badasf=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
 		dict_log.append((ms_name_prefix+'_flag_antspwfield',badasf))
-		if badasf=='':
+		if '' in badasf:
 			print 'Nothing to flag.'
 		else:
 			print 'Flagging selected data.'
@@ -468,7 +480,7 @@ for kk in range(0,len(ms_name_list)):
 			count_f=1
 			badasf2=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
 			dict_log.append((ms_name_prefix+'_flag_antspwfield_'+str(count_f),badasf2))
-			if badasf2=='':
+			if '' in badasf2:
 				print 'Nothing to flag.'
 			else:
 				print 'Flagging selected data.'
@@ -571,11 +583,27 @@ for kk in range(0,len(ms_name_list)):
 	dict_log.append((ms_name_prefix+'_fluxmodlsb',flux_mod_low))
 	setjy(vis=ms_name,field=bpf_cal,standard='Perley-Butler 2013',
       model=flux_mod_low,usescratch=False,scalebychan=True,spw=spw_low)
+	if pol_calib=='y':
+		spw_pol_low=spw_low#raw_input('Please enter reference spw for lsb pol cal (e.g., 0)-->')
+		nu_low_polL,nu_up_polL=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		flux_low_polL,flux_up_polL=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		dict_log.append((ms_name_prefix+'_pol_nu_lsb_low',nu_low_polL))
+		dict_log.append((ms_name_prefix+'_pol_nu_lsb_up',nu_up_polL))
+		dict_log.append((ms_name_prefix+'_pol_flux_lsb_low',flux_low_polL))
+		dict_log.append((ms_name_prefix+'_pol_flux_lsb_up',flux_up_polL))
 	print 'Set fluxscale for upper base-band...'
 	flux_mod_high=raw_input('Please enter flux model for upper base-band. e.g., 3C48_C.im-->')
 	dict_log.append((ms_name_prefix+'_fluxmodusb',flux_mod_high))
 	setjy(vis=ms_name,field=bpf_cal,standard='Perley-Butler 2013',
-      model=flux_mod_high,usescratch=False,scalebychan=True,spw=spw_low)
+      model=flux_mod_high,usescratch=False,scalebychan=True,spw=spw_high)
+	if pol_calib=='y':
+		spw_pol_high=spw_high#raw_input('Please enter reference spw for usb pol cal (e.g., 8)-->')
+		nu_low_polU,nu_up_polU=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		flux_low_polU,flux_up_polU=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		dict_log.append((ms_name_prefix+'_pol_nu_usb_low',nu_low_polU))
+		dict_log.append((ms_name_prefix+'_pol_nu_usb_up',nu_up_polU))
+		dict_log.append((ms_name_prefix+'_pol_flux_usb_low',flux_low_polU))
+		dict_log.append((ms_name_prefix+'_pol_flux_usb_up',flux_up_polU))
 	########################################
 
 	########################################
@@ -842,18 +870,231 @@ for kk in range(0,len(ms_name_list)):
 		plotcal(caltable=cal_table_prefix+'_2.G1', xaxis='time', yaxis='phase',poln='/',\
 			plotrange=[-1,-1,-180,180],iteration='spw')
 		raw_input('Please press enter when ready to continue.')
-	#gt_lst_low.append(cal_table_prefix+'.G1')
-	#gt_lst_high.append(cal_table_prefix+'_2.G1')
 	########################################
 
 	########################################
-	#Polarization calibration (TBD)
+	#Polarization calibration
 	########################################
-	pol_calib='n'#raw_input('Do you wish to do poalrization calibration? y or n-->')
-	dict_log.append((ms_name_prefix+'_pol_calib',pol_calib))
+	#pol_calib=raw_input('Do you wish to do poalrization calibration? y or n-->')
+	#dict_log.append((ms_name_prefix+'_pol_calib',pol_calib))
 	if pol_calib=='y':
+		os.system('rm -rf '+cal_table_prefix+'.Kcross')
+		os.system('rm -rf '+cal_table_prefix+'_2.Kcross')
+		os.system('rm -rf '+cal_table_prefix+'.D1')
+		os.system('rm -rf '+cal_table_prefix+'_2.D1')
+		os.system('rm -rf '+cal_table_prefix+'.X1')
+		os.system('rm -rf '+cal_table_prefix+'_2.X1')
 		print 'Polarization Calibration...'
-		foo=2
+		print 'Setting pol model for PA cal...'
+		gt_lst_low.append(cal_table_prefix+'.G1')
+		gt_lst_high.append(cal_table_prefix+'_2.G1')
+		gf_lst_low.append(id_polPA)
+		gi_lst_low.append('')
+		gf_lst_high.append(id_polPA)
+		gi_lst_high.append('')
+		ref_freq_polL=nu_low_polL+'MHz'
+		ref_freq_polU=nu_low_polU+'MHz'
+		alphaL=log(float(flux_up_polL)/float(flux_low_polL))/log(float(nu_up_polL)/float(nu_low_polL))
+		alphaU=log(float(flux_up_polU)/float(flux_low_polU))/log(float(nu_up_polU)/float(nu_low_polU))
+		i0L=float(flux_low_polL)
+		c0L=float(frac_polL)
+		d0L=float(pol_angL)*np.pi/180.
+		q0L=c0L*i0L*np.cos(2.*d0L)
+		u0L=c0L*i0L*np.sin(2.*d0L)
+		i0U=float(flux_low_polU)
+		c0U=float(frac_polU)
+		d0U=float(pol_angU)*np.pi/180.
+		q0U=c0U*i0U*np.cos(2.*d0U)
+		u0U=c0U*i0U*np.sin(2.*d0U)
+		dict_log.append(('pol_alphaL',alphaL))
+		dict_log.append(('pol_alphaU',alphaU))
+		dict_log.append(('i0L',i0L))
+		dict_log.append(('c0L',c0L))
+		dict_log.append(('d0L',d0L))
+		dict_log.append(('i0U',i0U))
+		dict_log.append(('c0U',c0U))
+		dict_log.append(('d0U',d0U))
+		setjy(vis=ms_name, field=id_polPA, standard='manual',spw=spw_pol_low, fluxdensity=[i0L,q0L,u0L,0],
+			spix=alphaL, reffreq=ref_freq_polL,scalebychan=True, usescratch=False)
+		setjy(vis=ms_name, field=id_polPA, standard='manual',spw=spw_pol_high, fluxdensity=[i0U,q0U,u0U,0],
+			spix=alphaU, reffreq=ref_freq_polU,scalebychan=True, usescratch=False)
+		if intera=='y':
+			print 'Showing source model spectrum...'
+			ant_pol_string=raw_input('Please enter antennas to show (e.g., ea01&ea02)-->')
+			dict_log.append(('ant_pol_string',ant_pol_string))
+			print 'Lower baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RR',timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='amp',ydatacolumn='model',overwrite=True,spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RR',timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='amp',ydatacolumn='model',overwrite=True,spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
+			print 'Showing QU model spectrum...'
+			print 'Lower baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RL',timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='amp',ydatacolumn='model',overwrite=True,spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RL',timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='amp',ydatacolumn='model',overwrite=True,spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
+			print 'Showing RL phase diff (should be same as 2 X pol angle)...'
+			print 'Lower baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RL', timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='phase',ydatacolumn='model',plotrange=[-1,-1,-180,180],overwrite=True,spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper baseband...'
+			plotms(vis=ms_name,field=id_polPA,correlation='RL', timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
+				yaxis='phase',ydatacolumn='model',plotrange=[-1,-1,-180,180],overwrite=True,spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
+		print 'Solving for Cross-Hand Delays (like RR/LL delays above but RL/LR)...'
+		gaincal(vis=ms_name, caltable=cal_table_prefix+'.Kcross', field=id_polPA, spw=spw_low,
+			gaintype='KCROSS', solint='inf', combine='scan', refant=ref_ant,
+			gaintable=gt_lst_low,gainfield=gf_lst_low, parang=True)
+		gaincal(vis=ms_name, caltable=cal_table_prefix+'_2.Kcross', field=id_polPA, spw=spw_high,
+			gaintype='KCROSS', solint='inf', combine='scan', refant=ref_ant,
+			gaintable=gt_lst_high,gainfield=gf_lst_high, parang=True)
+		gt_lst_low.append(cal_table_prefix+'.Kcross')
+		gt_lst_high.append(cal_table_prefix+'_2.Kcross')
+		gf_lst_low.append('')
+		gi_lst_low.append('')
+		gf_lst_high.append('')
+		gi_lst_high.append('')
+		if intera=='y':
+			print 'Plotting Cross-Hand delays... Should be single delay for all antennas'
+			print 'Lower baseband...'
+			plotcal(caltable=cal_table_prefix+'.Kcross',xaxis='antenna',yaxis='delay',iteration='spw')
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper baseband...'
+			plotcal(caltable=cal_table_prefix+'_2.Kcross',xaxis='antenna',yaxis='delay',iteration='spw')
+			raw_input('Please press enter when ready to continue.')
+		print 'Solving for leakage terms...'
+		gf_lst_low[-2]=id_leak
+		gf_lst_high[-2]=id_leak
+		polcal(vis=ms_name,caltable=cal_table_prefix+'.D1',field=id_leak,spw=spw_low,
+			refant=ref_ant,poltype='Df',solint='inf',combine='scan',
+			gaintable=gt_lst_low,gainfield=gf_lst_low)
+		polcal(vis=ms_name,caltable=cal_table_prefix+'_2.D1',field=id_leak,spw=spw_high,
+			refant=ref_ant,poltype='Df',solint='inf',combine='scan',
+			gaintable=gt_lst_high,gainfield=gf_lst_high)
+		if intera=='y':
+			print 'Plotting Solutions... leakages should only be between 5-15% (warning:plot only shows first spw in band)'
+			print 'Lower baseband...'
+			print 'Plotting Df amp vs channel...'
+			plotcal(caltable=cal_table_prefix+'.D1',xaxis='chan',yaxis='amp',spw=spw_low[0],field='',iteration='antenna')
+			raw_input('Please press enter when ready to continue.')
+			print 'Plotting Df phase vs channel...'
+			plotcal(caltable=cal_table_prefix+'.D1',xaxis='chan',yaxis='phase',spw=spw_low[0],field='',
+				iteration='antenna',plotrange=[-1,-1,-180,180])
+			raw_input('Please press enter when ready to continue.')
+			print 'Plotting Df vs antenna index...'
+			plotcal(caltable=cal_table_prefix+'.D1',xaxis='antenna',yaxis='amp',spw=spw_low)
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper baseband...'
+			print 'Plotting Df amp vs channel...'
+			plotcal(caltable=cal_table_prefix+'_2.D1',xaxis='chan',yaxis='amp',spw=spw_high[0],field='',iteration='antenna')
+			raw_input('Please press enter when ready to continue.')
+			print 'Plotting Df phase vs channel...'
+			plotcal(caltable=cal_table_prefix+'_2.D1',xaxis='chan',yaxis='phase',spw=spw_high[0],field='',
+				iteration='antenna',plotrange=[-1,-1,-180,180])
+			raw_input('Please press enter when ready to continue.')
+			print 'Plotting Df vs antenna index...'
+			plotcal(caltable=cal_table_prefix+'_2.D1',xaxis='antenna',yaxis='amp',spw=spw_high)
+			raw_input('Please press enter when ready to continue.')
+			missing_ant_pol=raw_input('If missing pol leak scan on ants, do you want to try gain cal as pol leak cal? y or n-->')
+			dict_log.append(('ant_pol_string',ant_pol_string))
+			if missing_ant_pol=='y':
+				gain_pol=raw_input('Please enter field id of gain cal (e.g., 3)-->')
+				plotms(vis=ms_name,field=gain_pol,xaxis='time',yaxis='parang',overwrite=True,spw='')
+				redo_pol=raw_input('Do you want to redo leakage cal (is parang>60deg?)y or n-->')
+				dict_log.append(('gain_pol',gain_pol))
+				dict_log.append(('redo_pol',redo_pol))
+				if redo_pol=='y':
+					gf_lst_low[-2]=gain_pol
+					gf_lst_high[-2]=gain_pol
+					os.system('rm -rf '+cal_table_prefix+'.D2')
+					os.system('rm -rf '+cal_table_prefix+'_2.D2')
+					polcal(vis=ms_name,caltable=cal_table_prefix+'.D2',field=gain_pol,spw=spw_low,
+						refant=ref_ant,poltype='Df+QU',solint='inf',combine='scan',
+						gaintable=gt_lst_low,gainfield=gf_lst_low)
+					polcal(vis=ms_name,caltable=cal_table_prefix+'_2.D2',field=gain_pol,spw=spw_high,
+						refant=ref_ant,poltype='Df+QU',solint='inf',combine='scan',
+						gaintable=gt_lst_high,gainfield=gf_lst_high)
+					print 'Plotting Df vs antenna index...'
+					print 'Lower baseband...'
+					plotcal(caltable=cal_table_prefix+'.D2',xaxis='antenna',yaxis='amp',spw=spw_low)
+					raw_input('Please press enter when ready to continue.')
+					print 'Upper baseband...'
+					plotcal(caltable=cal_table_prefix+'_2.D2',xaxis='antenna',yaxis='amp',spw=spw_high)
+					raw_input('Please press enter when ready to continue.')
+					use_sol=raw_input('Do you want to use these new solutions?y or n-->')
+					dict_log.append(('use_sol',use_sol))
+					if use_sol=='y':
+						gt_lst_low.append(cal_table_prefix+'.D2')
+						gt_lst_high.append(cal_table_prefix+'_2.D2')
+						gf_lst_low.append('')
+						gi_lst_low.append('')
+						gf_lst_high.append('')
+						gi_lst_high.append('')
+					else:
+						print 'Ok. Using original leakage calibration.'
+						gt_lst_low.append(cal_table_prefix+'.D1')
+						gt_lst_high.append(cal_table_prefix+'_2.D1')
+						gf_lst_low.append('')
+						gi_lst_low.append('')
+						gf_lst_high.append('')
+						gi_lst_high.append('')
+				else:
+					print 'Ok. Using original leakage calibration.'
+					gt_lst_low.append(cal_table_prefix+'.D1')
+					gt_lst_high.append(cal_table_prefix+'_2.D1')
+					gf_lst_low.append('')
+					gi_lst_low.append('')
+					gf_lst_high.append('')
+					gi_lst_high.append('')
+			else:
+				print 'Ok. Using original leakage calibration.'
+				gt_lst_low.append(cal_table_prefix+'.D1')
+				gt_lst_high.append(cal_table_prefix+'_2.D1')
+				gf_lst_low.append('')
+				gi_lst_low.append('')
+				gf_lst_high.append('')
+				gi_lst_high.append('')
+		else:
+			gt_lst_low.append(cal_table_prefix+'.D1')
+			gt_lst_high.append(cal_table_prefix+'_2.D1')
+			gf_lst_low.append('')
+			gi_lst_low.append('')
+			gf_lst_high.append('')
+			gi_lst_high.append('')
+		print 'Solving for R-L Polarization angle...'
+		gf_lst_low[-3]=id_polPA
+		gf_lst_high[-3]=id_polPA
+		polcal(vis=ms_name,caltable=cal_table_prefix+'.X1',field=id_polPA,combine='scan',poltype='Xf',solint='inf',
+			gaintable=gt_lst_low,gainfield=gf_lst_low,spw=spw_low)
+		polcal(vis=ms_name,caltable=cal_table_prefix+'_2.X1',field=id_polPA,combine='scan',poltype='Xf',solint='inf',
+			gaintable=gt_lst_high,gainfield=gf_lst_high,spw=spw_high)
+		if intera=='y':
+			print 'Plotting Solutions...Should only span a few degrees for each spw'
+			print 'Lower Baseband...'
+			plotcal(caltable=cal_table_prefix+'.X1',xaxis='chan',yaxis='phase')
+			raw_input('Please press enter when ready to continue.')
+			print 'Upper Baseband...'
+			plotcal(caltable=cal_table_prefix+'_2.X1',xaxis='chan',yaxis='phase')
+			raw_input('Please press enter when ready to continue.')
+		gt_lst_low.append(cal_table_prefix+'.X1')
+		gt_lst_high.append(cal_table_prefix+'_2.X1')
+		gf_lst_low.append('')
+		gi_lst_low.append('')
+		gf_lst_high.append('')
+		gi_lst_high.append('')
+		gt_lst_low.remove(cal_table_prefix+'.G1')
+		gt_lst_high.remove(cal_table_prefix+'_2.G1')
+		gf_lst_low.remove(gf_lst_low[-4])
+		gf_lst_high.remove(gf_lst_high[-4])
+		gi_lst_low.remove(gi_lst_low[-4])
+		gi_lst_high.remove(gi_lst_high[-4])
 	else:
 		print 'No polarization calibration done.'
 	########################################
@@ -869,7 +1110,7 @@ for kk in range(0,len(ms_name_list)):
 	myscale2 = fluxscale(vis=ms_name,caltable=cal_table_prefix+'_2.G1', fluxtable=cal_table_prefix+'_2.fluxscale1',\
 		reference=bpf_lst,transfer=second_lst+polleak_lst,incremental=False)
 	if intera=='y':
-		print 'Plotting solutions...'
+		print 'Plotting solutions...All sources should now line up, compared to raw G1 tables...'
 		print 'Lower Base-band...'
 		plotcal(caltable=cal_table_prefix+'.fluxscale1',xaxis='time',yaxis='amp',poln='R',iteration='spw')
 		raw_input('Please press enter when ready to continue.')
@@ -888,40 +1129,44 @@ for kk in range(0,len(ms_name_list)):
 	##Applying the calibration
 	########################################
 	print 'Applying calibration...'
+	if pol_calib=='y':
+		pang=True
+	else:
+		pang=False
 	print 'First the cals...'
 	print 'BP cal(s)...'
 	for i in range(0,len(bpf_lst)):
 		applycal(vis=ms_name,field=bpf_lst[i],gaintable=gt_lst_low,\
 			gainfield=gf_lst_low+[bpf_lst[i]],interp=gi_lst_low+['nearest'],\
-			calwt=[False],parang=False,spw=spw_low)
+			calwt=[False],parang=pang,spw=spw_low)
 		applycal(vis=ms_name,field=bpf_lst[i],gaintable=gt_lst_high,\
 			gainfield=gf_lst_high+[bpf_lst[i]],interp=gi_lst_high+['nearest'],\
-			calwt=[False],parang=False,spw=spw_high)
+			calwt=[False],parang=pang,spw=spw_high)
 	print 'Second cal(s)...'
 	for i in range(0,len(second_lst)):
 		applycal(vis=ms_name,field=second_lst[i],gaintable=gt_lst_low,\
 			gainfield=gf_lst_low+[second_lst[i]],interp=gi_lst_low+['nearest'],\
-			calwt=[False],parang=False,spw=spw_low)
+			calwt=[False],parang=pang,spw=spw_low)
 		applycal(vis=ms_name,field=second_lst[i],gaintable=gt_lst_high,\
 			gainfield=gf_lst_high+[second_lst[i]],interp=gi_lst_high+['nearest'],\
-			calwt=[False],parang=False,spw=spw_high)
+			calwt=[False],parang=pang,spw=spw_high)
 	if len(polleak_lst)>0:
 		print 'Pol cal(s)...'
 		for i in range(0,len(polleak_lst)):
 			applycal(vis=ms_name,field=polleak_lst[i],gaintable=gt_lst_low,\
 				gainfield=gf_lst_low+[polleak_lst[i]],interp=gi_lst_low+['nearest'],calwt=[False],\
-				parang=False,spw=spw_low)
+				parang=pang,spw=spw_low)
 			applycal(vis=ms_name,field=polleak_lst[i],gaintable=gt_lst_high,\
 				gainfield=gf_lst_high+[polleak_lst[i]],interp=gi_lst_high+['nearest'],calwt=[False],\
-				parang=False,spw=spw_high)
+				parang=pang,spw=spw_high)
 	print 'Now the target...'
 	for i in range(0,len(target_lst)):
 		applycal(vis=ms_name,field=target_lst[i],\
 			gaintable=gt_lst_low,gainfield=gf_lst_low+[second_cal],interp=gi_lst_low+['linear'],\
-			calwt=[False],parang=False,spw=spw_low)
+			calwt=[False],parang=pang,spw=spw_low)
 		applycal(vis=ms_name,field=target_lst[i],\
 			gaintable=gt_lst_high,gainfield=gf_lst_high+[second_cal],interp=gi_lst_high+['linear'],\
-			calwt=[False],parang=False,spw=spw_high)
+			calwt=[False],parang=pang,spw=spw_high)
 	########################################
 
 	########################################
@@ -932,8 +1177,14 @@ for kk in range(0,len(ms_name_list)):
 		print 'Lower base-band...'
 		print '(1) BP spectra amp'
 		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
+			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low,coloraxis='corr')
 		raw_input('Please press enter when ready to continue.')
+		if pol_calib=='y':
+			print '(1a) BP spectra phase'
+			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',
+				xaxis='channel',yaxis='phase',ydatacolumn='corrected',spw=spw_low,coloraxis='corr',
+				plotrange=[-1,-1,-180,180])
+			raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
 		for i in range(0,len(second_lst)):
 			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
@@ -964,8 +1215,14 @@ for kk in range(0,len(ms_name_list)):
 		print 'Upper base-band...'
 		print '(1) BP spectra amp'
 		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',\
-			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
+			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high,coloraxis='corr')
 		raw_input('Please press enter when ready to continue.')
+		if pol_calib=='y':
+			print '(1a) BP spectra phase'
+			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',
+				xaxis='channel',yaxis='phase',ydatacolumn='corrected',spw=spw_high,coloraxis='corr',
+				plotrange=[-1,-1,-180,180])
+			raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
 		for i in range(0,len(second_lst)):
 			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
@@ -998,7 +1255,7 @@ for kk in range(0,len(ms_name_list)):
 		while extraf=='y':
 			badasfextra=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
 			dict_log.append((ms_name_prefix+'_check_flag_antspwfield',badasfextra))
-			if badasfextra=='':
+			if '' in badasfextra:
 				print 'Nothing to flag.'
 				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 			else:
@@ -1023,7 +1280,7 @@ for kk in range(0,len(ms_name_list)):
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_low)
 		split(vis=ms_name,outputvis=cal_table_prefix+'_'+band_high+'_TID'+str(target_lst[iii])+'.ms',\
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_high)
-		split(vis=ms_name,outputvis=cal_table_prefix+'_comb.ms'+'_TID'+str(target_lst[iii])+'.ms',\
+		split(vis=ms_name,outputvis=cal_table_prefix+'_comb'+'_TID'+str(target_lst[iii])+'.ms',\
 			datacolumn='corrected',field=target_lst[iii],antenna='',spw=spw_full)
 		##########################################
 		if doImage=='T':
@@ -1041,147 +1298,218 @@ for kk in range(0,len(ms_name_list)):
 				print 'Entering interactive part of script again...'
 				print '**********************************************'
 			print 'Imaging...'
+			dopscl='n'
+			dopscu='n'
+			dopscb='n'
 			if use_auto=='T':
 				myimsize=set_imagesize(split_low,0,'0')
 				mycell=set_cellsize(split_low,0)
-			print 'Lower base-band...'
-			if mymask=='':
-				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
-				print 'Using interactive mode so you can make a mask...'
-				print 'Cleaning...'
-				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
-			else:
-				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
-				print 'Cleaning...'
-				clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
-			if mynterms>1:
-				imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
-			else:
-				imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
-			print 'Correcting for PB...'
-			os.system('rm -rf '+imagenl+'.pbcor')
-			os.system('rm -rf '+imagenl+'.pbcor.fits')
-			immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.flux'],\
-				expr='IM0/IM1',outfile=imagenl+'.pbcor')
-			print 'Making fits image...'
-			exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
-			imagenl=imagenl+'.pbcor'
-			fluxl,errl,unitl,freql,errl_real=imfit_point(imagenl,my_dir)
-			print 'Lower base-band flux density of ',fluxl,' +/- ',errl, unitl
-			print 'Local RMS in Lower base-band image is: ',errl_real,' Jy'
-			dopscl=raw_input('Do you want to do phase selfcal?y or n-->')
-			dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
-			if dopscl=='y':
-				selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_low,outlierfile,multiscale,robust,weighting)
-				fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
-			
-			print 'Upper base-band...'
-			if use_auto=='T':
-				myimsize=set_imagesize(split_high,0,'0')
-				mycell=set_cellsize(split_high,0)
-			if mymask=='':
-				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
-				print 'Using interactive mode so you can make a mask...'
-				print 'Cleaning...'
-				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robustoutlierfile=outlierfile)
-			else:
-				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
-				print 'Cleaning...'
-				clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robustoutlierfile=outlierfile)
-			if mynterms>1:
-				imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
-			else:
-				imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
-			print 'Correcting for PB...'
-			os.system('rm -rf '+imagenu+'.pbcor')
-			os.system('rm -rf '+imagenu+'.pbcor.fits')
-			immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.flux'],\
-				expr='IM0/IM1',outfile=imagenu+'.pbcor')
-			print 'Making fits image...'
-			exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
-			imagenu=imagenu+'.pbcor'
-			fluxu,erru,unitu,frequ,erru_real=imfit_point(imagenu,my_dir)
-			print 'Upper base-band flux density of ',fluxu,' +/- ',erru, unitu
-			print 'Local RMS in Upper base-band image is: ',erru_real,' Jy'
-			dopscu=raw_input('Do you want to do phase selfcal?y or n-->')
-			dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
-			if dopscu=='y':
-				selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_high,outlierfile,multiscale,robust,weighting)
-				fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
-
-			print 'Combined base-band...'
-			if use_auto=='T':
-				myimsize=set_imagesize(split_full,0,'0')
-				mycell=set_cellsize(split_full,0)
-			if mymask=='':
-				os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
-				print 'Using interactive mode so you can make a mask...'
-				print 'Cleaning...'
-				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
-			else:
-				os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
-				print 'Cleaning...'
-				clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
-					cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-					mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
-			if mynterms>1:
-				imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
-			else:
-				imagenb=my_dir+target+'_'+date+'_both_clean1.image'
-			print 'Correcting for PB...'
-			os.system('rm -rf '+imagenb+'.pbcor')
-			os.system('rm -rf '+imagenb+'.pbcor.fits')
-			immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
-				expr='IM0/IM1',outfile=imagenb+'.pbcor')
-			print 'Making fits image...'
-			exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
-			imagenb=imagenb+'.pbcor'
-			fluxb,errb,unitb,freqb,errb_real=imfit_point(imagenb,my_dir)
-			print 'Combined base-band flux density of ',fluxb,' +/- ',errb, unitb
-			print 'Local RMS in Combined base-band image is: ',errb_real,' Jy'
-			dopscb=raw_input('Do you want to do phase selfcal?y or n-->')
-			dict_log.append((ms_name_prefix+'_phself_both',dopscb))
-			if dopscb=='y':
-				selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-			date,band_low,'n',spw_full,outlierfile,multiscale,robust,weighting)
-				fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
-
+			if 'L' in bandsIM:
+				print 'Lower base-band...'
+				if mymask=='':
+					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
+					print 'Using interactive mode so you can make a mask...'
+					print 'Cleaning...'
+					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				else:
+					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
+					print 'Cleaning...'
+					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				if mynterms>1:
+					imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
+				else:
+					imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
+				print 'Correcting for PB...'
+				os.system('rm -rf '+imagenl+'.pbcor')
+				os.system('rm -rf '+imagenl+'.pbcor.fits')
+				immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.flux'],\
+					expr='IM0/IM1',outfile=imagenl+'.pbcor')
+				print 'Making fits image...'
+				exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
+				imagenl=imagenl+'.pbcor'
+				fluxl,errl,unitl,freql,errl_real=imfit_point(imagenl,my_dir,'I')
+				print 'Lower base-band flux density of ',fluxl,' +/- ',errl, unitl
+				print 'Local RMS in Lower base-band image is: ',errl_real,' Jy'
+				dopscl=raw_input('Do you want to do phase selfcal?y or n-->')
+				dict_log.append((ms_name_prefix+'_phself_lsb',dopscl))
+				if dopscl=='y':
+					selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+				date,band_low,'n',spw_low,outlierfile,multiscale,robust,weighting)
+					fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
+			if 'U' in bandsIM:
+				print 'Upper base-band...'
+				if use_auto=='T':
+					myimsize=set_imagesize(split_high,0,'0')
+					mycell=set_cellsize(split_high,0)
+				if mymask=='':
+					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
+					print 'Using interactive mode so you can make a mask...'
+					print 'Cleaning...'
+					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				else:
+					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
+					print 'Cleaning...'
+					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				if mynterms>1:
+					imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
+				else:
+					imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
+				print 'Correcting for PB...'
+				os.system('rm -rf '+imagenu+'.pbcor')
+				os.system('rm -rf '+imagenu+'.pbcor.fits')
+				immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.flux'],\
+					expr='IM0/IM1',outfile=imagenu+'.pbcor')
+				print 'Making fits image...'
+				exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
+				imagenu=imagenu+'.pbcor'
+				fluxu,erru,unitu,frequ,erru_real=imfit_point(imagenu,my_dir,'I')
+				print 'Upper base-band flux density of ',fluxu,' +/- ',erru, unitu
+				print 'Local RMS in Upper base-band image is: ',erru_real,' Jy'
+				dopscu=raw_input('Do you want to do phase selfcal?y or n-->')
+				dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
+				if dopscu=='y':
+					selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+				date,band_low,'n',spw_high,outlierfile,multiscale,robust,weighting)
+					fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
+			if 'B' in bandsIM:
+				print 'Combined base-band...'
+				if use_auto=='T':
+					myimsize=set_imagesize(split_full,0,'0')
+					mycell=set_cellsize(split_full,0)
+				if mymask=='':
+					os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
+					print 'Using interactive mode so you can make a mask...'
+					print 'Cleaning...'
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				else:
+					os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
+					print 'Cleaning...'
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
+						cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+				if mynterms>1:
+					imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
+				else:
+					imagenb=my_dir+target+'_'+date+'_both_clean1.image'
+				print 'Correcting for PB...'
+				os.system('rm -rf '+imagenb+'.pbcor')
+				os.system('rm -rf '+imagenb+'.pbcor.fits')
+				immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
+					expr='IM0/IM1',outfile=imagenb+'.pbcor')
+				print 'Making fits image...'
+				exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
+				imagenb=imagenb+'.pbcor'
+				fluxb,errb,unitb,freqb,errb_real=imfit_point(imagenb,my_dir,'I')
+				print 'Combined base-band flux density of ',fluxb,' +/- ',errb, unitb
+				print 'Local RMS in Combined base-band image is: ',errb_real,' Jy'
+				dopscb=raw_input('Do you want to do phase selfcal?y or n-->')
+				dict_log.append((ms_name_prefix+'_phself_both',dopscb))
+				if dopscb=='y':
+					selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
+				date,band_low,'n',spw_full,outlierfile,multiscale,robust,weighting)
+					fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
+			if 'P' in bandsIM:
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube_IQUV*')
+				print 'Imaging polarization cube...'
+				if mymask=='':
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV',
+						field='',spw='',interactive=T,cell=[mycell], imsize=myimsize,gain=0.1,
+						weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
+						stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierfile,psfmode='clarkstokes')
+				else:
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV',
+						field='',mask=mymask,spw='',interactive=F,cell=[mycell], imsize=myimsize,gain=0.1,
+						weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
+						stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierfile,psfmode='clarkstokes')
+				if mynterms>1:
+					imagenpol=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.image.tt0'
+				else:
+					imagenpol=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.image'
+				print 'Correcting for PB...'
+				os.system('rm -rf '+imagenpol+'.pbcor')
+				os.system('rm -rf '+imagenpol+'.pbcor.fits')
+				immath(imagename=[imagenpol,my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.flux'],\
+					expr='IM0/IM1',outfile=imagenpol+'.pbcor')
+				print 'Making fits image...'
+				exportfits(imagename=imagenpol+'.pbcor',fitsimage=imagenpol+'.pbcor.fits')
+				print 'Extracting Seperate Stokes Images...'
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.I')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.Q')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.U')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.V')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.LP')
+				#os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube_Q.flux')
+				#os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.LP.pbcor')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.PA')
+				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube.FP')
+				imsubimage(imagename=imagenpol,outfile=my_dir+target+'_'+date+'_'+band+'_polcube.I',stokes='I')
+				imsubimage(imagename=imagenpol,outfile=my_dir+target+'_'+date+'_'+band+'_polcube.Q',stokes='Q')
+				imsubimage(imagename=imagenpol,outfile=my_dir+target+'_'+date+'_'+band+'_polcube.U',stokes='U')
+				imsubimage(imagename=imagenpol,outfile=my_dir+target+'_'+date+'_'+band+'_polcube.V',stokes='V')
+				fluxQ,errQ,unitQ,freqQ,errQ_real=imfit_point(my_dir+target+'_'+date+'_'+band+'_polcube.Q',my_dir,'Q')
+				fluxU,errU,unitU,freqU,errU_real=imfit_point(my_dir+target+'_'+date+'_'+band+'_polcube.U',my_dir,'U')
+				fluxI,errI,unitI,freqI,errI_real=imfit_point(my_dir+target+'_'+date+'_'+band+'_polcube.I',my_dir,'I')
+				immath(outfile=my_dir+target+'_'+date+'_'+band+'_polcube.LP',mode='poli',
+					imagename=[my_dir+target+'_'+date+'_'+band+'_polcube.Q',my_dir+target+'_'+date+'_'+band+'_polcube.U'],
+					sigma='0.0Jy/beam')
+				#immath(imagename=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.flux',
+					#outfile=my_dir+target+'_'+date+'_'+band+'_polcube_Q.flux',expr='IM0',stokes='Q')
+				#immath(imagename=[my_dir+target+'_'+date+'_'+band+'_polcube.LP',my_dir+target+'_'+date+'_'+band+'_polcube_Q.flux'],\
+					#expr='IM0/IM1',outfile=my_dir+target+'_'+date+'_'+band+'_polcube.LP.pbcor')
+				immath(outfile=my_dir+target+'_'+date+'_'+band+'_polcube.PA',mode='pola',
+					imagename=[my_dir+target+'_'+date+'_'+band+'_polcube.Q',my_dir+target+'_'+date+'_'+band+'_polcube.U'],
+					polithresh=str(errU_real)+'Jy/beam')
+				immath(outfile=my_dir+target+'_'+date+'_'+band+'_polcube.FP',mode='evalexpr',
+					imagename=[my_dir+target+'_'+date+'_'+band+'_polcube.I',my_dir+target+'_'+date+'_'+band+'_polcube.Q',
+					my_dir+target+'_'+date+'_'+band+'_polcube.U'],expr='sqrt((IM1^2+IM2^2)/IM0[IM0>'+str(3.*errI_real)+']^2)')
+				print 'Making FITS files...'
+				exportfits(imagename=my_dir+target+'_'+date+'_'+band+'_polcube.LP',fitsimage=my_dir+target+'_'+date+'_'+band+'_polcube.LP.fits')
+				exportfits(imagename=my_dir+target+'_'+date+'_'+band+'_polcube.PA',fitsimage=my_dir+target+'_'+date+'_'+band+'_polcube.PA.fits')
+				exportfits(imagename=my_dir+target+'_'+date+'_'+band+'_polcube.FP',fitsimage=my_dir+target+'_'+date+'_'+band+'_polcube.FP.fits')
 			#writing imfit result to file
 			print 'Writing imfit results to file...'
 			if firstf=='y':
 				resul_file=open(my_dir+'imfit_results.txt','w')
+				resul_file.write('#band freq flux err unit err_real\n')
 			else:
 				resul_file=open(my_dir+'imfit_results.txt','a')
 			if dopscl=='n' and dopscu=='n' and dopscb=='n':
 				resul_file.write('Target'+str(target_id[iii])+':\n')
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
+				if 'L' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+				if 'U' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+				if 'B' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
 			else:
 				resul_file.write('Target'+str(target_id[iii])+':\n')
 				resul_file.write('Pre-selfcal:\n')
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
-				resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
+				if 'L' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql,fluxl,errl,unitl,errl_real))
+				if 'U' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ,fluxu,erru,unitu,erru_real))
+				if 'B' in bandsIM:
+					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb,fluxb,errb,unitb,errb_real))
 				resul_file.write('Post selfcal:\n')
-				if dopscl=='y':
-					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc,errl_real_sc))
-				if dopscu=='y':
-					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc,erru_real_sc))
-				if dopscb=='y':
-					resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc,errb_real_sc))
+				if 'L' in bandsIM:
+					if dopscl=='y':
+						resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freql_sc,fluxl_sc,errl,unitl_sc,errl_real_sc))
+				if 'U' in bandsIM:
+					if dopscu=='y':
+						resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,frequ_sc,fluxu_sc,erru_sc,unitu_sc,erru_real_sc))
+				if 'B' in bandsIM:
+					if dopscb=='y':
+						resul_file.write('{0} {1} {2} {3} {4} {5}\n'.format(band,freqb_sc,fluxb_sc,errb_sc,unitb_sc,errb_real_sc))
 			resul_file.close()
 			###########################################
 
@@ -1239,6 +1567,7 @@ for kk in range(0,len(ms_name_list)):
 print 'Cleaning up...'
 os.system('rm -rf *.log')
 os.system('rm -rf *.last')
+os.system('rm -rf *.png')
 print 'Writing user_input log file...'
 writeDict(dict_log, my_dir+'user_input.log',str(datetime.datetime.now()))
 print '********************************************************************'
