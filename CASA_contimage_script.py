@@ -91,7 +91,7 @@ mymask=data_params.mymask
 #uv fitting
 uv_fit=data_params.uv_fit
 #################################################
-raw_input('stp')
+
 
 #################################################
 #Imaging Section
