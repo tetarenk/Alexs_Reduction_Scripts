@@ -6,6 +6,7 @@ spw=''
 band='X'
 subband='x11'
 ref_ant='ea17'
+do_pol='n'
 #general image params
 use_auto='T'
 mythreshold='0.02mJy'
@@ -15,11 +16,11 @@ mynterms=1
 myniter=5000
 mystokes='I'
 outlierf=''
-multiscale=[]
-robust=0.0
-weighting='natural'
+multiscale=[0,5,20,50]
+weighting='briggs'
+robust=0.5
 #mask options
 mymask=''
-combi='n'
+combi='n'#combine spws for sma data only
 #uv fitting
 uv_fit='T'

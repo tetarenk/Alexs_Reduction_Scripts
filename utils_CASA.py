@@ -7,7 +7,7 @@ from taskinit import *
 from collections import OrderedDict
 
 def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-	date,bband,combi,spw,outlierf,multiscale,robust,weighting):
+	date,bband,combi,outlierf,multiscale,robust,weighting):
 	cal_table_prefix=my_dir+target+'_'+date+'_'+bband
 	cont0='y'
 	attemptnum=1
@@ -23,7 +23,7 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		#light clean to get source model
 		print 'Interactive Clean to get source model...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw=spw,interactive=T,\
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=T,\
 			cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		#solve for phase gains
@@ -62,7 +62,7 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 				interp=['nearest'], calwt=[False])
 		print 'Interactive Cleaning selfcaled data...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw=spw,interactive=T,\
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=T,\
 			cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
@@ -77,7 +77,17 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 			attemptnum=attemptnum+1
 	return(selfcalvis,scim)
 
-def imfit_point(pbimage,my_dir):
+def imfit_point(pbimage,my_dir,stokes):
+	if stokes=='I':
+		ind_st=0
+	elif stokes=='Q':
+		ind_st=1
+	elif stokes=='U':
+		ind_st=2
+	elif stokes=='V':
+		ind_st=3
+	else:
+		raise Exception('Please enter valid stokes param; I, Q, U, or V.')
 	print 'Viewing image...'
 	imview(pbimage)
 	raw_input('Please press enter when ready to continue.')
@@ -107,11 +117,17 @@ def imfit_point(pbimage,my_dir):
 	mystring = str(peak+', '+peakPosX+', '+peakPosY+', '+beamMajor+', '+beamMinor+', '+beamPA)
 	tempFile.write(mystring)
 	tempFile.close()
-	fit_res=imfit(imagename=pbimage, box=box, estimates=tempFile.name, append=False, overwrite = True)
 	result_box1=imstat(imagename=pbimage,region='annulus['+cen_annulus+','+cen_radius+']')
-	os.system('rm -rf '+my_dir+'tempfile_fit.txt')
-	return(fit_res['results']['component0']['flux']['value'][0],fit_res['results']['component0']['flux']['error'][0],\
-		fit_res['results']['component0']['flux']['unit'],fit_res['results']['component0']['spectrum']['frequency']['m0']['value'],result_box1['rms'][0])
+	if stokes=='I':
+		fit_res=imfit(imagename=pbimage, box=box, estimates=tempFile.name, append=False, overwrite = True)
+		os.system('rm -rf '+my_dir+'tempfile_fit.txt')
+		if fit_res['results']['nelements']>0:
+			return(fit_res['results']['component0']['flux']['value'][ind_st],fit_res['results']['component0']['flux']['error'][ind_st],\
+				fit_res['results']['component0']['flux']['unit'],fit_res['results']['component0']['spectrum']['frequency']['m0']['value'],result_box1['rms'][0])
+		else:
+			return(0,0,0,0,0)
+	else:
+		return(0,0,0,0,result_box1['rms'][0])
 
 def writeDict(dicti, filename,logdate):
 	ordd=OrderedDict(dicti)
@@ -119,6 +135,9 @@ def writeDict(dicti, filename,logdate):
 		f.write(logdate+':'+'\n')
 		for i in ordd.keys():            
 			f.write(i + " : " + str(ordd[i]) + "\n")
+
+
+
 	
 
 
