@@ -11,6 +11,7 @@ fields_usb='1,2,3,4,5'
 scans_usb='2~39'
 remakems='F'
 doImage='F'
+bandsIM=['L','U','B']#L-lsb,U-usb,B-combined
 #general image params
 use_auto='F'
 mythreshold='0.5mJy'
