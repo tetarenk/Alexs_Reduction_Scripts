@@ -12,9 +12,9 @@ doImage='T'
 bandsIM=['B','P']#L-lsb,U-usb,B-combined,P-pol cube
 #general image params
 use_auto='F'
-mythreshold='10.0mJy'
-myimsize=6000
-mycell='0.1arcsec'
+mythreshold=['10.0mJy']
+myimsize=[6000]
+mycell=['0.1arcsec']
 mynterms=1
 myniter=5000
 mystokes='I'
