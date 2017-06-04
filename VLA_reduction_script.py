@@ -170,7 +170,7 @@ for kk in range(0,len(ms_name_list)):
 	print 'Starting with ',ms_name_list[kk],' data set.'
 	print 'Running listobs. Please examine file for fields ids & spw ranges.'
 	os.system('rm -rf '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
-	listobs(ms_name_list[i],listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
+	listobs(ms_name_list[kk],listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
 	os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt &')
 	raw_input('Please press enter when ready to continue.')
 	#define variables specific to each band
