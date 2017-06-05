@@ -493,8 +493,13 @@ for kk in range(0,len(ms_name_list)):
 			count_f=count_f+1
 			flag_again=raw_input('Do you need to do more flagging? y or n-->')
 	else:
-		autoflag='n'
+		autoflag=raw_input('Did you autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
+		if autoflag=='y':
+			ms_name=ms_name_prefix+'_hs.ms'
+			ms_name_prefix=ms_name.strip('.ms')
+			listobs(ms_name,listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt')
+			os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt &')
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append((ms_name_prefix+'_interactive',intera))
 	if intera=='n':
