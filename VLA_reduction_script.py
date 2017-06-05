@@ -500,6 +500,11 @@ for kk in range(0,len(ms_name_list)):
 			ms_name_prefix=ms_name.strip('.ms')
 			listobs(ms_name,listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt')
 			os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt &')
+	newref=raw_input('Do you need to change ref_ant?y or n-->')
+	if newref=='y':
+		plotants(vis=ms_name,figfile=ant_plot)
+		ref_ant=raw_input('Please enter new reference antenna. e.g., ea02-->')
+		dict_log.append((ms_name_prefix+'_ref_ant2',ref_ant))
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append((ms_name_prefix+'_interactive',intera))
 	if intera=='n':
