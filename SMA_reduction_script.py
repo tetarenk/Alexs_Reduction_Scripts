@@ -1159,7 +1159,7 @@ print 'Cleaning up...'
 os.system('rm -rf *.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input.log',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+date+'.log',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
