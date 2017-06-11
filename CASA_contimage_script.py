@@ -4,7 +4,7 @@
 '''CASA script to be used for imaging and selfcal of VLA/SMA continuum data
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) continuum image  -- [target]_[obsDate]_[band]_[subband]_clean1.image(.tt0).pbcor
-		(2) (optional) Stokes Cube -- [target]_[obsDate]_[band]_[subband]_polcube_IQUV.image(.tt0).pbcor
+        (2) (optional) Stokes Cube -- [target]_[obsDate]_[band]_[subband]_polcube_IQUV.image(.tt0).pbcor
         (3) (optional) Individual Stokes Images -- [target]_[obsDate]_[band]_[subband]_polcube.[I,Q,U, or V]
         (4) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_[subband]_polcube.[PA or FP]
         (5) File of flux densities from image/UV plane fitting -- [target]_[obsDate]_[subbband]_imfit(uvfit)_results.txt
