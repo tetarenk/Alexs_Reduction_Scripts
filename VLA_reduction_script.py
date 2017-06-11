@@ -5,10 +5,10 @@
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for each band (and base-band) -- [target]_[obsDate]_[band]_[baseband].ms
         (2) Continuum images in each band (and base-band) -- [target]_[obsDate]_[band]_[baseband]_clean1.image(.tt0).pbcor
-		(3) (optional) Stokes Cube in each full band -- [target]_[obsDate]_[band]_polcube_IQUV.image(.tt0).pbcor
-		(4) (optional) Individual Stokes images in each full band -- [target]_[obsDate]_[band]_polcube.[I,Q,U, or V]
-		(5) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_polcube.[PA or FP]
-        (3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results.txt/uvfit_results.txt
+        (3) (optional) Stokes Cube in each full band -- [target]_[obsDate]_[band]_polcube_IQUV.image(.tt0).pbcor
+        (4) (optional) Individual Stokes images in each full band -- [target]_[obsDate]_[band]_polcube.[I,Q,U, or V]
+        (5) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_polcube.[PA or FP]
+        (6) File of flux densities from image(stokes)/UV plane fitting -- imfit_results.txt/uvfit_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
        - This script is intended to be used with raw data.
