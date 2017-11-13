@@ -6,40 +6,62 @@ from tasks import *
 from taskinit import *
 from collections import OrderedDict
 
-def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-	date,bband,combi,outlierf,multiscale,robust,weighting):
+def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='',my_dir='',target='',\
+	date='',bband='',combi='',outlierf='',multiscale='',robust='',weighting='',help='F'):
+	'''Note: (1) 'int' is integration time, 'inf' is scan time (start here)
+		(2) Avoid Amp self cal if possible, only use 'inf' interval
+		(3) If get lots of failed solutions, try:
+		 (a) gaintype='T' to combine polarizations
+		 (b) combine='spw' or 'scan' or both'''
+	if help=='T':
+		print 'arguments for selfcal function are: msname,cellsize,nterms,imsize,threashold,ref_ant,my_dir,target,date,bband,combi,outlierf,multiscale,robust,weighting'
+		return
 	cal_table_prefix=my_dir+target+'_'+date+'_'+bband
 	cont0='y'
 	attemptnum=1
 	scname=visi.strip('.ms')
+	os.system('rm -rf '+visi+'.flagversions')
 	while cont0=='y':
 		cont='y'
-		#make copy of data set for selfcal
-		print 'Making copy of data set for selfcal...'
-		os.system('rm -rf '+scname+'_selfcal_'+str(attemptnum)+'.ms')
-		split(vis=visi,outputvis=scname+'_selfcal_'+str(attemptnum)+'.ms',
-	      datacolumn='data',field='',spw='')
-		selfcalvis=scname+'_selfcal_'+str(attemptnum)+'.ms'
-		#light clean to get source model
-		print 'Interactive Clean to get source model...'
-		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=T,\
-			cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
-		raw_input('Please press enter when ready to continue.')
+		if attemptnum==1:
+			#make copy of data set for selfcal
+			print 'Making copy of data set for selfcal...'
+			os.system('rm -rf '+scname+'_selfcal_'+'presc'+'.ms')
+			os.system('rm -rf '+scname+'_selfcal_'+'presc'+'.ms.flagversions')
+			os.system('rm -rf '+scname+'_selfcal_'+'postsc'+'.ms')
+			os.system('rm -rf '+scname+'_selfcal_'+'postsc'+'.ms.flagversions')
+			split(vis=visi,outputvis=scname+'_selfcal_'+'presc'+'.ms',
+		      datacolumn='data',field='',spw='')
+			selfcalvis=scname+'_selfcal_'+'presc'+'.ms'
+			#save flags
+			flagmanager(vis=selfcalvis,mode='save',versionname='before_selfcal',merge='replace')
+			#light clean to get source model
+			print 'Interactive Clean to get source model...'
+			os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
+			clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,\
+				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+			raw_input('Please press enter when ready to continue.')
+		else:
+			selfcalvis=scname+'_selfcal_'+'presc'+'.ms'
+			raw_input('Please press enter when ready to continue.')
 		#solve for phase gains
 		while cont=='y':
 			solu=raw_input('Please enter solution interval in sec. e.g., 10-->')
+			if solu in ['inf','int']:
+				soluu=solu
+			else:
+				soluu=solu+'s'
 			if os.path.isdir(cal_table_prefix+'_'+solu+'sec'+str(attemptnum)+'.phself'):
 				print 'This selfcal table already exists.'
 			else:
 				print 'Solving for phase selfcal solutions at ', solu,' sec interval...'
 				if combi=='y':
 					gaincal(vis=selfcalvis, caltable=cal_table_prefix+'_'+solu+'sec'+str(attemptnum)+'.phself',\
-						field='',selectdata=False,solint=solu+'s',refant=ref_ant, minblperant=4,\
+						field='',selectdata=False,solint=soluu,refant=ref_ant, minblperant=4,\
 						minsnr=3, solnorm=True,append=False, gaintype='G',calmode='p',combine='spw')
 				else:
 					gaincal(vis=selfcalvis, caltable=cal_table_prefix+'_'+solu+'sec'+str(attemptnum)+'.phself',\
-						field='',selectdata=False,solint=solu+'s',refant=ref_ant, minblperant=4,\
+						field='',selectdata=False,solint=soluu,refant=ref_ant, minblperant=4,\
 						minsnr=3, solnorm=True,append=False, gaintype='G',calmode='p')
 				#plot solutions
 				print 'Plotting solutions. Check that they smoothly vary with time.'
@@ -60,9 +82,10 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 		else:
 			applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],gainfield=[''],\
 				interp=['nearest'], calwt=[False])
+		flagmanager(vis=selfcalvis,mode='save',versionname='after_phase'+str(attemptnum))
 		print 'Interactive Cleaning selfcaled data...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
-		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=T,\
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=True,\
 			cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
@@ -72,12 +95,81 @@ def phselfcal(visi,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
 			scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')
-		cont0=raw_input('Do you want to redo selfcal?y or n-->')
+		cont0=raw_input('Do you want to continue phase selfcal?y or n-->')
 		if cont0=='y':
 			attemptnum=attemptnum+1
-	return(selfcalvis,scim)
+	#amp selfcal
+	ampsc=raw_input('Do you want to try amp selfcal? (y or n)-->')
+	amp_sc_int='y'
+	if ampsc=='y':
+		while amp_sc_int=='y':
+			soluamp=raw_input('Please enter solution interval in sec. e.g., inf-->')
+			if soluamp in ['inf','int']:
+				soluampp=soluamp
+			else:
+				soluampp=soluamp+'s'
+			if os.path.isdir(cal_table_prefix+'_'+soluamp+'sec'+'.ampself'):
+				print 'This selfcal table already exists.'
+			else:
+				print 'Solving for amp selfcal solutions at ', soluamp,' sec interval...'
+				if combi=='y':
+					gaincal(vis=selfcalvis, caltable=cal_table_prefix+'_'+soluamp+'sec'+'.ampself',\
+						field='',selectdata=False,solint=soluampp,refant=ref_ant, minblperant=4,minsnr=3,\
+						solnorm=True,append=False, gaintype='G',calmode='ap',combine='spw')
+				else:
+					gaincal(vis=selfcalvis, caltable=cal_table_prefix+'_'+soluamp+'sec'+'.ampself',\
+						field='',selectdata=False,solint=soluampp,refant=ref_ant, minblperant=4,minsnr=3,\
+						solnorm=True,append=False, gaintype='G',calmode='ap')
+				print 'Plotting solutions. Check that they smoothly vary with time.'
+				plotcal(caltable=cal_table_prefix+'_'+soluamp+'sec'+'.ampself',xaxis='time',\
+					yaxis='amp',field='',subplot=331,overplot=False,clearpanel='Auto',\
+					iteration='antennas',plotsymbol='o',plotcolor='blue',showgui=True,figfile='')
+				raw_input('Please press enter when ready to continue.')
+			amp_sc_int=raw_input('Do you wish to try another solution interval?y or n-->')
+			if amp_sc_int=='y':
+				print 'Redoing amp solutions...'
+		scchoiceamp=raw_input('What solution interval do you want to apply? e.g., inf-->')
+		sctablea=cal_table_prefix+'_'+str(scchoiceamp)+'sec'+'.ampself'
+		print 'Applying phase selfcal solutions at ', scchoiceamp,' sec interval...'
+		if combi=='y':
+			applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctablea],\
+				gainfield=[''],interp=['nearest'],spwmap=[[0]], calwt=[False])
+		else:
+			applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctablea],\
+				gainfield=[''],interp=['nearest'], calwt=[False])
+		flagmanager(vis=selfcalvis,mode='save',versionname='after_apcal')
+		print 'Interactive Cleaning selfcaled data...'
+		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1',\
+			field='',spw='',interactive=True,cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,\
+			threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,\
+			multiscale=multiscale,robust=robust)
+		raw_input('Please press enter when ready to continue.')
+		print 'Viewing selfcaled image...'
+		if mynterms>1:
+			scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image.tt0'
+		else:
+			scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image'
+		imview(scim)
+		raw_input('Please press enter when ready to continue.')
+		del_amp=raw_input('Do you want to revert to pre amp selfcal? y or n-->')
+		if del_amp=='y':
+			flagmanager(vis=selfcalvis, mode='restore',versionname='after_phase'+str(attemptnum))
+			clearcal(selfcalvis)
+			delmod(selfcalvis,field='',otf=True)
+			if combi=='y':
+				applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],\
+					gainfield=[''],interp=['nearest'],spwmap=[[0]], calwt=[False])
+			else:
+				applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],\
+					gainfield=[''],interp=['nearest'], calwt=[False])
+	split(vis=selfcalvis,outputvis=scname+'_selfcal_'+'postsc'+'.ms',field='',spw='')
+	selfcalvisfin=scname+'_selfcal_'+'postsc'+'.ms'
+	return(selfcalvisfin,scim)
 
-def imfit_point(pbimage,my_dir,stokes):
+def imfit_point(pbimage='',my_dir='',stokes='',help='F'):
+	if help=='T':
+		print 'arguments for imfit function are: imagename,my_dir,stokes'
+		return
 	if stokes=='I':
 		ind_st=0
 	elif stokes=='Q':
@@ -139,5 +231,6 @@ def writeDict(dicti, filename,logdate):
 
 
 	
+
 
 

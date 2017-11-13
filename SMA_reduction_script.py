@@ -20,7 +20,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
              -run CASA script (fits2casa.py)
 
 Written by: Alex J. Tetarenko
-Last Updated: Jan 4 2017'''
+Last Updated: November 13 2017
+Works in CASA-5.1.1 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs SMA Continuum Reduction Script'
@@ -234,8 +235,8 @@ if skipflag=='n':
 		dict_log.append(('dum_scanl',dum_scanl))
 		dict_log.append(('dum_scanu',dum_scanu))
 		print 'Flagging dummy scans.'
-		flagdata(vis=ms_namel, flagbackup=T, mode='manual', scan=dum_scanl)
-		flagdata(vis=ms_nameu, flagbackup=T, mode='manual', scan=dum_scanu)
+		flagdata(vis=ms_namel, flagbackup=True, mode='manual', scan=dum_scanl)
+		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', scan=dum_scanu)
 	else:
 		print 'Dummy scans not flagged.'
 	#first integration
@@ -329,8 +330,8 @@ if skipflag=='n':
 		badau=raw_input('Please enter bad ants to flag in usb. e.g. 2,3-->')
 		dict_log.append(('badant_lsb',badal))
 		dict_log.append(('badant_usb',badau))
-		flagdata(vis=ms_namel, flagbackup=T, mode='manual', antenna=badal)
-		flagdata(vis=ms_nameu, flagbackup=T, mode='manual', antenna=badau)
+		flagdata(vis=ms_namel, flagbackup=True, mode='manual', antenna=badal)
+		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', antenna=badau)
 	raw_input('Please press enter when ready to continue.')
 	##bad scans
 	flag_badscan=raw_input('Do you want to flag any known bad scans?y or n-->')
@@ -340,8 +341,8 @@ if skipflag=='n':
 		badsu=raw_input('Please enter bad scans to flag in usb. e.g. 2,3-->')
 		dict_log.append(('badscan_lsb',badsl))
 		dict_log.append(('badscan_usb',badsu))
-		flagdata(vis=ms_namel, flagbackup=T, mode='manual', scan=badsl)
-		flagdata(vis=ms_nameu, flagbackup=T, mode='manual', scan=badsu)
+		flagdata(vis=ms_namel, flagbackup=True, mode='manual', scan=badsl)
+		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', scan=badsu)
 	raw_input('Please press enter when ready to continue.')
 	#phase jumps; ant,field,timerange
 	flag_pj=raw_input('Do you want to flag any known phase jumps?y or n-->')
@@ -369,14 +370,14 @@ if skipflag=='n':
 		print 'Flagging selected lsb data.'
 		for i in range(0,len(badasflsb)):
 			strglsb=badasflsb[i].split(';')
-			flagdata(vis=ms_namel,flagbackup=T, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
+			flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
 	if '' in badasfusb:
 		print 'Nothing to flag.'
 	else:
 		print 'Flagging selected usb data.'
 		for i in range(0,len(badasfusb)):
 			strgusb=badasfusb[i].split(';')
-			flagdata(vis=ms_nameu,flagbackup=T, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
+			flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
 	print 'Final check of flagged data...'
 	print 'LSB...'
 	plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
@@ -397,14 +398,14 @@ if skipflag=='n':
 			print 'Flagging selected lsb data.'
 			for i in range(0,len(badasflsb)):
 				strglsb=badasflsb[i].split(';')
-				flagdata(vis=ms_namel,flagbackup=T, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
+				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
 		if '' in badasfusb:
 			print 'Nothing to flag.'
 		else:
 			print 'Flagging selected usb data.'
 			for i in range(0,len(badasfusb)):
 				strgusb=badasfusb[i].split(';')
-				flagdata(vis=ms_nameu,flagbackup=T, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
+				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
 		print 'Plotting...'
 		print 'LSB...'
 		plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
@@ -968,13 +969,13 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
+			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		if mynterms>1:
@@ -1007,13 +1008,13 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
+			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		if mynterms>1:
@@ -1046,13 +1047,13 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
+			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
+			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		if mynterms>1:
@@ -1159,7 +1160,7 @@ print 'Cleaning up...'
 os.system('rm -rf *.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+date+'.log',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input.log',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'

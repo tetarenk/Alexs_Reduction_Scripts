@@ -4,15 +4,16 @@
 '''CASA script to be used for imaging and selfcal of VLA/SMA continuum data
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) continuum image  -- [target]_[obsDate]_[band]_[subband]_clean1.image(.tt0).pbcor
-        (2) (optional) Stokes Cube -- [target]_[obsDate]_[band]_[subband]_polcube_IQUV.image(.tt0).pbcor
-        (3) (optional) Individual Stokes Images -- [target]_[obsDate]_[band]_[subband]_polcube.[I,Q,U, or V]
-        (4) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_[subband]_polcube.[PA or FP]
+		(2) (optional) Stokes Cube -- [target]_[obsDate]_[band]_[subband]_polcube_IQUV.image(.tt0).pbcor
+		(3) (optional) Individual Stokes Images -- [target]_[obsDate]_[band]_[subband]_polcube.[I,Q,U, or V]
+		(4) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_[subband]_polcube.[PA or FP]
         (5) File of flux densities from image/UV plane fitting -- [target]_[obsDate]_[subbband]_imfit(uvfit)_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images 1 above)
        - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
 Written by: Alex J. Tetarenko
-Last Updated: May 22 2017'''
+Last Updated: November 13 2017
+Works in CASA-5.1.1 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs CASA Continuum Imaging/Selfcal Script'
@@ -92,7 +93,6 @@ mymask=data_params.mymask
 uv_fit=data_params.uv_fit
 #################################################
 
-
 #################################################
 #Imaging Section
 #################################################
@@ -104,13 +104,13 @@ if mymask=='':
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Using interactive mode so you can make a mask...'
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=T,\
+	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=True,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=F,\
+	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=False,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 if mynterms>1:
@@ -141,12 +141,12 @@ if do_pol=='y':
 	print 'Imaging polarization cube...'
 	if mymask=='':
 		clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
-			field='',spw=spw,interactive=T,cell=[mycell], imsize=myimsize,gain=0.1,
+			field='',spw=spw,interactive=True,cell=[mycell], imsize=myimsize,gain=0.1,
 			weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
 			stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierf,psfmode='clarkstokes')
 	else:
 		clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
-			field='',mask=mymask,spw=spw,interactive=F,cell=[mycell], imsize=myimsize,gain=0.1,
+			field='',mask=mymask,spw=spw,interactive=False,cell=[mycell], imsize=myimsize,gain=0.1,
 			weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
 			stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierf,psfmode='clarkstokes')
 	if mynterms>1:

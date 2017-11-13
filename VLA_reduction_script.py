@@ -5,9 +5,9 @@
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for each band (and base-band) -- [target]_[obsDate]_[band]_[baseband].ms
         (2) Continuum images in each band (and base-band) -- [target]_[obsDate]_[band]_[baseband]_clean1.image(.tt0).pbcor
-        (3) (optional) Stokes Cube in each full band -- [target]_[obsDate]_[band]_polcube_IQUV.image(.tt0).pbcor
-        (4) (optional) Individual Stokes images in each full band -- [target]_[obsDate]_[band]_polcube.[I,Q,U, or V]
-        (5) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_polcube.[PA or FP]
+		(3) (optional) Stokes Cube in each full band -- [target]_[obsDate]_[band]_polcube_IQUV.image(.tt0).pbcor
+		(4) (optional) Individual Stokes images in each full band -- [target]_[obsDate]_[band]_polcube.[I,Q,U, or V]
+		(5) (optional) Polarization PA and Fractional Polarization images -- [target]_[obsDate]_[band]_polcube.[PA or FP]
         (6) File of flux densities from image(stokes)/UV plane fitting -- imfit_results.txt/uvfit_results.txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
@@ -15,7 +15,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.log.
        - If autoflag is used summary presented in autoflag_log.txt
 Written by: Alex J. Tetarenko
-Last Updated: May 22 2017'''
+Last Updated: November 13 2017
+Works in CASA-5.1.1 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs VLA Continuum Reduction Script'
@@ -39,7 +40,7 @@ from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize
 import uvmultifit as uvm
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/test_pol/'
+my_dir='/mnt/bigdata/tetarenk/NGC6256/ep2/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -50,7 +51,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/mnt/bigdata/tetarenk/test_pol/params_vla_testpol.txt'
+param_dir_file='/mnt/bigdata/tetarenk/NGC6256/params_vla.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -252,7 +253,7 @@ for kk in range(0,len(ms_name_list)):
 			dum_scan=raw_input('Please enter dummy scan ids. e.g., 1,2-->')
 			print 'Flagging Dummy scan(s) ', dum_scan,' ...'
 			dict_log.append((ms_name_prefix+'_dum_scan',dum_scan))
-			flagdata(vis=ms_name, flagbackup=T, mode='manual', scan=dum_scan)
+			flagdata(vis=ms_name, flagbackup=True, mode='manual', scan=dum_scan)
 		else:
 			print 'Dummy scans not flagged.'
 		flag_shad=raw_input('Do you want to flag the shadow data?y or n-->')
@@ -266,7 +267,7 @@ for kk in range(0,len(ms_name_list)):
 		dict_log.append((ms_name_prefix+'_flag_zero',flag_zero))
 		if flag_zero=='y':
 			print 'Flagging zero amp data...'
-			flagdata(vis=ms_name, autocorr=T)
+			flagdata(vis=ms_name, autocorr=True)
 			flagdata(vis=ms_name,mode='clip',clipzeros=True)
 		else:
 			print 'Zero amp data not flagged.'
@@ -288,7 +289,7 @@ for kk in range(0,len(ms_name_list)):
 			bada=raw_input('Please enter bad ants to flag. e.g. ea01,ea02-->')
 			print 'Flagging bad ants ', bada,' ...'
 			dict_log.append((ms_name_prefix+'_badant',bada))
-			flagdata(vis=ms_name, flagbackup=T, mode='manual', antenna=bada)
+			flagdata(vis=ms_name, flagbackup=True, mode='manual', antenna=bada)
 		else:
 			print 'No bad ants flagged.'
 		print 'Flagging samples at start of each scan...'
@@ -305,7 +306,7 @@ for kk in range(0,len(ms_name_list)):
 		print 'Keep track of ants/spws/channels to flag. You will be prompted for their values after plotting.'
 		print '(1) Amp vs time...'
 		plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
-		 avgtime='60s')
+		 avgtime='60')
 		raw_input('Please press enter when ready to continue.')
 		autoflag=raw_input('Is the RFI bad enough that you need to do autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
@@ -328,7 +329,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'Solving for opacity corrections...'
 				#opacity corrections
 				clearstat()
-				myTau = plotweather(vis=ms_name, doPlot=T)
+				myTau = plotweather(vis=ms_name, doPlot=True)
 				gencal(vis=ms_name,caltable=opac_cal, caltype='opac',spw=spw_full,parameter=myTau)
 			if bitdata==3:
 				print 'Solving for requantizer gains...'
@@ -471,14 +472,14 @@ for kk in range(0,len(ms_name_list)):
 			print 'Flagging selected data.'
 			for i in range(0,len(badasf)):
 				strg=badasf[i].split(';')
-				flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2])
+				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2])
 		print 'Final check of flagged data...'
 		plotms(vis=ms_name,field=second_cal,spw='', antenna=ref_ant,correlation='RR,LL',xaxis='frequency',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
 		flag_again=raw_input('Do you need to do more flagging? y or n-->')
 		while flag_again=='y':
 			count_f=1
-			badasf2=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
+			badasf2=raw_input('Please enter bad ant,spw,field,timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
 			dict_log.append((ms_name_prefix+'_flag_antspwfield_'+str(count_f),badasf2))
 			if '' in badasf2:
 				print 'Nothing to flag.'
@@ -486,7 +487,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasf2)):
 					strg2=badasf2[i].split(';')
-					flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2])
+					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],timerange=strg2[3])
 			print 'Plotting...'
 			plotms(vis=ms_name,field=second_cal,spw='', antenna=ref_ant,correlation='RR,LL',xaxis='frequency',yaxis='amp')
 			raw_input('Please press enter when ready to continue.')
@@ -537,7 +538,7 @@ for kk in range(0,len(ms_name_list)):
 			print 'Solving for opacity corrections...'
 			#opacity corrections
 			clearstat()
-			myTau = plotweather(vis=ms_name, doPlot=T)
+			myTau = plotweather(vis=ms_name, doPlot=True)
 			gencal(vis=ms_name,caltable=opac_cal, caltype='opac',spw=spw_full,parameter=myTau)
 		if bitdata==3:
 			print 'Solving for requantizer gains...'
@@ -587,7 +588,7 @@ for kk in range(0,len(ms_name_list)):
 	#list models available
 	print 'Setting flux scale...'
 	print 'Listing flux models available.'
-	setjy(vis=ms_name, listmodels=T)
+	setjy(vis=ms_name, listmodels=True)
 	print 'Set fluxscale for lower base-band...'
 	flux_mod_low=raw_input('Please enter flux model for lower base-band. e.g., 3C48_C.im-->')
 	dict_log.append((ms_name_prefix+'_fluxmodlsb',flux_mod_low))
@@ -646,7 +647,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'No antennas to flag.'
 		else:
 			print 'Flagging selected ants.'
-			flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=badantsf3a,spw=spw_low)
+			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=badantsf3a,spw=spw_low)
 		print 'Look for RFI free channels in upper base-band...'
 		plotms(vis=ms_name, spw=spw_high, antenna=ref_ant, xaxis='freq', yaxis='amp',iteraxis='field',\
 			correlation='RR,LL', coloraxis='spw', symbolshape = 'circle')
@@ -668,7 +669,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'No antennas to flag.'
 		else:
 			print 'Flagging selected ants.'
-			flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=badantsf3b,spw=spw_high)
+			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=badantsf3b,spw=spw_high)
 		print 'Doing only Bandpass cal solution...'
 		print 'Lower base-band...'
 		gaincal(vis=ms_name, caltable=cal_table_prefix+'_phase_int_bp.cal',field=bpf_cal, refant=ref_ant,\
@@ -724,12 +725,14 @@ for kk in range(0,len(ms_name_list)):
 		plotcal(caltable=cal_table_prefix+'.K0',xaxis='antenna',yaxis='delay',figfile='plotcal_K0-delay.png')
 		raw_input('Please press enter when ready to continue.')
 		badantsf4a=raw_input('Please enter bad ants to flag (enter if none). e.g., ea10,ea16-->')
+		badspf4a=raw_input('Please enter bad spws for thes bad ants (enter if none). e.g., 5~7-->')
 		dict_log.append((ms_name_prefix+'_delay_flag_badantlsb',badantsf4a))
+		dict_log.append((ms_name_prefix+'_delay_flag_badswksb',badspf4a))
 		if badantsf4a=='':
 				print 'No antennas to flag.'
 		else:
 			print 'Flagging selected ants.'
-			flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=badantsf4a,spw=spw_low)
+			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=badantsf4a,spw=badspf4a)
 		print 'Upper base-band...'
 		gaincal(vis=ms_name,caltable=cal_table_prefix+'_2.K0', field=bpf_cal,\
 			refant=ref_ant,spw=spw_high,gaintype='K', solint='inf',combine='scan',\
@@ -738,12 +741,14 @@ for kk in range(0,len(ms_name_list)):
 		plotcal(caltable=cal_table_prefix+'_2.K0',xaxis='antenna',yaxis='delay',figfile='plotcal_K02-delay.png')
 		raw_input('Please press enter when ready to continue.')
 		badantsf4b=raw_input('Please enter bad ants to flag (enter if none). e.g., ea10,ea16-->')
+		badspf4b=raw_input('Please enter bad spws for thes bad ants (enter if none). e.g., 5~7-->')
 		dict_log.append((ms_name_prefix+'_delay_flag_badantusb',badantsf4b))
+		dict_log.append((ms_name_prefix+'_delay_flag_badswusb',badspf4b))
 		if badantsf4b=='':
 				print 'No antennas to flag.'
 		else:
 			print 'Flagging selected ants.'
-			flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=badantsf4b,spw=spw_high)
+			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=badantsf4b,spw=badspf4b)
 	else:
 		gaincal(vis=ms_name,caltable=cal_table_prefix+'.K0', field=bpf_cal,\
 			refant=ref_ant,spw=spw_low,gaintype='K', solint='inf',combine='scan',\
@@ -829,9 +834,9 @@ for kk in range(0,len(ms_name_list)):
 	print 'First BP/flux cal for both base-bands...'
 	for i in range(0,len(bpf_lst)):
 		gaincal(vis=ms_name,caltable=cal_table_prefix+'.G1',field=bpf_lst[i],spw=spw_low,\
-			solint='inf',refant=ref_ant,gaintype='G',calmode='ap',solnorm=F, gaintable=gt_lst_low)
+			solint='inf',refant=ref_ant,gaintype='G',calmode='ap',solnorm=False, gaintable=gt_lst_low)
 		gaincal(vis=ms_name,caltable=cal_table_prefix+'_2.G1',field=bpf_lst[i],spw=spw_high,\
-			solint='inf',refant=ref_ant,gaintype='G',calmode='ap',solnorm=F, gaintable=gt_lst_high)	
+			solint='inf',refant=ref_ant,gaintype='G',calmode='ap',solnorm=False, gaintable=gt_lst_high)	
 	print 'Append second cals to same table...'
 	for i in range(0,len(second_lst)):
 		gaincal(vis=ms_name,caltable=cal_table_prefix+'.G1',field=second_lst[i],spw=spw_low,\
@@ -1186,84 +1191,84 @@ for kk in range(0,len(ms_name_list)):
 		print 'Check the calibrated data...'
 		print 'Lower base-band...'
 		print '(1) BP spectra amp'
-		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',\
+		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60',\
 			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low,coloraxis='corr')
 		raw_input('Please press enter when ready to continue.')
 		if pol_calib=='y':
 			print '(1a) BP spectra phase'
-			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',
+			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60',
 				xaxis='channel',yaxis='phase',ydatacolumn='corrected',spw=spw_low,coloraxis='corr',
 				plotrange=[-1,-1,-180,180])
 			raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
 			raw_input('Please press enter when ready to continue.')
 		print '(3) Second cal phase spectra'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
 				coloraxis='corr',spw=spw_low)
 			raw_input('Please press enter when ready to continue.')
 		print '(4) Second cal amp vs phase'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
 				plotrange=[-180,180,0,3],coloraxis='field',spw=spw_low)
 			raw_input('Please press enter when ready to continue.')
 		print '(5) Target amp vs uvdist'
 		for i in range(0,len(target_lst)):
-			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60',\
 				xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
 			raw_input('Please press enter when ready to continue.')
 		print '(6) Target amp vs time'
 		for i in range(0,len(target_lst)):
-			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60',\
 				xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_low)
 			raw_input('Please press enter when ready to continue.')
 		print 'Upper base-band...'
 		print '(1) BP spectra amp'
-		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',\
+		plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60',\
 			xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high,coloraxis='corr')
 		raw_input('Please press enter when ready to continue.')
 		if pol_calib=='y':
 			print '(1a) BP spectra phase'
-			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60s',
+			plotms(vis=ms_name,field=bpf_cal,correlation='',timerange=timerbp,antenna='',avgtime='60',
 				xaxis='channel',yaxis='phase',ydatacolumn='corrected',spw=spw_high,coloraxis='corr',
 				plotrange=[-1,-1,-180,180])
 			raw_input('Please press enter when ready to continue.')
 		print '(2) Second cal amp spectra'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='channel',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
 			raw_input('Please press enter when ready to continue.')
 		print '(3) Second cal phase spectra'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='channel',yaxis='phase',ydatacolumn='corrected',plotrange=[-1,-1,-180,180],\
 				coloraxis='corr',spw=spw_high)
 			raw_input('Please press enter when ready to continue.')
 		print '(4) Second cal amp vs phase'
 		for i in range(0,len(second_lst)):
-			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=second_lst[i],correlation='RR,LL',timerange='',antenna='',avgtime='60',\
 				xaxis='phase',xdatacolumn='corrected',yaxis='amp',ydatacolumn='corrected',\
 				plotrange=[-180,180,0,3],coloraxis='field',spw=spw_high)
 			raw_input('Please press enter when ready to continue.')
 		print '(5) Target amp vs uvdist'
 		for i in range(0,len(target_lst)):
-			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60',\
 				xaxis='uvdist',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
 			raw_input('Please press enter when ready to continue.')
 		print '(6) Target amp vs time'
 		for i in range(0,len(target_lst)):
-			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60s',\
+			plotms(vis=ms_name,field=target_lst[i],correlation='',timerange='',antenna='',avgtime='60',\
 				xaxis='time',yaxis='amp',ydatacolumn='corrected',spw=spw_high)
 			raw_input('Please press enter when ready to continue.')
 		extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		dict_log.append((ms_name_prefix+'_check_flag',extraf))
 		while extraf=='y':
-			badasfextra=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
+			badasfextra=raw_input('Please enter bad ant,spw,field, and timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;10:52:11.0~10:53:11.0 ;5;3-->').split(' ')
 			dict_log.append((ms_name_prefix+'_check_flag_antspwfield',badasfextra))
 			if '' in badasfextra:
 				print 'Nothing to flag.'
@@ -1272,7 +1277,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasfextra)):
 					strge=badasfextra[i].split(';')
-					flagdata(vis=ms_name,flagbackup=T, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2])
+					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],timerange=strge[3])
 				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		else:
 			print 'No extra flagging requested.'
@@ -1311,9 +1316,9 @@ for kk in range(0,len(ms_name_list)):
 			dopscl='n'
 			dopscu='n'
 			dopscb='n'
-			myimsize0=myimsize[kk]
-			mycell0=mycell[kk]
 			mythreshold0=mythreshold[kk]
+			mycell0=mycell[kk]
+			myimsize0=myimsize[kk]
 			if use_auto=='T':
 				myimsize0=set_imagesize(split_low,0,'0')
 				mycell0=set_cellsize(split_low,0)
@@ -1323,13 +1328,13 @@ for kk in range(0,len(ms_name_list)):
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 					print 'Using interactive mode so you can make a mask...'
 					print 'Cleaning...'
-					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=T,\
+					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 					print 'Cleaning...'
-					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
@@ -1362,13 +1367,13 @@ for kk in range(0,len(ms_name_list)):
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 					print 'Using interactive mode so you can make a mask...'
 					print 'Cleaning...'
-					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=T,\
+					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 					print 'Cleaning...'
-					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=F,\
+					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
@@ -1401,13 +1406,13 @@ for kk in range(0,len(ms_name_list)):
 					os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 					print 'Using interactive mode so you can make a mask...'
 					print 'Cleaning...'
-					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=T,\
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 					print 'Cleaning...'
-					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=F,\
+					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
@@ -1436,12 +1441,12 @@ for kk in range(0,len(ms_name_list)):
 				print 'Imaging polarization cube...'
 				if mymask=='':
 					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV',
-						field='',spw='',interactive=T,cell=[mycell0], imsize=myimsize0,gain=0.1,
+						field='',spw='',interactive=True,cell=[mycell0], imsize=myimsize0,gain=0.1,
 						weighting=weighting,threshold=mythreshold0,mode='mfs',niter=myniter,nterms=mynterms,
 						stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierfile,psfmode='clarkstokes')
 				else:
 					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV',
-						field='',mask=mymask,spw='',interactive=F,cell=[mycell0], imsize=myimsize0,gain=0.1,
+						field='',mask=mymask,spw='',interactive=False,cell=[mycell0], imsize=myimsize0,gain=0.1,
 						weighting=weighting,threshold=mythreshold0,mode='mfs',niter=myniter,nterms=mynterms,
 						stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierfile,psfmode='clarkstokes')
 				if mynterms>1:
@@ -1586,3 +1591,4 @@ writeDict(dict_log, my_dir+'user_input_'+date+'.log',str(datetime.datetime.now()
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
+#need to add pol cal!!!
