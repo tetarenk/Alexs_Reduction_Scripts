@@ -5,14 +5,14 @@ import casac
 from tasks import *
 from taskinit import *
 from collections import OrderedDict
+import linecache
+from datetime import datetime
+import glob
+from astropy.io import ascii
 
 def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='',my_dir='',target='',\
 	date='',bband='',combi='',outlierf='',multiscale='',robust='',weighting='',help='F'):
-	'''Note: (1) 'int' is integration time, 'inf' is scan time (start here)
-		(2) Avoid Amp self cal if possible, only use 'inf' interval
-		(3) If get lots of failed solutions, try:
-		 (a) gaintype='T' to combine polarizations
-		 (b) combine='spw' or 'scan' or both'''
+	'''Selfcal: can use gaintype='T' to combine polarizations and combine='spw' or 'scan' or both if low S/N '''
 	if help=='T':
 		print 'arguments for selfcal function are: msname,cellsize,nterms,imsize,threashold,ref_ant,my_dir,target,date,bband,combi,outlierf,multiscale,robust,weighting'
 		return
@@ -227,6 +227,91 @@ def writeDict(dicti, filename,logdate):
 		f.write(logdate+':'+'\n')
 		for i in ordd.keys():            
 			f.write(i + " : " + str(ordd[i]) + "\n")
+
+
+def setjy_parse(spw):
+	'''After setjy call, parses latest casa log to find values needed for polarization calibration
+	INPUT: None
+	OUTPUT: lower flux, upper flux, lower freq, upper freq'''
+	spwv=spw.split('~')[0]
+	newest = max(glob.iglob('casa*.log'), key=os.path.getctime)
+	#newest=files='/Users/atetarenk/Desktop/test_sjparse.txt'
+	file_setjy=open(newest,'r')
+	readit=file_setjy.read()
+	lines=readit.splitlines()
+	line1=[line for line in lines if "Scaling spw(s) ["+spwv in line]
+	#2015-08-14 16:35:17 INFO imager Scaling spw(s) [8, 9, 10, 11, 12, 13, 14, 15]'s model image by channel to  I = 5.7914, 5.51751, 5.2727 Jy @(6.93716e+09, 7.44916e+09, 7.95916e+09)Hz for visibility prediction (a few representative values are shown).
+	ind1=line1[0].index('I =')
+	ind2=line1[0].index('Hz')
+	line2a=line1[0]
+	line2=line2a[ind1:ind2+2].split('@')
+	fluxes=line2[0].strip('I = ').strip(' Jy ').split(',')
+	freqs=line2[1].strip('(').strip(')Hz').split(',')
+	return(float(fluxes[0]),float(fluxes[2]),float(freqs[0])/1e6,float(freqs[2])/1e6)
+
+def last_field_parse(listobs_file):
+	'''Parses listibs for last field and first antenna
+	INPUT: listobs file
+	OUTPUT: strings of values'''
+	
+	file_listobs=open(listobs_file,'r')
+	readit=file_listobs.read()
+	lines=readit.splitlines()
+	line1=[line for line in lines if "nRows =" in line]
+	ind1=lines.index(line1[0])
+	line2=lines[ind1-1]
+	last_field=filter(None,line2.split(' '))[4]
+	line1a=[line for line in lines if "Antennas:" in line]
+	ind1a=lines.index(line1a[0])
+	line2a=lines[ind1a+3]
+	first_ant=filter(None,line2a.split(' '))[1]
+	return(last_field,first_ant)
+
+def source_dict_create(listobs_file):
+	'''Parses a list obs file and creates a dictionary of source attributes 
+	INPUT: listobs file
+	OUTPUT: dictionary
+	'''
+	file_listobs=open(listobs_file,'r')
+	readit=file_listobs.read()
+	lines=readit.splitlines()
+	fields_line=[line for line in lines if "Fields:" in line]
+	scan_line=[line for line in lines if "ScanIntent" in line]
+	num_fields=int(fields_line[0].split(':')[1])
+	fields_section=lines[lines.index(fields_line[0])+2:lines.index(fields_line[0])+num_fields+2]
+	scans_section=lines[lines.index(scan_line[0])+1:lines.index(fields_line[0])-1]
+
+	newDict = {}
+	newDict['Fields']={}
+	for i in fields_section:
+		entry=i.split(' ')
+		entry2 = filter(None, entry)
+		newDict['Fields'][entry2[0]]={}
+		newDict['Fields'][entry2[0]]['Name']=entry2[2]
+	for i in scans_section:
+		entrys=i.split(' ')
+		entry2s = filter(None, entrys)
+		intents=entry2s[-1]
+		integs=entry2s[-2].strip(']')
+		scants=entry2s[0:3]
+		i1=intents.strip('[').strip(']')
+		i2=i1.split(',')
+		if 'Intent' not in newDict['Fields'][entry2s[4]]:
+			newDict['Fields'][entry2s[4]]['Intent']=i2
+			if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
+				val1=scants[0]
+				if '/' in val1:
+					val1=scants[0].split('/')[1]
+				newDict['Fields'][entry2s[4]]['scantimes']=val1+'~'+scants[2]
+			else:
+				foo=2
+		else:
+			if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
+				newDict['Fields'][entry2s[4]]['scantimes']=val1+'~'+scants[2]
+			else:
+				foo=2
+	file_listobs.close()
+	return(newDict,integs)
 
 
 

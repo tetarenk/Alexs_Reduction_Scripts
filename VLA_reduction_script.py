@@ -15,7 +15,7 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.log.
        - If autoflag is used summary presented in autoflag_log.txt
 Written by: Alex J. Tetarenko
-Last Updated: November 13 2017
+Last Updated: Dec 8 2017
 Works in CASA-5.1.1 now!'''
 
 print '##################################################'
@@ -35,12 +35,13 @@ import warnings
 import webbrowser
 import datetime
 warnings.filterwarnings('ignore')
-from utils_CASA import imfit_point, phselfcal, writeDict
+from utils_CASA import imfit_point, phselfcal, writeDict,source_dict_create,setjy_parse,last_field_parse
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
+from astropy.io import ascii
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/NGC6256/ep2/'
+my_dir='/mnt/bigdata/tetarenk/VLA_neutrino2/tester/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -51,7 +52,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/mnt/bigdata/tetarenk/NGC6256/params_vla.txt'
+param_dir_file='/mnt/bigdata/tetarenk/VLA_neutrino2/params_vla.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -77,6 +78,8 @@ obsDate=data_params.obsDate
 target=data_params.target
 bands=data_params.bands
 spw_bands=data_params.spw_bands
+spw_low=data_params.spw_low
+spw_high=data_params.spw_high
 scans=data_params.scans
 bitdata=data_params.bitdata
 remakems=data_params.remakems
@@ -175,23 +178,71 @@ for kk in range(0,len(ms_name_list)):
 	os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt &')
 	raw_input('Please press enter when ready to continue.')
 	#define variables specific to each band
-	print 'Please enter the following data set specifics:'
-	bpf_cal=raw_input('Please enter field id for bandpass cal (if >1 seperate by comma)-->')
-	bpf_lst=bpf_cal.split(',')
-	second_cal=raw_input('Please enter field id for secondary cal (if >1 seperate by comma)-->')
-	second_lst=second_cal.split(',')
-	polleak_cal=raw_input('Please enter field id for pol cal (if >1 seperate by comma, if none press enter)-->')
-	if polleak_cal=='':
-		polleak_lst=[]
-	else:
-		polleak_lst=polleak_cal.split(',')
-	target_id=raw_input('Please enter field id for target (if >1 seperate by comma)-->')
-	target_lst=target_id.split(',')
-	timerbp=raw_input('Please enter the time range of the bandpass cal scan(s). e.g., 11:43:30.0~11:47:27.0-->')
+	src_dict,quakint=source_dict_create(my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
+	intentbp='CALIBRATE_BANDPASS#UNSPECIFIED'
+	intentsec='CALIBRATE_PHASE#UNSPECIFIED'
+	intenttar='OBSERVE_TARGET#UNSPECIFIED'
+	intentpolang='CALIBRATE_POL_ANGLE#UNSPECIFIED'
+	intentpoleak='CALIBRATE_POL_LEAKAGE#UNSPECIFIED'
+	bpf_lst=[]
+	second_lst=[]
+	target_lst=[]
+	polleak_lst=[]
+	for ik in range(0,len(src_dict['Fields'])):
+		if intentbp in src_dict['Fields'][str(ik)]['Intent'] and intentpoleak not in src_dict['Fields'][str(ik)]['Intent']:
+			bpf_lst.append(str(ik))
+			timerbp=src_dict['Fields'][str(ik)]['scantimes']
+		elif intentsec in src_dict['Fields'][str(ik)]['Intent']:
+			second_lst.append(str(ik))
+		elif intenttar in src_dict['Fields'][str(ik)]['Intent']:
+			target_lst.append(str(ik))
+		elif intentpoleak in src_dict['Fields'][str(ik)]['Intent']:
+			polleak_lst.append(str(ik))
+		else:
+			raise ValueError ('Unknown source intent parameter, please check listobs')
+		if pol_calib=='y':
+			pol_values=ascii.read("pol_vla_prop.txt", delimiter=' ',data_start=0,names=['B','Freq','3C48Pol','3C48Ang','3C138Pol','3C138Ang','3C147Pol','3C147Ang','3C286Pol','3C286Ang'],guess=False)
+			bands_dict={}
+			bands_dict['Band']={}
+			bands_dict['Band']['C']=['C5','C7']
+			bands_dict['Band']['L']=['L1','L2']
+			bands_dict['Band']['S']=['S2','S3']
+			bands_dict['Band']['X']=['X9','X11']
+			bands_dict['Band']['K']=['K21','K25']
+			bands_dict['Band']['Ku']=['Ku13','Ku17']
+			bands_dict['Band']['Ka']=['Ka36','Ka43']
+			if intentpolang in src_dict['Fields'][str(ik)]['Intent']:
+				id_polPA=str(ik)
+				str_nme=src_dict['Fields'][str(ik)]['Name'].split('=')[1]
+				indL=np.where(pol_values['B']==bands_dict['Band'][bands[i]][0])[0][0]
+				indU=np.where(pol_values['B']==bands_dict['Band'][bands[i]][1])[0][0]
+				pol_angL=pol_values[str_nme+'Ang'][indL]
+				frac_polL=float(pol_values[str_nme+'Pol'][indL])/100.
+				pol_angU=pol_values[str_nme+'Ang'][indU]
+				frac_polU=float(pol_values[str_nme+'Pol'][indU])/100.
+				testarr=np.array([pol_angL.find('LL'),pol_angU.find('LL'),pol_values[str_nme+'Pol'][indL].find('LL'),pol_values[str_nme+'Pol'][indU].find('LL')])
+				testarr2=np.array([pol_angL.find('NA'),pol_angU.find('NA'),pol_values[str_nme+'Pol'][indL].find('NA'),pol_values[str_nme+'Pol'][indU].find('NA')])
+				if np.count_nonzero(testarr)<4 or np.count_nonzero(testarr2)<4:
+					raise ValueError('Unable to find polarization properties of polang cal')
+			elif intentpoleak in src_dict['Fields'][str(ik)]['Intent']:
+				id_leak=str(ik)
+	#print 'Please enter the following data set specifics:'
+	bpf_cal=",".join(map(str, bpf_lst))#raw_input('Please enter field id for bandpass cal (if >1 seperate by comma)-->')
+	#bpf_lst=bpf_cal.split(',')
+	second_cal=",".join(map(str, second_lst))#raw_input('Please enter field id for secondary cal (if >1 seperate by comma)-->')
+	#second_lst=second_cal.split(',')
+	polleak_cal=",".join(map(str, polleak_lst))#raw_input('Please enter field id for pol cal (if >1 seperate by comma, if none press enter)-->')
+	#if polleak_cal=='':
+		#polleak_lst=[]
+	#else:
+		#polleak_lst=polleak_cal.split(',')
+	target_id=",".join(map(str, target_lst))#raw_input('Please enter field id for target (if >1 seperate by comma)-->')
+	#target_lst=target_id.split(',')
+	#timerbp=raw_input('Please enter the time range of the bandpass cal scan(s). e.g., 11:43:30.0~11:47:27.0-->')
 	if pol_calib=='y':
-		id_polPA,id_leak=raw_input('Please enter field ids for pol PA cal, and leakage cal (e.g., polPA,leak)-->').split(',')
-		pol_angL,frac_polL=raw_input('For lower baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
-		pol_angU,frac_polU=raw_input('For upper baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
+		#id_polPA,id_leak=raw_input('Please enter field ids for pol PA cal, and leakage cal (e.g., polPA,leak)-->').split(',')
+		#pol_angL,frac_polL=raw_input('For lower baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
+		#pol_angU,frac_polU=raw_input('For upper baseband, please enter known pol angle in degrees and frac. polarization in decimal form (e.g., ang,frac)-->').split(',')
 		dict_log.append(('id_polPA',id_polPA))
 		dict_log.append(('id_polleak',id_leak))
 		dict_log.append(('pola_angL',pol_angL))
@@ -202,8 +253,8 @@ for kk in range(0,len(ms_name_list)):
 	[field_lst.append(i) for i in bpf_lst]
 	[field_lst.append(i) for i in second_lst]
 	[field_lst.append(i) for i in polleak_lst]
-	spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
-	spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
+	#spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
+	#spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
 	spw_full=spw_low.split('~')[0]+'~'+spw_high.split('~')[1]
 	band=bands[kk]
 	ms_name=ms_name_list[kk]
@@ -221,10 +272,10 @@ for kk in range(0,len(ms_name_list)):
 	split_high=cal_table_prefix+'_'+band_high+'.ms'
 	split_full=cal_table_prefix+'_comb.ms'
 	#add to log dictionary
-	dict_log.append((ms_name_prefix+'_bpf_cal',bpf_cal))
-	dict_log.append((ms_name_prefix+'_second_cal',second_cal))
-	dict_log.append((ms_name_prefix+'_polleak_cal',polleak_cal))
-	dict_log.append((ms_name_prefix+'_target_id',target_id))
+	dict_log.append((ms_name_prefix+'_bpf_cal',bpf_lst))
+	dict_log.append((ms_name_prefix+'_second_cal',second_lst))
+	dict_log.append((ms_name_prefix+'_polleak_cal',polleak_lst))
+	dict_log.append((ms_name_prefix+'_target_id',target_lst))
 	dict_log.append((ms_name_prefix+'_time_range_bp',timerbp))
 	dict_log.append((ms_name_prefix+'_spw_low',spw_low))
 	dict_log.append((ms_name_prefix+'_spw_high',spw_high))
@@ -293,7 +344,7 @@ for kk in range(0,len(ms_name_list)):
 		else:
 			print 'No bad ants flagged.'
 		print 'Flagging samples at start of each scan...'
-		quakint=raw_input('Please enter integration time in seconds. e.g., 3-->')
+		#quakint=raw_input('Please enter integration time in seconds. e.g., 3-->')
 		dict_log.append((ms_name_prefix+'_flag_quack_int_time',quakint))
 		flagdata(vis=ms_name, mode='quack', quackinterval=float(quakint), quackmode='beg',quackincrement=True)
 		########################################
@@ -305,8 +356,8 @@ for kk in range(0,len(ms_name_list)):
 		print 'Look for obvious bad data.'
 		print 'Keep track of ants/spws/channels to flag. You will be prompted for their values after plotting.'
 		print '(1) Amp vs time...'
-		plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
-		 avgtime='60')
+		#plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
+		 #avgtime='60')
 		raw_input('Please press enter when ready to continue.')
 		autoflag=raw_input('Is the RFI bad enough that you need to do autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
@@ -430,13 +481,15 @@ for kk in range(0,len(ms_name_list)):
 		else:
 			print 'Autoflag not selected.'
 		print '(2) Baselines versus antenna to look for bad antennas,bad channels/spws...'
-		lastf,fant=raw_input('Please enter last field id and first antenna. e.g., 2 ea01-->').split(' ')
+		#lastf,fant=raw_input('Please enter last field id and first antenna. e.g., 2 ea01-->').split(' ')
+		lastf,fant=last_field_parse(my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
 		dict_log.append((ms_name_prefix+'_flag_lastfield',lastf))
 		dict_log.append((ms_name_prefix+'_flag_firstant',fant))
 		plotms(vis=ms_name,field=lastf,spw='', antenna=fant,correlation='RR,LL',xaxis='antenna2',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
 		print '(3) Bandpass for reference antenna (second_cal)...'
 		print 'Look for bad spws and RFI spikes'
+		print 'Toggle through baselines!!'
 		print 'Amp first...'
 		plotms(vis=ms_name,field=second_cal, spw='',antenna=ref_ant+'&*',correlation='RR,LL',\
 			xaxis='frequency',yaxis='amp',iteraxis='baseline')
@@ -447,16 +500,16 @@ for kk in range(0,len(ms_name_list)):
 			xaxis='frequency',yaxis='phase',iteraxis='baseline')
 		raw_input('Please press enter when ready to continue.')
 		print 'LL correlation...'
-		plotms(vis=ms_name,field=second_cal, spw='',antenna=ref_ant+'&*',correlation='LL',\
-			xaxis='frequency',yaxis='phase',iteraxis='baseline')
+		#plotms(vis=ms_name,field=second_cal, spw='',antenna=ref_ant+'&*',correlation='LL',\
+			#xaxis='frequency',yaxis='phase',iteraxis='baseline')
 		raw_input('Please press enter when ready to continue.')
 		print '(4A) Baselines (all not just to ref antenna) vs amp for target...'
-		plotms(vis=ms_name,field=target_id, xaxis='baseline', yaxis='amp', spw='', iteraxis='spw',\
-			correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
+		#plotms(vis=ms_name,field=target_id, xaxis='baseline', yaxis='amp', spw='', iteraxis='spw',\
+			#correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
 		raw_input('Please press enter when ready to continue.')
 		print '(4B) Amp vs uvdist for target...'
-		plotms(vis=ms_name, field=target_id, xaxis='uvdist', yaxis='amp', spw='', iteraxis='spw',\
-			correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
+		#plotms(vis=ms_name, field=target_id, xaxis='uvdist', yaxis='amp', spw='', iteraxis='spw',\
+			#correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
 		raw_input('Please press enter when ready to continue.')
 		print '(5) Data stream plot...'
 		plotms(vis=ms_name,field='',correlation='RR,LL',timerange='',\
@@ -464,7 +517,7 @@ for kk in range(0,len(ms_name_list)):
 			plotrange=[-1,-1,0,28],coloraxis='field')
 		raw_input('Please press enter when ready to continue.')
 		print 'Flagging...'
-		badasf=raw_input('Please enter bad ant,spw,and field to flag (enter if none). e.g., ea10,ea12;5:4~9;3 ;5;3-->').split(' ')
+		badasf=raw_input('Please enter bad ant,spw, field, and timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
 		dict_log.append((ms_name_prefix+'_flag_antspwfield',badasf))
 		if '' in badasf:
 			print 'Nothing to flag.'
@@ -472,7 +525,7 @@ for kk in range(0,len(ms_name_list)):
 			print 'Flagging selected data.'
 			for i in range(0,len(badasf)):
 				strg=badasf[i].split(';')
-				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2])
+				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],timerange=strg[3])
 		print 'Final check of flagged data...'
 		plotms(vis=ms_name,field=second_cal,spw='', antenna=ref_ant,correlation='RR,LL',xaxis='frequency',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
@@ -590,27 +643,36 @@ for kk in range(0,len(ms_name_list)):
 	print 'Listing flux models available.'
 	setjy(vis=ms_name, listmodels=True)
 	print 'Set fluxscale for lower base-band...'
-	flux_mod_low=raw_input('Please enter flux model for lower base-band. e.g., 3C48_C.im-->')
+	#flux_mod_low=raw_input('Please enter flux model for lower base-band. e.g., 3C48_C.im-->')
+	flux_mod_low=src_dict['Fields'][bpf_cal]['Name'].split('=')[1]+'_'+bands[kk]+'.im'
+	print 'Using '+flux_mod_low+' for flux model in lower baseband'
 	dict_log.append((ms_name_prefix+'_fluxmodlsb',flux_mod_low))
 	setjy(vis=ms_name,field=bpf_cal,standard='Perley-Butler 2013',
       model=flux_mod_low,usescratch=False,scalebychan=True,spw=spw_low)
 	if pol_calib=='y':
+		flux_low_polL,flux_up_polL,nu_low_polL,nu_up_polL=setjy_parse(spw_low)
 		spw_pol_low=spw_low#raw_input('Please enter reference spw for lsb pol cal (e.g., 0)-->')
-		nu_low_polL,nu_up_polL=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
-		flux_low_polL,flux_up_polL=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		#nu_low_polL,nu_up_polL=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		#flux_low_polL,flux_up_polL=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
 		dict_log.append((ms_name_prefix+'_pol_nu_lsb_low',nu_low_polL))
 		dict_log.append((ms_name_prefix+'_pol_nu_lsb_up',nu_up_polL))
 		dict_log.append((ms_name_prefix+'_pol_flux_lsb_low',flux_low_polL))
 		dict_log.append((ms_name_prefix+'_pol_flux_lsb_up',flux_up_polL))
 	print 'Set fluxscale for upper base-band...'
-	flux_mod_high=raw_input('Please enter flux model for upper base-band. e.g., 3C48_C.im-->')
+	#flux_mod_high=raw_input('Please enter flux model for upper base-band. e.g., 3C48_C.im-->')
+	if bands[kk]=='C':
+		flux_mod_high=src_dict['Fields'][bpf_cal]['Name'].split('=')[1]+'_'+'X'+'.im'
+	else:
+		flux_mod_high=src_dict['Fields'][bpf_cal]['Name'].split('=')[1]+'_'+bands[kk]+'.im'
+	print 'Using '+flux_mod_high+' for flux model in upper baseband'
 	dict_log.append((ms_name_prefix+'_fluxmodusb',flux_mod_high))
 	setjy(vis=ms_name,field=bpf_cal,standard='Perley-Butler 2013',
       model=flux_mod_high,usescratch=False,scalebychan=True,spw=spw_high)
 	if pol_calib=='y':
 		spw_pol_high=spw_high#raw_input('Please enter reference spw for usb pol cal (e.g., 8)-->')
-		nu_low_polU,nu_up_polU=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
-		flux_low_polU,flux_up_polU=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		flux_low_polU,flux_up_polU,nu_low_polU,nu_up_polU=setjy_parse(spw_high)
+		#nu_low_polU,nu_up_polU=raw_input('Please enter the low/up frequency (MHz) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')
+		#flux_low_polU,flux_up_polU=raw_input('Please enter the low/up fluxes (Jy) in reference channel; [enter] if not doing pol cal (e.g., low,up)-->').split(',')				
 		dict_log.append((ms_name_prefix+'_pol_nu_usb_low',nu_low_polU))
 		dict_log.append((ms_name_prefix+'_pol_nu_usb_up',nu_up_polU))
 		dict_log.append((ms_name_prefix+'_pol_flux_usb_low',flux_low_polU))
@@ -907,8 +969,8 @@ for kk in range(0,len(ms_name_list)):
 		gi_lst_low.append('')
 		gf_lst_high.append(id_polPA)
 		gi_lst_high.append('')
-		ref_freq_polL=nu_low_polL+'MHz'
-		ref_freq_polU=nu_low_polU+'MHz'
+		ref_freq_polL=str(nu_low_polL)+'MHz'
+		ref_freq_polU=str(nu_low_polU)+'MHz'
 		alphaL=log(float(flux_up_polL)/float(flux_low_polL))/log(float(nu_up_polL)/float(nu_low_polL))
 		alphaU=log(float(flux_up_polU)/float(flux_low_polU))/log(float(nu_up_polU)/float(nu_low_polU))
 		i0L=float(flux_low_polL)
@@ -935,7 +997,10 @@ for kk in range(0,len(ms_name_list)):
 			spix=alphaU, reffreq=ref_freq_polU,scalebychan=True, usescratch=False)
 		if intera=='y':
 			print 'Showing source model spectrum...'
-			ant_pol_string=raw_input('Please enter antennas to show (e.g., ea01&ea02)-->')
+			if ref_ant==fant:
+				ant_pol_string=raw_input('Please enter antennas to show (e.g., ea01&ea02)-->')
+			else:
+				ant_pol_string=ref_ant+'&'+fant
 			dict_log.append(('ant_pol_string',ant_pol_string))
 			print 'Lower baseband...'
 			plotms(vis=ms_name,field=id_polPA,correlation='RR',timerange=timerbp,antenna=ant_pol_string,xaxis='channel',
@@ -1587,8 +1652,7 @@ os.system('rm -rf *.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+date+'.log',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+date+'.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
-#need to add pol cal!!!

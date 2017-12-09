@@ -1,19 +1,21 @@
 #data set params
-ms_name='/mnt/bigdata/tetarenk/JACPOT_V404Cyg/VLA/lustre/aoc/ftp/e2earchive/stage/QK3610/15A-504_sb30963040_1.57195.44380890046.ms'
-obsDate='Jun222015'
-target='V404Cyg'
-spw_bands=['16~31']
-bands=['C']
-scans=['7,11~64,167~219']
+ms_name='/mnt/bigdata/tetarenk/VLA_neutrino2/ep7_nov20/lustre/aoc/ftp/e2earchive/stage/VH4427/17B-403.sb34693231.eb34703151.58078.522349039355.ms'
+obsDate='Nov202017'
+target='Neutrino_subC_ep7'
+spw_bands=['2~17']
+spw_low='0~7'
+spw_high='8~15'
+bands=['X']
+scans=['4~11']
 bitdata=8
 remakems='F'
 pol_calib='y'
 doImage='T'
-bandsIM=['B','P']#L-lsb,U-usb,B-combined,P-pol cube
+bandsIM=['L','U']#L-lsb,U-usb,B-combined,P-pol cube
 #general image params
 use_auto='F'
-mythreshold=['10.0mJy']
-myimsize=[6000]
+mythreshold=['10mJy']
+myimsize=[4096]
 mycell=['0.1arcsec']
 mynterms=1
 myniter=5000
