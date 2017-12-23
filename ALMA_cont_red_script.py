@@ -5,7 +5,7 @@
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for full band (and each spw) -- data_[target]_[obsDate]_[band]_[TID]_([spw]_)calibrated.ms
         (2) Continuum images for full band (and each epw) -- [target]_[obsDate]_[band]_[TID]_([spw]_)im.image.pbcor
-		(3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results_[band].txt/uvfit_results_[band].txt
+        (3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results_[band].txt/uvfit_results_[band].txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
        - This script is intended to be used with raw data; can be asdm or ms format.

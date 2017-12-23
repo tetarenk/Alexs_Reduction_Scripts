@@ -7,7 +7,7 @@ OUTPUT: (1) Data file of the parameters of objects found in image--> [out_file0 
         (2) CASA region file of detected sources--> casa_region.txt
         (3) DS9 region file of detected sources--> ds9_region.reg
         (4) Image of detected sources--> detected_sources.pdf
-NOTE: - Needs lmfit,scipy,astropy pkgs, can now pip install AegeanTools!!
+NOTE: - Needs lmfit,scipy,astropy pkgs
       - Make sure aegean code is in your python path [sys.path.append(path_to_aegean)]
 
 Written by: A. Tetarenko
@@ -19,6 +19,7 @@ python Aegean_ObjDet.py or casa -c  Aegean_ObjDet.py
 '''
 
 # Import modules
+sys.path.append('/PATH_TO_Aegean/scripts/')
 import scipy
 import lmfit
 import astropy
@@ -36,7 +37,6 @@ import numpy as np
 from multiprocessing import cpu_count
 import re
 import os
-from utils import run_aegean,initial_clean
 import warnings
 warnings.filterwarnings('ignore')
 from astropy import units as u
@@ -63,7 +63,7 @@ def objdet(tele,lat,out_file0,fits_file,seed,flood,tab_file,catalog_input_name,c
   elif tele == 'NOEMA':
   	lat = 44.6339
   else:
-  	lat = aegean.scope2lat(tele)
+  	lat = scope2lat(tele)
   
 
   out_file = open(out_file0, 'w')
@@ -101,6 +101,36 @@ def objdet(tele,lat,out_file0,fits_file,seed,flood,tab_file,catalog_input_name,c
   for i in range(0, len(src_l)):
     print src_l[i], ra_l[i], dec_l[i]
   return(src_l, ra_l, dec_l, maj_l, min_l, pos_l)
+def run_aegean(tables,cellSize_string):
+  '''Loads in and parses data file output from Aegean object detection script (Aegean_ObjDet.py),
+  to extract positional information on sources in field
+
+  tables: data file output form Aegean_ObjDet.py
+  cellSize: imaging parameter, arcsec/pix
+
+  return: lists of source #, RA, DEC, semi-major axis, semi-minor axis, and position angle
+  for all detected sources
+  '''
+  src_list=[]
+  ra_list=[]
+  dec_list=[]
+  maj_list=[]
+  min_list=[]
+  pos_list=[]
+  #cellSize_string=cellSize[0]
+  cellSize_list=re.findall('\d+|\D+', cellSize_string)
+  cellSize0=float(cellSize_list[0]+cellSize_list[1]+cellSize_list[2])
+  with open(tables) as f:
+    lines=f.readlines()
+  for i in range(1,len(lines)):
+    lin_split=lines[i].split('\t')
+    src_list.append(lin_split[0])
+    ra_list.append(lin_split[4])#string
+    dec_list.append(lin_split[5])#string
+    maj_list.append(float(lin_split[14])/cellSize0)#pix
+    min_list.append(float(lin_split[16])/cellSize0)#pix
+    pos_list.append(float(lin_split[18]))#deg
+  return(src_list,ra_list,dec_list,maj_list,min_list,pos_list)
 
 def casa_reg_file(src_l,ra_l,dec_l,maj_l,min_l,pos_l,filename,wmap1):
   '''Write CASA region file with bounding boxes around each detected source'''
@@ -141,7 +171,7 @@ if __name__ == "__main__":
   ##################################
   #Reading in Parameters
   ##################################
-  # Label for casa output directories and files.
+  # Label for casa input/output directories and files.
   fits_file = path_dir+'NGC6256_Oct232017_X_both_clean1.image.tt0.pbcor.fits'
   out_file0 = path_dir+'ngc6440_10GHz_2017_whole_dataset_aegeantt.txt'
   # aegean parameters
