@@ -208,7 +208,7 @@ raw_input('Please press enter when ready to continue.')
 print 'Plotting Tsys vs freq...cycle through ants'
 plotcal(caltable=tsys_cal, xaxis='freq', yaxis='tsys', spw='',subplot=111, iteration='antenna')
 raw_input('Please press enter when ready to continue.')
-tsys_detail=raw_input(('Do you want a detailed look at Tsys?y or n?--> ')
+tsys_detail=raw_input('Do you want a detailed look at Tsys?y or n?--> ')
 if tsys_detail=='y':
 	#tsys vs freq
 	print 'Check Tsys solutions. Look out for bad ants/times for flagging.'
