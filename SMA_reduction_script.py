@@ -997,7 +997,7 @@ if doImage=='T':
 		dict_log.append(('phself_lsb',dopscl))
 		if dopscl=='y':
 			selfcal_low,scim_low=phselfcal(split_low,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'y',spw_low,'',multiscale,robust,weighting)
+		date,band_low,'y','',multiscale,robust,weighting)
 			fluxl_sc,errl_sc,unitl_sc,freql_sc,errl_real_sc=imfit_point(scim_low,my_dir)
 	if 'U' in bandsIM:
 		print 'Upper side-band...'
@@ -1036,7 +1036,7 @@ if doImage=='T':
 		dict_log.append(('phself_usb',dopscu))
 		if dopscu=='y':
 			selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'y',spw_high,'',multiscale,robust,weighting)
+		date,band_low,'y','',multiscale,robust,weighting)
 			fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
 	if 'B' in bandsIM:
 		print 'Combined side-band...'
@@ -1075,7 +1075,7 @@ if doImage=='T':
 		dict_log.append(('phself_both',dopscb))
 		if dopscb=='y':
 			selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'y','','',multiscale,robust,weighting)
+		date,band_low,'y','',multiscale,robust,weighting)
 			fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
 
 	#writing imfit result to file

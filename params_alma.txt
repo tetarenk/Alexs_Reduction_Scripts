@@ -1,0 +1,25 @@
+#data set params
+#asdm or ms
+raw_type='asdm'
+#root asdm directory or /.ms
+d_name='/.asdm.sdm'
+obsDate='Sep112017'
+target='Maxi1535'
+band='B3'
+#general image params
+doImage='T'
+bandsIM=['A','S']#A-all,S-by spw
+mythreshold='10mJy'
+myimsize=[4096]
+mycell=['0.015arcsec']
+mynterms=2#
+myniter=5000
+mystokes='I'
+outlierfile=''
+multiscale=[]
+weighting='natural'
+robust=0.0
+#mask options
+mymask=''
+#uv fitting
+uv_fit='T'

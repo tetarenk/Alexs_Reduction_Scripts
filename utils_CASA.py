@@ -39,7 +39,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			print 'Interactive Clean to get source model...'
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
 			clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,\
-				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+				cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 			raw_input('Please press enter when ready to continue.')
 		else:
 			selfcalvis=scname+'_selfcal_'+'presc'+'.ms'
@@ -86,7 +86,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 		print 'Interactive Cleaning selfcaled data...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
 		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=True,\
-			cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
 		if mynterms>1:
@@ -140,7 +140,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 		flagmanager(vis=selfcalvis,mode='save',versionname='after_apcal')
 		print 'Interactive Cleaning selfcaled data...'
 		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1',\
-			field='',spw='',interactive=True,cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,\
+			field='',spw='',interactive=True,cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,\
 			threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,\
 			multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
@@ -162,6 +162,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			else:
 				applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],\
 					gainfield=[''],interp=['nearest'], calwt=[False])
+	print 'Splitting out final selfcaled data set...'
 	split(vis=selfcalvis,outputvis=scname+'_selfcal_'+'postsc'+'.ms',field='',spw='')
 	selfcalvisfin=scname+'_selfcal_'+'postsc'+'.ms'
 	return(selfcalvisfin,scim)
@@ -178,6 +179,8 @@ def imfit_point(pbimage='',my_dir='',stokes='',help='F'):
 		ind_st=2
 	elif stokes=='V':
 		ind_st=3
+	elif stokes=='':
+		ind_st=0
 	else:
 		raise Exception('Please enter valid stokes param; I, Q, U, or V.')
 	print 'Viewing image...'
@@ -210,7 +213,7 @@ def imfit_point(pbimage='',my_dir='',stokes='',help='F'):
 	tempFile.write(mystring)
 	tempFile.close()
 	result_box1=imstat(imagename=pbimage,region='annulus['+cen_annulus+','+cen_radius+']')
-	if stokes=='I':
+	if stokes=='I' or stokes=='':
 		fit_res=imfit(imagename=pbimage, box=box, estimates=tempFile.name, append=False, overwrite = True)
 		os.system('rm -rf '+my_dir+'tempfile_fit.txt')
 		if fit_res['results']['nelements']>0:
