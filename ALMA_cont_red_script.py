@@ -1,11 +1,11 @@
 #################################################
 #ALMA CASA Continuum Reduction Script
 #################################################
-'''CASA script to be used for the flagging, calibration and imaging of ALMA Continuum Data (Cycle 4 and above, TDM mode)
+'''CASA script to be used for the flagging, calibration and imaging of ALMA Continuum Data (Cycle 4 and above)
 INPUT: Parameter file detailing all data and imaging parameters (param_dir_file set below)
 OUTPUT: (1) Calibrated Split MS for full band (and each spw) -- data_[target]_[obsDate]_[band]_[TID]_([spw]_)calibrated.ms
         (2) Continuum images for full band (and each epw) -- [target]_[obsDate]_[band]_[TID]_([spw]_)im.image.pbcor
-        (3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results_[band].txt/uvfit_results_[band].txt
+		(3) File of flux densities from image(stokes)/UV plane fitting -- imfit_results_[band].txt/uvfit_results_[band].txt
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
        - This script is intended to be used with raw data; can be asdm or ms format.
@@ -35,9 +35,10 @@ from utils_CASA import imfit_point, phselfcal, writeDict,source_dict_create,setj
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
 from astropy.io import ascii
+import analysisUtils as au
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/ALMA_maxi1535/test_script2/'
+my_dir='/mnt/bigdata/tetarenk/ALMA_maxi1535/my_red/ep1/b3/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -111,6 +112,8 @@ if raw_type=='asdm':
 	importasdm(asdm = d_name, vis=my_dir+'data_MS', asis='*')
 	print 'Making split MS for ', band,' band...'
 	split(vis=my_dir+'data_MS',outputvis=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'pretw.ms',datacolumn='data')
+	os.system('rm -rf '+my_dir+'data_MS.ms')
+	os.system('rm -rf '+my_dir+'data_MS.ms.flagversions')
 else:
 	print 'Raw data is already in MS format'
 	print 'Splitting out raw data into new MS...'
@@ -419,27 +422,23 @@ flux_man=raw_input('Do you need to manually set the flux cal values? y or n-->')
 dict_log.append(('manually set flux model',flux_man))
 if flux_man=='n':
 	setjy(vis=ms_name,field=flux_cal,usescratch=False,standard='Butler-JPL-Horizons 2012',scalebychan=False)
+	print 'Plotting flux model...'
+	plotms(vis=ms_name,field=flux_cal,xaxis='uvdist',yaxis='amp',coloraxis='spw',ydatacolumn='model',showgui=True,avgtime='1e8')
+	raw_input('Please press enter when ready to continue.')
 else:
-	f_man=raw_input('Please enter fluxes for each science spw, e.g., 1.1,1.2--> ').split(',')
-	nu_man=raw_input('Please enter freq in GHz for each science spw, e.g., 90.496,92.434--> ').split(',')
-	spind=raw_input('Please enter spectral index.--> ')
-	dict_log.append(('manual fluxes',f_man))
+	f_man=raw_input('Please enter cal name--> ').split(',')
+	nu_man=au.getScienceFrequencies(ms_name)
+	ds=au.getObservationStartDate(ms).split(' ')[0]
+	dict_log.append(('manual field',f_man))
 	dict_log.append(('manual nus',nu_man))
-	dict_log.append(('manual sepcind',spind))
+	#dict_log.append(('manual date',ds))
 	for i in range(0,len(science_spw)):
-		if spind !='':
-			setjy(fluxdensity=[float(f_man[i]), 0.0, 0.0, 0.0], scalebychan=True,\
-				vis=ms_name, spix=float(spind), spw=str(i),\
-				field=flux_cal, reffreq=nu_man[i]+' GHz', intent='CALIBRATE_FLUX#ON_SOURCE',\
-				selectdata=True, standard='manual', usescratch=True)
-		else:
-			setjy(fluxdensity=[float(f_man[i]), 0.0, 0.0, 0.0], scalebychan=True,\
-				vis=ms_name, spw=str(i),\
-				field=flux_cal, reffreq=nu_man[i]+' GHz', intent='CALIBRATE_FLUX#ON_SOURCE',\
-				selectdata=True, standard='manual', usescratch=True)
-print 'Plotting flux model...'
-plotms(vis=ms_name,field=flux_cal,xaxis='uvdist',yaxis='amp',coloraxis='spw',ydatacolumn='model',showgui=True,avgtime='1e8')
-raw_input('Please press enter when ready to continue.')
+		sj_val=au.getALMAFlux(f_man,nu_man+'GHz',date=ds.replace('-',''))
+		dict_log.append(('manual si',sj_val['spectralIndex']))
+		setjy(fluxdensity=[float(sj_val['fluxDensity']), 0.0, 0.0, 0.0], scalebychan=True,\
+			vis=ms_name, spw=str(i),spix=float(sj_val['spectralIndex']),\
+			field=flux_cal, reffreq=(str(nu_man[i]/1e9)+' GHz', intent='CALIBRATE_FLUX#ON_SOURCE',\
+			selectdata=True, standard='manual', usescratch=True)
 #################################################
 
 #################################################
@@ -660,7 +659,7 @@ print '(1) Amp vs time for all sources'
 plotms(vis=ms_name,spw='',xaxis='time',yaxis='amp',field='',avgchannel='128',\
 	coloraxis='field',iteraxis='spw',ydatacolumn='corrected',showgui=True)
 raw_input('Please press enter when ready to continue.')
-print '(2) Phase ve time for cals'
+print '(2) Phase vs time for cals'
 plotms(vis=ms_name,spw='',xaxis='time',yaxis='phase',field=",".join(cal_lst),avgchannel='128',
          coloraxis='field',iteraxis='spw',ydatacolumn='corrected',showgui=True)
 raw_input('Please press enter when ready to continue.')
@@ -681,7 +680,7 @@ if check_src != '':
 	plotms(vis=ms_name,spw='',xaxis='time',yaxis='amp',field='',avgchannel='128',\
 		coloraxis='field',iteraxis='spw',ydatacolumn='corrected',showgui=True)
 	raw_input('Please press enter when ready to continue.')
-	print '(2) Phase ve time for cals'
+	print '(2) Phase vs time for cals'
 	plotms(vis=ms_name,spw='',xaxis='time',yaxis='phase',field=",".join(cal_lst),\
 		avgchannel='128',coloraxis='field',iteraxis='spw',ydatacolumn='corrected',showgui=True)
 	raw_input('Please press enter when ready to continue.')
@@ -793,7 +792,7 @@ if doImage=='T':
 				raw_input('Please press enter to continue when you are done.')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
-			if nterms > 1:
+			if int(mynterms) > 1:
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
 				os.system('sudo mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
 			immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
@@ -840,7 +839,7 @@ if doImage=='T':
 					raw_input('Please press enter to continue when you are done.')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
-				if nterms > 1:
+				if int(mynterms) > 1:
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
 					os.system('sudo mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
 				immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
@@ -932,4 +931,4 @@ print 'Writing user_input log file...'
 writeDict(dict_log, my_dir+'user_input_'+date+'.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
-print '********************************************************************'
+print '********************************************************************'		

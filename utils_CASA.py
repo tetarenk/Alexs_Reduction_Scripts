@@ -21,6 +21,8 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 	attemptnum=1
 	scname=visi.strip('.ms')
 	os.system('rm -rf '+visi+'.flagversions')
+	os.system('rm -rf '+cal_table_prefix+'*.phself')
+	os.system('rm -rf '+cal_table_prefix+'*.ampself')
 	while cont0=='y':
 		cont='y'
 		if attemptnum==1:
@@ -39,7 +41,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			print 'Interactive Clean to get source model...'
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
 			clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,\
-				cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+				cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 			raw_input('Please press enter when ready to continue.')
 		else:
 			selfcalvis=scname+'_selfcal_'+'presc'+'.ms'
@@ -86,13 +88,10 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 		print 'Interactive Cleaning selfcaled data...'
 		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
 		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=True,\
-			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
-		if mynterms>1:
-			scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image.tt0'
-		else:
-			scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
+		scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')
 		cont0=raw_input('Do you want to continue phase selfcal?y or n-->')
@@ -141,14 +140,11 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 		print 'Interactive Cleaning selfcaled data...'
 		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1',\
 			field='',spw='',interactive=True,cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,\
-			threshold=mythreshold,mode='mfs',niter=0,nterms=mynterms,outlierfile=outlierf,\
+			threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,\
 			multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
-		if mynterms>1:
-			scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image.tt0'
-		else:
-			scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image'
+		scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')
 		del_amp=raw_input('Do you want to revert to pre amp selfcal? y or n-->')
@@ -163,6 +159,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 				applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],\
 					gainfield=[''],interp=['nearest'], calwt=[False])
 	print 'Splitting out final selfcaled data set...'
+	os.system('rm -rf '+scname+'_selfcal_'+'postsc'+'.ms')
 	split(vis=selfcalvis,outputvis=scname+'_selfcal_'+'postsc'+'.ms',field='',spw='')
 	selfcalvisfin=scname+'_selfcal_'+'postsc'+'.ms'
 	return(selfcalvisfin,scim)
