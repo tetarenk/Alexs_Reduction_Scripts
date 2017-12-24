@@ -235,7 +235,7 @@ if uv_fit=='T':
 ###########################################
 
 print 'Cleaning up...'
-os.system('rm -rf *.log')
+os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'

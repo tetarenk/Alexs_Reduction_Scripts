@@ -1648,7 +1648,7 @@ for kk in range(0,len(ms_name_list)):
 	###########################################
 
 print 'Cleaning up...'
-os.system('rm -rf *.log')
+os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'

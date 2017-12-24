@@ -1157,7 +1157,7 @@ else:
 ###########################################
 
 print 'Cleaning up...'
-os.system('rm -rf *.log')
+os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
 writeDict(dict_log, my_dir+'user_input.log',str(datetime.datetime.now()))

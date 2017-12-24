@@ -427,7 +427,9 @@ if flux_man=='n':
 	raw_input('Please press enter when ready to continue.')
 else:
 	f_man=raw_input('Please enter cal name--> ').split(',')
+	#nu_man=raw_input('Please enter central freq in GHz for each science spw, e.g., 90.496,92.434--> ').split(',')
 	nu_man=au.getScienceFrequencies(ms_name)
+	#ds=raw_input('Please enter date of obs, e.g. 20170911--> ')
 	ds=au.getObservationStartDate(ms).split(' ')[0]
 	dict_log.append(('manual field',f_man))
 	dict_log.append(('manual nus',nu_man))
@@ -924,7 +926,7 @@ if uv_fit=='T':
 ###########################################
 
 print 'Cleaning up...'
-os.system('rm -rf *.log')
+os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
