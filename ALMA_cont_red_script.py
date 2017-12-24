@@ -38,7 +38,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/ALMA_maxi1535/my_red/ep1/b3/'
+my_dir='/mnt/bigdata/tetarenk/ALMA_maxi1535/my_red/ep1/b6/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -138,6 +138,7 @@ num_spw=raw_input('Please enter the total number of spws in the data set. e.g. 2
 science_spw=raw_input('Please enter the science spws. e.g. 17,19,21,23--> ').split(',')
 bpf_cal=raw_input('Please enter bandpass cals (if >1 seperate by comma)--> ')
 bpf_lst=bpf_cal.split(',')
+bp_scan=raw_input('Please enter bandpass cal scan(s), e.g., 2,3--> ')
 flux_cal=raw_input('Please enter flux cals (if >1 seperate by comma)--> ')
 flux_lst=flux_cal.split(',')
 second_cal=raw_input('Please enter second cals (if >1 seperate by comma)--> ')
@@ -426,20 +427,20 @@ if flux_man=='n':
 	plotms(vis=ms_name,field=flux_cal,xaxis='uvdist',yaxis='amp',coloraxis='spw',ydatacolumn='model',showgui=True,avgtime='1e8')
 	raw_input('Please press enter when ready to continue.')
 else:
-	f_man=raw_input('Please enter cal name--> ').split(',')
+	f_man=raw_input('Please enter cal name--> ')
 	#nu_man=raw_input('Please enter central freq in GHz for each science spw, e.g., 90.496,92.434--> ').split(',')
 	nu_man=au.getScienceFrequencies(ms_name)
 	#ds=raw_input('Please enter date of obs, e.g. 20170911--> ')
-	ds=au.getObservationStartDate(ms).split(' ')[0]
+	ds=au.getObservationStartDate(ms_name).split(' ')[0]
 	dict_log.append(('manual field',f_man))
 	dict_log.append(('manual nus',nu_man))
 	#dict_log.append(('manual date',ds))
 	for i in range(0,len(science_spw)):
-		sj_val=au.getALMAFlux(f_man,nu_man+'GHz',date=ds.replace('-',''))
+		sj_val=au.getALMAFlux(f_man,str(nu_man[i]/1e9)+' GHz',date=ds.replace('-',''))
 		dict_log.append(('manual si',sj_val['spectralIndex']))
 		setjy(fluxdensity=[float(sj_val['fluxDensity']), 0.0, 0.0, 0.0], scalebychan=True,\
 			vis=ms_name, spw=str(i),spix=float(sj_val['spectralIndex']),\
-			field=flux_cal, reffreq=(str(nu_man[i]/1e9)+' GHz', intent='CALIBRATE_FLUX#ON_SOURCE',\
+			field=flux_cal, reffreq=str(nu_man[i]/1e9)+' GHz',\
 			selectdata=True, standard='manual', usescratch=True)
 #################################################
 
@@ -451,14 +452,14 @@ else:
 print 'Examining bandpass cal...'
 print 'First look for middle channels for initial phase cal before bandpass...'
 plotms(vis=ms_name, spw='0~'+str(len(science_spw)-1), antenna=ref_ant, xaxis='freq', yaxis='amp',iteraxis='spw',\
-	coloraxis='spw', symbolshape = 'circle',avgtime='1e8',avgscan=True,field=bpf_cal)
+	coloraxis='spw', symbolshape = 'circle',avgtime='1e8',avgscan=True,field=bpf_cal,scan=bp_scan)
 raw_input('Please press enter when ready to continue.')
 bp_chan=raw_input('Please enter middle channels, e.g., 0~3:60~80--> ')
 dict_log.append(('BP channels',bp_chan))
 print 'Initial phase solution before bandpass...'
 gaincal(vis=ms_name,caltable=cal_table_prefix+'.bpphase.gcal',field=bpf_cal,\
 	spw=bp_chan,refant=ref_ant,\
-	calmode='p',solint='int',minsnr=2.0,minblperant=4)
+	calmode='p',solint='int',minsnr=2.0,minblperant=4,intent='CALIBRATE_BANDPASS#ON_SOURCE')
 gt_lst.append(cal_table_prefix+'.bpphase.gcal')
 print 'Plotting solutions...'
 print 'XX'
@@ -473,7 +474,7 @@ raw_input('Please press enter when ready to continue.')
 print 'BP solution...'
 bandpass(vis=ms_name,caltable=cal_table_prefix+'.bandpass.bcal',field=bpf_cal,spw='',combine='',\
 	refant=ref_ant,solint='inf',solnorm=True,minblperant=4, bandtype='B',\
-	fillgaps=3,gaintable=gt_lst)
+	fillgaps=3,gaintable=gt_lst,intent='CALIBRATE_BANDPASS#ON_SOURCE')
 print 'Plotting solutions...'
 for ii in range(0,len(science_spw)):
 	print 'Amp for Spw ', ii

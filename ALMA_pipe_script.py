@@ -3,7 +3,7 @@
 #################################################
 '''CASA script to use pipeline to do a quick preliminary reduction of ALMA
 continuum data. Use when you only have the raw asdm data directly after a trigger.
-INPUT: 
+INPUT: Parameters below.
 OUTPUT: (1) Calibrated Split MS for full band (and each spw) -- [target]_[obsDate]_[band]_cal.ms
         (2) Continuum images for full band (and each epw) -- [target]_[obsDate]_[band]_clean1.image.(.tt0)
         (3) Fits point source and prints flux/rms to terminal
