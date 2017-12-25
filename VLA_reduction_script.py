@@ -39,6 +39,7 @@ from utils_CASA import imfit_point, phselfcal, writeDict,source_dict_create,setj
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
 from astropy.io import ascii
+import analysisUtils as au
 
 #define output directory
 my_dir='/mnt/bigdata/tetarenk/VLA_neutrino2/tester/'

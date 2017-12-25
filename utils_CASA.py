@@ -38,6 +38,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			selfcalvis=scname+'_selfcal_'+'presc'+'.ms'
 			#save flags
 			flagmanager(vis=selfcalvis,mode='save',versionname='before_selfcal',merge='replace')
+			delmod(vis=selfcalvis,otf=True)
 			#light clean to get source model
 			manual_mod=raw_input('Do you want to manually add a point src model? y or n?--> ')
 			if manual_mod=='n':

@@ -135,7 +135,7 @@ raw_input('Please press enter when ready to continue.')
 
 #enter some data specifics
 num_spw=raw_input('Please enter the total number of spws in the data set. e.g. 25--> ')
-science_spw=raw_input('Please enter the science spws. e.g. 17,19,21,23--> ').split(',')
+science_spw=au.getScienceSpws(ms_name,intent='OBSERVE_TARGET#ON_SOURCE',returnString=True).split(',')
 bpf_cal=raw_input('Please enter bandpass cals (if >1 seperate by comma)--> ')
 bpf_lst=bpf_cal.split(',')
 bp_scan=raw_input('Please enter bandpass cal scan(s), e.g., 2,3--> ')
@@ -166,6 +166,45 @@ os.system('rm -rf '+my_dir+'antennas_'+obsDate+'.png')
 plotants(vis=ms_name,figfile=my_dir+'antennas_'+obsDate+'.png')
 ref_ant=raw_input('Please enter reference antenna. e.g., DV23-->')
 dict_log.append(('ref_ant',ref_ant))
+
+print 'Observation INFO:'
+
+#time on src
+min_onsrc=au.timeOnSource(ms_name)
+print 'Time on Target Source: ',min_onsrc['minutes_on_science'],'minutes'
+dict_log.append(('min_on_src',min_onsrc['minutes_on_science']))
+
+#ALMA cycle
+alma_cy=au.surmiseCycle(ms_name)
+print 'Data is from ALMA Cycle ',alma_cy
+dict_log.append(('alma_cycle',alma_cy))
+
+#ALMA config
+alma_config=au.surmiseConfiguration(ms_name)
+print 'Data is taken in ALMA configuration: ',alma_config
+dict_log.append(('alma_config',alma_config))
+
+#spectral resolution
+spec_res=au.effectiveResolution(ms_name,int(science_spw[0]),kms=True)
+spec_res2=au.effectiveResolution(ms_name,int(science_spw[0]),kms=False)
+print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
+dict_log.append(('spec_res_kms',spec_res))
+dict_log.append(('spec_res_Hz',spec_res2))
+
+#median PWV
+pwv=au.getMedianPWV(ms_name)
+print 'Median PWV in data set is: ',pwv[0],'+/-',pwv[1],'mm'
+dict_log.append(('med_pwv',pwv[0]))
+dict_log.append(('med_pwv_err',pwv[1]))
+
+#plot weather cond.
+print 'Plotting weather conditions...'
+au.plotWeather(ms_name,figfile=my_dir+'weather_cond.png')
+
+#plot bands
+print 'Plotting bands...'
+au.plotspws(ms_name,intents=['*TARGET*'],plotfile=my_dir+'bands.png')
+raw_input('Please press enter when ready to continue.')
 #################################################
 
 #################################################
@@ -361,8 +400,9 @@ raw_input('Please press enter when ready to continue.')
 if flux_cal != bpf_cal:
 	plotms(vis=ms_name,spw='',xaxis='channel',yaxis='amp',field=flux_cal,\
 		avgtime='1e8',coloraxis='field',iteraxis='spw',showgui=True)
+raw_input('Please press enter when ready to continue.')
 print 'Flagging...'
-badasf=raw_input('Please enter bad ant,spw,field,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
+badasf=raw_input('Please enter bad ant,spw,field,corr,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;9:52:10.0~9:53:10.0 ;5;3;;-->').split(' ')
 dict_log.append(('flags',badasf))
 if '' in badasf:
 	print 'Nothing to flag.'
@@ -370,7 +410,7 @@ else:
 	print 'Flagging selected data.'
 	for i in range(0,len(badasf)):
 		strg=badasf[i].split(';')
-		flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],timerange=strg[3])
+		flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],correlation=strg[3],timerange=strg[4])
 print 'Final check of flagged data...'
 plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=second_cal+','+target_id,\
 	avgtime='1e8',avgscan=True,coloraxis='field',iteraxis='spw',xselfscale=True,yselfscale=True,showgui=True)
@@ -378,7 +418,7 @@ raw_input('Please press enter when ready to continue.')
 flag_again=raw_input('Do you need to do more flagging? y or n-->')
 dict_log.append(('flag again',flag_again))
 while flag_again=='y':
-	badasf2=raw_input('Please enter bad ant,spw,field,timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
+	badasf2=raw_input('Please enter bad ant,spw,field,corr,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;9:52:10.0~9:53:10.0 ;5;3;;-->').split(' ')
 	dict_log.append(('flags2',badasf2))
 	if '' in badasf2:
 		print 'Nothing to flag.'
@@ -386,7 +426,7 @@ while flag_again=='y':
 		print 'Flagging selected data.'
 		for i in range(0,len(badasf2)):
 			strg2=badasf2[i].split(';')
-			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],timerange=strg2[3])
+			flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],correlation=strg2[3],timerange=strg2[4])
 	print 'Plotting...'
 	plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=second_cal+','+target_id,\
 		avgtime='1e8',avgscan=True,coloraxis='field',iteraxis='spw',xselfscale=True,yselfscale=True,showgui=True)
@@ -407,6 +447,7 @@ dict_log.append(('ant corrections',do_ant))
 if do_ant=='y':
 	#antpos
 	cor_ants=raw_input('Please enter ants to be corrected, e.g., DA48,DA65--> ')
+	raw_input('Please press enter when ready to continue.')
 	cor_pos=raw_input('Please enter set of three number corrections for each antenna in tandem, e.g., -1,-2,3,4,5,6--> ').split(',')
 	cor_lst=[float(i) for i in cor_pos]
 	gencal(caltable=cal_table_prefix+'.antpos',
@@ -729,7 +770,7 @@ raw_input('Please press enter when ready to continue.')
 extraf=raw_input('Do you need to do additional flagging? y or n-->')
 if extraf=='y':
 	while extraf=='y':
-		badasfextra=raw_input('Please enter bad ant,spw,field, and timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;10:52:11.0~10:53:11.0 ;5;3-->').split(' ')
+		badasfextra=raw_input('Please enter bad ant,spw,field, correlation, and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;10:52:11.0~10:53:11.0 ;5;3;-->').split(' ')
 		if '' in badasfextra:
 			print 'Nothing to flag.'
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
@@ -737,7 +778,7 @@ if extraf=='y':
 			print 'Flagging selected data.'
 			for i in range(0,len(badasfextra)):
 				strge=badasfextra[i].split(';')
-				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],timerange=strge[3])
+				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],correlation=strge[3],timerange=strge[4])
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
 else:
 	print 'No extra flagging requested.'
@@ -761,6 +802,17 @@ for iii in range(0,len(target_lst)):
 		os.system('rm -rf '+ms_name_finalspw)
 		split(vis=ms_name,outputvis=ms_name_finalspw,datacolumn='corrected',\
 			field=target_lst[iii],antenna='',spw=str(k))
+
+#obs dates in MJD
+start_d=au.getObservationStartDate(ms_name)
+endd_d=au.getObservationStopDate(ms_name)
+start_m=au.dateStringToMJD(start_d)
+end_m=au.dateStringToMJD(endd_d)
+mjd_err=((end_m-start_m)/2.)
+mjd_mid=mjd_err+start_m
+dict_log.append(('mjd_mid',mjd_mid))
+dict_log.append(('mjd_err',mjd_err))
+print 'OBS MJD= ',mjd_mid, '+/- ',mjd_err 
 #################################################
 
 #################################################
@@ -872,7 +924,7 @@ if doImage=='T':
 		else:
 			resul_file=open(my_dir+'imfit_results.txt','a')
 		if 'A' in bandsIM:
-			if dopscb=='n':
+			if dopscbb=='n':
 				resul_file.write('Target'+str(target_id[iii])+':\n')
 				resul_file.write('{0} {1} {2} {3} {4}\n'.format(freqbb,fluxbb,errbb,unitbb,errbb_real))
 			else:
@@ -931,7 +983,7 @@ os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+date+'.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'		
