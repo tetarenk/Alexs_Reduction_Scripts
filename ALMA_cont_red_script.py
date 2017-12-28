@@ -380,6 +380,7 @@ flag_again=raw_input('Do you need to do more flagging? y or n-->')
 dict_log.append(('flag again',flag_again))
 while flag_again=='y':
 	badasf2=raw_input('Please enter bad ant,spw,field,corr,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;9:52:10.0~9:53:10.0 ;5;3;;-->').split(' ')
+	raw_input('press enter to flag selected data.')
 	dict_log.append(('flags2',badasf2))
 	if '' in badasf2:
 		print 'Nothing to flag.'
@@ -392,6 +393,7 @@ while flag_again=='y':
 	plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=second_cal+','+target_id,\
 		avgtime='1e8',avgscan=True,coloraxis='field',iteraxis='spw',xselfscale=True,yselfscale=True,showgui=True)
 	raw_input('Please press enter when ready to continue.')
+	raw_input('press enter to continue.')
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 #save flags
 flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_posttw'+'.flaggingbu_beforesetjy')
@@ -740,6 +742,7 @@ if extraf=='y':
 			for i in range(0,len(badasfextra)):
 				strge=badasfextra[i].split(';')
 				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],correlation=strge[3],timerange=strge[4])
+			raw_input('press enter to continue.')
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
 else:
 	print 'No extra flagging requested.'
@@ -960,11 +963,11 @@ print 'Data is taken in ALMA configuration: ',alma_config
 dict_log.append(('alma_config',alma_config))
 
 #spectral resolution
-spec_res=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=True)
-spec_res2=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=False)
-print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
-dict_log.append(('spec_res_kms',spec_res))
-dict_log.append(('spec_res_Hz',spec_res2))
+#spec_res=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=True)
+#spec_res2=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=False)
+#print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
+#dict_log.append(('spec_res_kms',spec_res))
+#dict_log.append(('spec_res_Hz',spec_res2))
 
 #median PWV
 pwv=au.getMedianPWV(ms_name_final)
