@@ -12,7 +12,7 @@ from astropy.io import ascii
 
 def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='',my_dir='',target='',\
 	date='',bband='',combi='',outlierf='',multiscale='',robust='',weighting='',help='F'):
-	'''Selfcal: can use gaintype='T' to combine polarizations and combine='spw' or 'scan' or both if low S/N '''
+	'''Selfcal: can use gaintype='T' to combine polarizations and combine='spw' or 'scan' or both for low S/N '''
 	if help=='T':
 		print 'arguments for selfcal function are: msname,cellsize,nterms,imsize,threashold,ref_ant,my_dir,target,date,bband,combi,outlierf,multiscale,robust,weighting'
 		return
@@ -113,9 +113,6 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
-		#if mynterms>1:
-			#scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image.tt0'
-		#else:
 		scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')
@@ -177,9 +174,6 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
-		#if mynterms>1:
-			#scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image.tt0'
-		#else:
 		scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')

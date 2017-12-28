@@ -166,45 +166,6 @@ os.system('rm -rf '+my_dir+'antennas_'+obsDate+'.png')
 plotants(vis=ms_name,figfile=my_dir+'antennas_'+obsDate+'.png')
 ref_ant=raw_input('Please enter reference antenna. e.g., DV23-->')
 dict_log.append(('ref_ant',ref_ant))
-
-print 'Observation INFO:'
-
-#time on src
-min_onsrc=au.timeOnSource(ms_name)
-print 'Time on Target Source: ',min_onsrc['minutes_on_science'],'minutes'
-dict_log.append(('min_on_src',min_onsrc['minutes_on_science']))
-
-#ALMA cycle
-alma_cy=au.surmiseCycle(ms_name)
-print 'Data is from ALMA Cycle ',alma_cy
-dict_log.append(('alma_cycle',alma_cy))
-
-#ALMA config
-alma_config=au.surmiseConfiguration(ms_name)
-print 'Data is taken in ALMA configuration: ',alma_config
-dict_log.append(('alma_config',alma_config))
-
-#spectral resolution
-spec_res=au.effectiveResolution(ms_name,int(science_spw[0]),kms=True)
-spec_res2=au.effectiveResolution(ms_name,int(science_spw[0]),kms=False)
-print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
-dict_log.append(('spec_res_kms',spec_res))
-dict_log.append(('spec_res_Hz',spec_res2))
-
-#median PWV
-pwv=au.getMedianPWV(ms_name)
-print 'Median PWV in data set is: ',pwv[0],'+/-',pwv[1],'mm'
-dict_log.append(('med_pwv',pwv[0]))
-dict_log.append(('med_pwv_err',pwv[1]))
-
-#plot weather cond.
-print 'Plotting weather conditions...'
-au.plotWeather(ms_name,figfile=my_dir+'weather_cond.png')
-
-#plot bands
-print 'Plotting bands...'
-au.plotspws(ms_name,intents=['*TARGET*'],plotfile=my_dir+'bands.png')
-raw_input('Please press enter when ready to continue.')
 #################################################
 
 #################################################
@@ -802,17 +763,6 @@ for iii in range(0,len(target_lst)):
 		os.system('rm -rf '+ms_name_finalspw)
 		split(vis=ms_name,outputvis=ms_name_finalspw,datacolumn='corrected',\
 			field=target_lst[iii],antenna='',spw=str(k))
-
-#obs dates in MJD
-start_d=au.getObservationStartDate(ms_name)
-endd_d=au.getObservationStopDate(ms_name)
-start_m=au.dateStringToMJD(start_d)
-end_m=au.dateStringToMJD(endd_d)
-mjd_err=((end_m-start_m)/2.)
-mjd_mid=mjd_err+start_m
-dict_log.append(('mjd_mid',mjd_mid))
-dict_log.append(('mjd_err',mjd_err))
-print 'OBS MJD= ',mjd_mid, '+/- ',mjd_err 
 #################################################
 
 #################################################
@@ -833,8 +783,8 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
 				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
-					gain=0.1,weighting='natural',nterms=mynterms, mask='',usescratch=False,\
-					interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2)
+					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
+					interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			else:
 				print 'Cleaning...'
@@ -842,8 +792,8 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
 				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
-					gain=0.1,weighting='natural',nterms=mynterms, mask=mymask,usescratch=False,\
-					interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2)
+					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
+					interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
@@ -880,8 +830,8 @@ if doImage=='T':
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
 					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
-						gain=0.1,weighting='natural',nterms=mynterms, mask='',usescratch=False,\
-						interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2)
+						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
+						interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				else:
 					print 'Cleaning...'
@@ -889,8 +839,8 @@ if doImage=='T':
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
 					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
-						gain=0.1,weighting='natural',nterms=mynterms, mask=mymask,usescratch=False,\
-						interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2)
+						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
+						interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
@@ -976,6 +926,61 @@ if uv_fit=='T':
 			resuluv_file=open(my_dir+'uvfit_results'+'_'+band+'.txt','a')
 		resuluv_file.write('{0} {1} {2} {3}\n'.format('combined',src_uv_init,src_uv_err))
 		resuluv_file.close()
+###########################################
+
+###########################################
+#Obs info
+###########################################
+print 'Observation INFO:'
+
+#obs dates in MJD
+start_d=au.getObservationStartDate(ms_name_final)
+endd_d=au.getObservationStopDate(ms_name_final)
+start_m=au.dateStringToMJD(start_d)
+end_m=au.dateStringToMJD(endd_d)
+mjd_err=((end_m-start_m)/2.)
+mjd_mid=mjd_err+start_m
+dict_log.append(('mjd_mid',mjd_mid))
+dict_log.append(('mjd_err',mjd_err))
+print 'OBS MJD= ',mjd_mid, '+/- ',mjd_err 
+
+#time on src
+min_onsrc=au.timeOnSource(ms_name_final)
+print 'Time on Target Source: ',min_onsrc['minutes_on_science'],'minutes'
+dict_log.append(('min_on_src',min_onsrc['minutes_on_science']))
+
+#ALMA cycle
+alma_cy=au.surmiseCycle(ms_name_final)
+print 'Data is from ALMA Cycle ',alma_cy
+dict_log.append(('alma_cycle',alma_cy))
+
+#ALMA config
+alma_config=au.surmiseConfiguration(ms_name_final)
+print 'Data is taken in ALMA configuration: ',alma_config
+dict_log.append(('alma_config',alma_config))
+
+#spectral resolution
+spec_res=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=True)
+spec_res2=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=False)
+print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
+dict_log.append(('spec_res_kms',spec_res))
+dict_log.append(('spec_res_Hz',spec_res2))
+
+#median PWV
+pwv=au.getMedianPWV(ms_name_final)
+print 'Median PWV in data set is: ',pwv[0],'+/-',pwv[1],'mm'
+dict_log.append(('med_pwv',pwv[0]))
+dict_log.append(('med_pwv_err',pwv[1]))
+
+#plot weather cond.
+print 'Plotting weather conditions...'
+au.plotWeather(ms_name_final,figfile=my_dir+'weather_cond.png')
+raw_input('Please press enter when ready to continue.')
+
+#plot bands
+print 'Plotting bands...'
+au.plotspws(ms_name_final,intents=['*TARGET*'],plotfile=my_dir+'bands.png')
+raw_input('Please press enter when ready to continue.')
 ###########################################
 
 print 'Cleaning up...'
