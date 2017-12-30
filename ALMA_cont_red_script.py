@@ -963,11 +963,11 @@ print 'Data is taken in ALMA configuration: ',alma_config
 dict_log.append(('alma_config',alma_config))
 
 #spectral resolution
-#spec_res=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=True)
-#spec_res2=au.effectiveResolution(ms_name_final,int(science_spw[0]),kms=False)
-#print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
-#dict_log.append(('spec_res_kms',spec_res))
-#dict_log.append(('spec_res_Hz',spec_res2))
+spec_res=au.effectiveResolution(ms_name_final,0,kms=True)
+spec_res2=au.effectiveResolution(ms_name_final,0),kms=False)
+print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
+dict_log.append(('spec_res_kms',spec_res))
+dict_log.append(('spec_res_Hz',spec_res2))
 
 #median PWV
 pwv=au.getMedianPWV(ms_name_final)
