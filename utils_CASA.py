@@ -16,7 +16,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 	if help=='T':
 		print 'arguments for selfcal function are: msname,cellsize,nterms,imsize,threashold,ref_ant,my_dir,target,date,bband,combi,outlierf,multiscale,robust,weighting'
 		return
-	combi_pol=''
+	combi_pol='n'
 	cal_table_prefix=my_dir+target+'_'+date+'_'+bband
 	cont0='y'
 	attemptnum=1
@@ -97,7 +97,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 				combi_pol=raw_input('Do you want to try combining polarizations?y or n?--> ')
 				combi=raw_input('Do you want to try combining spws?y or n?--> ')
 				
-		scchoice=raw_input('What solution interval do you want to apply? e.g., 10,combi,combi_pol-->').split(',')
+		scchoice=raw_input('What solution interval do you want to apply? e.g., 10,comb. spw (y or n),comb. pol (y or n)-->').split(',')
 		sctable=cal_table_prefix+'_'+str(scchoice[0])+'sec'+str(attemptnum)+'_'+str(scchoice[1])+str(scchoice[2])+'.phself'
 		print 'Applying phase selfcal solutions at ', scchoice,' sec interval...'
 		if combi=='y':
