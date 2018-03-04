@@ -357,8 +357,8 @@ for kk in range(0,len(ms_name_list)):
 		print 'Look for obvious bad data.'
 		print 'Keep track of ants/spws/channels to flag. You will be prompted for their values after plotting.'
 		print '(1) Amp vs time...'
-		#plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
-		 #avgtime='60')
+		plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
+		 avgtime='60')
 		raw_input('Please press enter when ready to continue.')
 		autoflag=raw_input('Is the RFI bad enough that you need to do autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
@@ -501,16 +501,16 @@ for kk in range(0,len(ms_name_list)):
 			xaxis='frequency',yaxis='phase',iteraxis='baseline')
 		raw_input('Please press enter when ready to continue.')
 		print 'LL correlation...'
-		#plotms(vis=ms_name,field=second_cal, spw='',antenna=ref_ant+'&*',correlation='LL',\
-			#xaxis='frequency',yaxis='phase',iteraxis='baseline')
+		plotms(vis=ms_name,field=second_cal, spw='',antenna=ref_ant+'&*',correlation='LL',\
+			xaxis='frequency',yaxis='phase',iteraxis='baseline')
 		raw_input('Please press enter when ready to continue.')
 		print '(4A) Baselines (all not just to ref antenna) vs amp for target...'
-		#plotms(vis=ms_name,field=target_id, xaxis='baseline', yaxis='amp', spw='', iteraxis='spw',\
-			#correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
+		plotms(vis=ms_name,field=target_id, xaxis='baseline', yaxis='amp', spw='', iteraxis='spw',\
+			correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
 		raw_input('Please press enter when ready to continue.')
 		print '(4B) Amp vs uvdist for target...'
-		#plotms(vis=ms_name, field=target_id, xaxis='uvdist', yaxis='amp', spw='', iteraxis='spw',\
-			#correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
+		plotms(vis=ms_name, field=target_id, xaxis='uvdist', yaxis='amp', spw='', iteraxis='spw',\
+			correlation='RR,LL', coloraxis='antenna1', symbolshape = 'circle')
 		raw_input('Please press enter when ready to continue.')
 		print '(5) Data stream plot...'
 		plotms(vis=ms_name,field='',correlation='RR,LL',timerange='',\
