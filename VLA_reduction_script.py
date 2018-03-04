@@ -550,6 +550,9 @@ for kk in range(0,len(ms_name_list)):
 	else:
 		autoflag=raw_input('Did you autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
+		lastf,fant=last_field_parse(my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
+		dict_log.append((ms_name_prefix+'_flag_lastfield',lastf))
+		dict_log.append((ms_name_prefix+'_flag_firstant',fant))
 		if autoflag=='y':
 			ms_name=ms_name_prefix+'_hs.ms'
 			ms_name_prefix=ms_name.strip('.ms')
