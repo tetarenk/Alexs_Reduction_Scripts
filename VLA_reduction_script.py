@@ -1194,8 +1194,8 @@ for kk in range(0,len(ms_name_list)):
 	listobs(vis=ms_name,spw=spw_low,listfile=my_dir+'spw_low_listobs.txt')
 	listobs(vis=ms_name,spw=spw_high,listfile=my_dir+'spw_high_listobs.txt')
 	for iii in second_lst:
-		au.spectralIndex(my_dir+'spw_low_listobs.txt',my_dir+'fluxscale_file_lsb.txt',src_dict['Fields'][str(iii)]['Name'])
-		au.spectralIndex(my_dir+'spw_high_listobs.txt',my_dir+'fluxscale_file_usb.txt',src_dict['Fields'][str(iii)]['Name'])
+		au.spectralindex(my_dir+'spw_low_listobs.txt',my_dir+'fluxscale_file_lsb.txt',src_dict['Fields'][str(iii)]['Name'])
+		au.spectralindex(my_dir+'spw_high_listobs.txt',my_dir+'fluxscale_file_usb.txt',src_dict['Fields'][str(iii)]['Name'])
 		os.system('mv *.png '+my_dir)
 		print 'Saved fitted spectra of', src_dict['Fields'][str(iii)]['Name'], 'to plot files.'
 	if intera=='y':
