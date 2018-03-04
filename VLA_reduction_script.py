@@ -1190,15 +1190,15 @@ for kk in range(0,len(ms_name_list)):
 	os.system('rm -rf '+cal_table_prefix+'_2.fluxscale1')
 	print 'Scaling amp gains for lower and upper base-band...'
 	myscale = fluxscale(vis=ms_name,caltable=cal_table_prefix+'.G1', fluxtable=cal_table_prefix+'.fluxscale1',\
-		reference=bpf_lst,transfer=second_lst+polleak_lst,incremental=False,listfile=my_dir+cal_table_prefix+'fluxscale_file_lsb.txt')
+		reference=bpf_lst,transfer=second_lst+polleak_lst,incremental=False,listfile=my_dir+target+'_'+date+'_fluxscale_file_lsb.txt')
 	myscale2 = fluxscale(vis=ms_name,caltable=cal_table_prefix+'_2.G1', fluxtable=cal_table_prefix+'_2.fluxscale1',\
-		reference=bpf_lst,transfer=second_lst+polleak_lst,incremental=False,listfile=my_dir+cal_table_prefix+'fluxscale_file_usb.txt')
+		reference=bpf_lst,transfer=second_lst+polleak_lst,incremental=False,listfile=my_dir+target+'_'+date+'_fluxscale_file_usb.txt')
 	print 'Testing flux cal accuracy...'
-	listobs(vis=ms_name,spw=spw_low,listfile=my_dir+cal_table_prefix+'spw_low_listobs.txt')
-	listobs(vis=ms_name,spw=spw_high,listfile=my_dir+cal_table_prefix+'spw_high_listobs.txt')
+	listobs(vis=ms_name,spw=spw_low,listfile=my_dir+target+'_'+date+'_spw_low_listobs.txt')
+	listobs(vis=ms_name,spw=spw_high,listfile=my_dir+target+'_'+date+'_spw_high_listobs.txt')
 	for iii in second_lst:
-		au.spectralindex(my_dir+cal_table_prefix+'spw_low_listobs.txt',my_dir+cal_table_prefix+'fluxscale_file_lsb.txt',src_dict['Fields'][str(iii)]['Name'])
-		au.spectralindex(my_dir+cal_table_prefix+'spw_high_listobs.txt',my_dir+cal_table_prefix+'fluxscale_file_usb.txt',src_dict['Fields'][str(iii)]['Name'])
+		au.spectralindex(my_dir+target+'_'+date+'_spw_low_listobs.txt',my_dir+target+'_'+date+'_fluxscale_file_lsb.txt',src_dict['Fields'][str(iii)]['Name'])
+		au.spectralindex(my_dir+target+'_'+date+'_spw_high_listobs.txt',my_dir+target+'_'+date+'_fluxscale_file_usb.txt',src_dict['Fields'][str(iii)]['Name'])
 		os.system('mv *.png '+my_dir)
 		print 'Saved fitted spectra of', src_dict['Fields'][str(iii)]['Name'], 'to plot files.'
 	if intera=='y':
