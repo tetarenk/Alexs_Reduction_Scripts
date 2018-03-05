@@ -1472,7 +1472,7 @@ for kk in range(0,len(ms_name_list)):
 				dict_log.append((ms_name_prefix+'_phself_usb',dopscu))
 				if dopscu=='y':
 					selfcal_high,scim_high=phselfcal(split_high,mycell0,mynterms,myimsize0,mythreshold0,ref_ant,my_dir,target,\
-				date,band_low,'n',outlierfile,multiscale,robust,weighting)
+				date,band_high,'n',outlierfile,multiscale,robust,weighting)
 					fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
 			if 'B' in bandsIM:
 				print 'Combined base-band...'
