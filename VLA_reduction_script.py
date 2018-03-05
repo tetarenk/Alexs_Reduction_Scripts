@@ -1511,7 +1511,7 @@ for kk in range(0,len(ms_name_list)):
 				dict_log.append((ms_name_prefix+'_phself_both',dopscb))
 				if dopscb=='y':
 					selfcal_both,scim_both=phselfcal(split_full,mycell0,mynterms,myimsize0,mythreshold0,ref_ant,my_dir,target,\
-				date,band_low,'n',outlierfile,multiscale,robust,weighting)
+				date,'combined','n',outlierfile,multiscale,robust,weighting)
 					fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
 			if 'P' in bandsIM:
 				os.system('rm -rf '+my_dir+target+'_'+date+'_'+band+'_polcube_IQUV*')
