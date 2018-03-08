@@ -113,7 +113,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
-		scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11.image'
+		scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
 		imview(scim)
 		raw_input('Please press enter when ready to continue.')
 		cont0=raw_input('Do you want to continue phase selfcal?y or n-->')
@@ -159,7 +159,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 				print 'Redoing amp solutions...'
 		scchoiceamp=raw_input('What solution interval do you want to apply? e.g., inf-->')
 		sctablea=cal_table_prefix+'_'+str(scchoiceamp)+'sec'+'.ampself'
-		print 'Applying phase selfcal solutions at ', scchoiceamp,' sec interval...'
+		print 'Applying amp selfcal solutions at ', scchoiceamp,' sec interval...'
 		if combi=='y':
 			applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctablea],\
 				gainfield=[''],interp=['nearest'],spwmap=[[0]], calwt=[False])
@@ -182,6 +182,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			flagmanager(vis=selfcalvis, mode='restore',versionname='after_phase'+str(attemptnum))
 			clearcal(selfcalvis)
 			delmod(selfcalvis,field='',otf=True)
+			scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
 			if combi=='y':
 				applycal(vis=selfcalvis, field='',spw='',selectdata=False, gaintable= [sctable],\
 					gainfield=[''],interp=['nearest'],spwmap=[[0]], calwt=[False])
