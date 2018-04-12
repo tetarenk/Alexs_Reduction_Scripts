@@ -79,8 +79,6 @@ obsDate=data_params.obsDate
 target=data_params.target
 bands=data_params.bands
 spw_bands=data_params.spw_bands
-spw_low=data_params.spw_low
-spw_high=data_params.spw_high
 scans=data_params.scans
 bitdata=data_params.bitdata
 remakems=data_params.remakems
@@ -254,8 +252,8 @@ for kk in range(0,len(ms_name_list)):
 	[field_lst.append(i) for i in bpf_lst]
 	[field_lst.append(i) for i in second_lst]
 	[field_lst.append(i) for i in polleak_lst]
-	#spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
-	#spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
+	spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
+	spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
 	spw_full=spw_low.split('~')[0]+'~'+spw_high.split('~')[1]
 	band=bands[kk]
 	ms_name=ms_name_list[kk]
