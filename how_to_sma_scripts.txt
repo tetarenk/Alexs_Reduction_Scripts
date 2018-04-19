@@ -1,0 +1,32 @@
+Instructions on using SMA scripts to convert raw SMA data to CASA MS:
+
+1. Download scripts form github repo; https://github.com/smithsonian/sma2casa.git 
+
+2. Unzip file and cd into created sma2casa-master directory
+
+3. Edit path to local python distribution in:
+
+(a) makevis.c,
+first line should read something like: #include "/home/ubuntu/anaconda2/include/python2.7/Python.h"
+
+(b) Makefile; both paths should read something like:
+/home/ubuntu/anaconda2/pkgs/python-2.7.14-h1571d57_29/include/python2.7/
+/home/ubuntu/anaconda2/pkgs/python-2.7.14-h1571d57_29/lib/libpython2.7.so
+
+4. Save and recompile c code by running, "make" in same directory. This will remake the makevis.so file.
+
+5. Make sure you have astropy and numpy python packages installed.
+
+6. Run the sma2casa.py code, examples are the following,
+python sma2casa.py /path/to/raw/data/directory/ (asic only)
+python sma2casa.py /path/to/raw/data/directory/ -w 49,50 -n 49:0:16383:128 50:0:16383:128 (asic+swarm)
+python sma2casa.py /path/to/raw/data/directory/ -r 230 (swarm only; need to do recievers seperately!)
+
+Note: In sma2casa.py, you may need to change tflagdata to flagdata if you get error, and ulimit -n 4096 
+to avoid too many files error when concatenating.
+
+7. Start up CASA, must be version <4.7.
+
+8. Run execfile("smaImportFix.py") within CASA.
+
+9. Repeat steps 6-8 for 2nd reciever (need to do recievers seperately!)

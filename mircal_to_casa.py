@@ -1,4 +1,7 @@
-'''Convert calibrated raw SMA data (MIR format) to CASA for imaging
+#################################################
+#MIR to CASA for Calibrated SMA Data Script
+#################################################
+'''Convert calibrated SMA data (MIR format) to CASA for imaging
 INPUT: Path to uvfits files, and lists of source names and recievers input on line 12
 OUTPUT: Concatenated CASA MS
 

@@ -9,18 +9,18 @@ OUTPUT: (1) Calibrated Split MS for each side-band (and full band) -- [target]_[
 NOTES: - All output images & intermediate data products are put in my_dir directory set below.
        - All output images are also converted to fits format (just append .fits to end of images above)
        - All input logged in user_input.log.
-       - This script is intended to be used with raw data that has been converted to CASA MS format; either
-	   	 through the SMA scripts method (1) or the Miriad method (2).
-         (1) -run python sma2casa.py /projects/mnt/JACPOT/JACPOT_V404_Cyg/SMA/raw/150622_10:17:28 (asic only)
-             -run python sma2casa.py /Users/atetarenk/Desktop/sma2casa/150622_10:17:28 -w 49,50 -n 49:0:16383:128 50:0:16383:128 (asic+swarm)
-             Remember: When on mac, make sure to change tflagdata to flagdata and ulimit -n 4096 to avoid too many files error when concatenating.
-             You may need to recompile C module to get it to work without -P flag. Just run make with correct paths to python in Makefile and .c file.
-             -run execfile("smaImportFix.py") within CASA within same directory as sma2casa.py.
-         (2) -run miriad bash script (miriad2fits.sh)-need raw miriad files from CfA as swarmsplt task not publicably available yet!
-             -run CASA script (fits2casa.py)
+       - This script is intended to be used with raw data that has been converted to CASA MS format;
+	   	 There are 2 methods to get from raw data to CASA MS
+         (1) -see instructions in how_to_sma_scripts.txt (recommended!)
+         (2) -Alternatively, the old way to convert is through miriad. 
+         If you can create raw miriad files (from idl2miriad task in MIR),
+         run miriad bash script (miriad2fits.sh) and run CASA script (fits2casa.py).
+WARNING: If you have SMA data calibrated in MIR or MIRIAD, use instructions here,
+https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
+to convert to CASA MS for imaging.
 
 Written by: Alex J. Tetarenko
-Last Updated: November 13 2017
+Last Updated: April 18 2018
 Works in CASA-5.1.1 now!'''
 
 print '##################################################'
