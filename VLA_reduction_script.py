@@ -187,8 +187,8 @@ for kk in range(0,len(ms_name_list)):
 	second_lst=[]
 	target_lst=[]
 	polleak_lst=[]
-	spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
-	spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
+	spw_low=raw_input('Please enter spw range for lowest freq. base-band, e.g., 0~7-->')
+	spw_high=raw_input('Please enter spw range for highest freq. base-band, e.g., 8~15-->')
 	for ik in range(0,len(src_dict['Fields'])):
 		if intentbp in src_dict['Fields'][str(ik)]['Intent'] and intentpoleak not in src_dict['Fields'][str(ik)]['Intent']:
 			bpf_lst.append(str(ik))
