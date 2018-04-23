@@ -15,8 +15,11 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.log.
        - If autoflag is used summary presented in autoflag_log.txt
 Written by: Alex J. Tetarenko
-Last Updated: Dec 8 2017
-Works in CASA-5.1.1 now!'''
+Last Updated: April 23, 2018
+Works in CASA-5.1.1 now!
+
+USAGE: Set path to parameter file (line 58) and output directory (line 47), then,
+run execfile('VLA_reduction_script.py') within CASA'''
 
 print '##################################################'
 print 'Welcome to Alexs VLA Continuum Reduction Script'
@@ -49,12 +52,12 @@ if not os.path.isdir(my_dir):
 	os.system('sudo chmod -R u+r '+my_dir) 
 	os.system('sudo chmod -R u+w '+my_dir)
 	os.system('sudo chmod -R u+x '+my_dir)
-print 'You have set your output directory to ', my_dir
+print 'You have set your output directory to ', my_dir,'\n'
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
 param_dir_file='/mnt/bigdata/tetarenk/VLA_neutrino2/params_vla.txt'
-print 'You have set your param file to ', param_dir_file
+print 'You have set your param file to ', param_dir_file,'\n'
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
 #make dictionary to write all user input variables to for log
@@ -63,7 +66,7 @@ dict_log=[]
 #################################################
 #Defining Parameters Section
 #################################################
-print 'Reading in parameters...'
+print 'Reading in parameters...\n'
 #read in param file
 def getVar(filename):
 	'''Easy way to read in variables from parameter file'''
@@ -133,8 +136,8 @@ else:
 
 print '****************************************************************'
 print 'You have selected the ',bands,' bands to reduce.'
-print '****************************************************************'
-print 'We need to split the data into these individual bands to reduce seperately.'
+print '****************************************************************\n'
+print 'We need to split the data into these individual bands to reduce seperately.\n'
 
 ms_name_list=[]
 for i in range(0,len(bands)):
@@ -189,6 +192,13 @@ for kk in range(0,len(ms_name_list)):
 	polleak_lst=[]
 	spw_low=raw_input('Please enter spw range for lowest freq. base-band, e.g., 0~7-->')
 	spw_high=raw_input('Please enter spw range for highest freq. base-band, e.g., 8~15-->')
+	check_inspw=re.compile('\d{1}~\d{1}')
+	while not check_inspw.match(spw_low):
+		print 'Invalid spw range for lower base-band.'
+		spw_low=raw_input('Please enter spw range for lowest freq. base-band, e.g., 0~7-->')
+	while not check_inspw.match(spw_high):
+		print 'Invalid spw range for higher base-band.'
+		spw_high=raw_input('Please enter spw range for highest freq. base-band, e.g., 8~15-->')
 	for ik in range(0,len(src_dict['Fields'])):
 		if intentbp in src_dict['Fields'][str(ik)]['Intent'] and intentpoleak not in src_dict['Fields'][str(ik)]['Intent']:
 			bpf_lst.append(str(ik))
@@ -293,6 +303,10 @@ for kk in range(0,len(ms_name_list)):
 	os.system('rm -rf '+ant_plot)
 	plotants(vis=ms_name,figfile=ant_plot)
 	ref_ant=raw_input('Please enter reference antenna. e.g., ea02-->')
+	check_inref=re.compile('ea\d{2}')
+	while not check_inref.match(ref_ant):
+		print 'Invalid antenna expression.'
+		ref_ant=raw_input('Please enter reference antenna. e.g., ea02-->')
 	dict_log.append((ms_name_prefix+'_ref_ant',ref_ant))
 	flag_done=raw_input('Is the data set already flagged?y or n-->')
 	dict_log.append((ms_name_prefix+'_flag_done',flag_done))
@@ -527,6 +541,9 @@ for kk in range(0,len(ms_name_list)):
 			print 'Flagging selected data.'
 			for i in range(0,len(badasf)):
 				strg=badasf[i].split(';')
+				while len(strg)!=3:
+					print 'Flagging parameters incorrect for',i+1,' entry'
+					strg=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 				if ':' in strg[3]:
 					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],timerange=strg[3])
 				else:
@@ -545,6 +562,9 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasf2)):
 					strg2=badasf2[i].split(';')
+					while len(strg2)!=3:
+						print 'Flagging parameters incorrect for',i+1,' entry'
+						strg2=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 					if ':' in strg2[3]:
 						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],timerange=strg2[3])
 					else:
@@ -1361,6 +1381,9 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasfextra)):
 					strge=badasfextra[i].split(';')
+					while len(strge)!=3:
+						print 'Flagging parameters incorrect for',i+1,' entry'
+						strge=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 					if ':' in strge[3]:
 						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],timerange=strge[3])
 					else:
