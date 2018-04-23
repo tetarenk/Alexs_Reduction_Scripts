@@ -357,8 +357,9 @@ for kk in range(0,len(ms_name_list)):
 		print 'Look for obvious bad data.'
 		print 'Keep track of ants/spws/channels to flag. You will be prompted for their values after plotting.'
 		print '(1) Amp vs time...'
+		avgtime_plotms=raw_input('Please enter avg time interval in seconds, e.g., 60-->')
 		plotms(vis=ms_name,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna",\
-		 avgtime='60')
+		 avgtime=avgtime_plotms)
 		raw_input('Please press enter when ready to continue.')
 		autoflag=raw_input('Is the RFI bad enough that you need to do autoflag?y or n-->')
 		dict_log.append((ms_name_prefix+'_flag_autoflag',autoflag))
@@ -526,7 +527,10 @@ for kk in range(0,len(ms_name_list)):
 			print 'Flagging selected data.'
 			for i in range(0,len(badasf)):
 				strg=badasf[i].split(';')
-				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],timerange=strg[3])
+				if ':' in strg[3]:
+					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],timerange=strg[3])
+				else:
+					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg[0],spw=strg[1],field=strg[2],scan=strg[3])
 		print 'Final check of flagged data...'
 		plotms(vis=ms_name,field=second_cal,spw='', antenna=ref_ant,correlation='RR,LL',xaxis='frequency',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
@@ -541,7 +545,10 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasf2)):
 					strg2=badasf2[i].split(';')
-					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],timerange=strg2[3])
+					if ':' in strg2[3]:
+						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],timerange=strg2[3])
+					else:
+						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strg2[0],spw=strg2[1],field=strg2[2],scan=strg2[3])
 			print 'Plotting...'
 			plotms(vis=ms_name,field=second_cal,spw='', antenna=ref_ant,correlation='RR,LL',xaxis='frequency',yaxis='amp')
 			raw_input('Please press enter when ready to continue.')
@@ -1354,7 +1361,10 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasfextra)):
 					strge=badasfextra[i].split(';')
-					flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],timerange=strge[3])
+					if ':' in strge[3]:
+						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],timerange=strge[3])
+					else:
+						flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],scan=strge[3])
 				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		else:
 			print 'No extra flagging requested.'
