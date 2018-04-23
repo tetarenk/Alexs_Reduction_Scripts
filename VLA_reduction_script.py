@@ -187,6 +187,8 @@ for kk in range(0,len(ms_name_list)):
 	second_lst=[]
 	target_lst=[]
 	polleak_lst=[]
+	spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
+	spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
 	for ik in range(0,len(src_dict['Fields'])):
 		if intentbp in src_dict['Fields'][str(ik)]['Intent'] and intentpoleak not in src_dict['Fields'][str(ik)]['Intent']:
 			bpf_lst.append(str(ik))
@@ -213,8 +215,12 @@ for kk in range(0,len(ms_name_list)):
 			if intentpolang in src_dict['Fields'][str(ik)]['Intent']:
 				id_polPA=str(ik)
 				str_nme=src_dict['Fields'][str(ik)]['Name'].split('=')[1]
-				indL=np.where(pol_values['B']==bands_dict['Band'][bands[i]][0])[0][0]
-				indU=np.where(pol_values['B']==bands_dict['Band'][bands[i]][1])[0][0]
+				if int(spw_low.split('~')[0]) < int(spw_high.split('~')[0]):
+					indL=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][0])[0][0]
+					indU=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][1])[0][0]
+				else:
+					indL=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][1])[0][0]
+					indU=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][0])[0][0]
 				pol_angL=pol_values[str_nme+'Ang'][indL]
 				frac_polL=float(pol_values[str_nme+'Pol'][indL])/100.
 				pol_angU=pol_values[str_nme+'Ang'][indU]
@@ -252,8 +258,8 @@ for kk in range(0,len(ms_name_list)):
 	[field_lst.append(i) for i in bpf_lst]
 	[field_lst.append(i) for i in second_lst]
 	[field_lst.append(i) for i in polleak_lst]
-	spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
-	spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
+	#spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
+	#spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
 	spw_full=spw_low.split('~')[0]+'~'+spw_high.split('~')[1]
 	band=bands[kk]
 	ms_name=ms_name_list[kk]
