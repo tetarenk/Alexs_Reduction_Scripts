@@ -519,7 +519,7 @@ for kk in range(0,len(ms_name_list)):
 			plotrange=[-1,-1,0,28],coloraxis='field')
 		raw_input('Please press enter when ready to continue.')
 		print 'Flagging...'
-		badasf=raw_input('Please enter bad ant,spw, field, and timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
+		badasf=raw_input('Please enter bad ant,spw, field, and scan/timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3;4,5-->').split(' ')
 		dict_log.append((ms_name_prefix+'_flag_antspwfield',badasf))
 		if '' in badasf:
 			print 'Nothing to flag.'
@@ -537,7 +537,7 @@ for kk in range(0,len(ms_name_list)):
 		flag_again=raw_input('Do you need to do more flagging? y or n-->')
 		while flag_again=='y':
 			count_f=1
-			badasf2=raw_input('Please enter bad ant,spw,field,timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3-->').split(' ')
+			badasf2=raw_input('Please enter bad ant,spw,field,scan/timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;9:52:10.0~9:53:10.0 ;5;3;4,5-->').split(' ')
 			dict_log.append((ms_name_prefix+'_flag_antspwfield_'+str(count_f),badasf2))
 			if '' in badasf2:
 				print 'Nothing to flag.'
@@ -1352,7 +1352,7 @@ for kk in range(0,len(ms_name_list)):
 		extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		dict_log.append((ms_name_prefix+'_check_flag',extraf))
 		while extraf=='y':
-			badasfextra=raw_input('Please enter bad ant,spw,field, and timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;10:52:11.0~10:53:11.0 ;5;3-->').split(' ')
+			badasfextra=raw_input('Please enter bad ant,spw,field, and scan/timerange to flag (enter if none). e.g., ea10,ea12;5:4~9;3;10:52:11.0~10:53:11.0 ;5;3;4,5-->').split(' ')
 			dict_log.append((ms_name_prefix+'_check_flag_antspwfield',badasfextra))
 			if '' in badasfextra:
 				print 'Nothing to flag.'
