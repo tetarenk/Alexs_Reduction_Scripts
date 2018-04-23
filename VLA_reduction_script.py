@@ -215,12 +215,8 @@ for kk in range(0,len(ms_name_list)):
 			if intentpolang in src_dict['Fields'][str(ik)]['Intent']:
 				id_polPA=str(ik)
 				str_nme=src_dict['Fields'][str(ik)]['Name'].split('=')[1]
-				if int(spw_low.split('~')[0]) < int(spw_high.split('~')[0]):
-					indL=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][0])[0][0]
-					indU=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][1])[0][0]
-				else:
-					indL=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][1])[0][0]
-					indU=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][0])[0][0]
+				indL=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][0])[0][0]
+				indU=np.where(pol_values['B']==bands_dict['Band'][bands[kk]][1])[0][0]
 				pol_angL=pol_values[str_nme+'Ang'][indL]
 				frac_polL=float(pol_values[str_nme+'Pol'][indL])/100.
 				pol_angU=pol_values[str_nme+'Ang'][indU]
