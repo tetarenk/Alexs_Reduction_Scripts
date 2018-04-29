@@ -130,9 +130,9 @@ else:
 seeurl=raw_input('Do you want to open the log file in your web browser?y or n-->')
 if seeurl =='y':
 	webbrowser.open('http://www.vla.nrao.edu/cgi-bin/oplogs.cgi', new=0, autoraise=True)
-	print 'Moving on to making split data sets.'
+	print 'Moving on to making split data sets.\n'
 else:
-	print 'Okay. Moving on to making split data sets.'
+	print 'Okay. Moving on to making split data sets.\n'
 
 print '****************************************************************'
 print 'You have selected the ',bands,' bands to reduce.'
@@ -202,7 +202,8 @@ for kk in range(0,len(ms_name_list)):
 	for ik in range(0,len(src_dict['Fields'])):
 		if intentbp in src_dict['Fields'][str(ik)]['Intent'] and intentpoleak not in src_dict['Fields'][str(ik)]['Intent']:
 			bpf_lst.append(str(ik))
-			timerbp=src_dict['Fields'][str(ik)]['scantimes']
+			timerbp_lst=src_dict['Fields'][str(ik)]['scantimes'].split(',')
+			timerbp=timerbp_lst[0].split('~')[0]+'~'+timerbp_lst[-1].split('~')[1]
 		elif intentsec in src_dict['Fields'][str(ik)]['Intent']:
 			second_lst.append(str(ik))
 		elif intenttar in src_dict['Fields'][str(ik)]['Intent']:
@@ -266,7 +267,10 @@ for kk in range(0,len(ms_name_list)):
 	[field_lst.append(i) for i in polleak_lst]
 	#spw_low=raw_input('Please enter lower base-band spw range. e.g., 0~15-->')
 	#spw_high=raw_input('Please enter upper base-band spw range. e.g., 0~15-->')
-	spw_full=spw_low.split('~')[0]+'~'+spw_high.split('~')[1]
+	if int(spw_low.split('~')[0]) < int(spw_high.split('~')[0]):
+		spw_full=spw_low.split('~')[0]+'~'+spw_high.split('~')[1]
+	else:
+		spw_full=spw_high.split('~')[0]+'~'+spw_low.split('~')[1]
 	band=bands[kk]
 	ms_name=ms_name_list[kk]
 	ms_name_prefix=ms_name.strip('.ms')
@@ -541,7 +545,7 @@ for kk in range(0,len(ms_name_list)):
 			print 'Flagging selected data.'
 			for i in range(0,len(badasf)):
 				strg=badasf[i].split(';')
-				while len(strg)!=3:
+				while len(strg)!=4:
 					print 'Flagging parameters incorrect for',i+1,' entry'
 					strg=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 				if ':' in strg[3]:
@@ -562,7 +566,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasf2)):
 					strg2=badasf2[i].split(';')
-					while len(strg2)!=3:
+					while len(strg2)!=4:
 						print 'Flagging parameters incorrect for',i+1,' entry'
 						strg2=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 					if ':' in strg2[3]:
@@ -1381,7 +1385,7 @@ for kk in range(0,len(ms_name_list)):
 				print 'Flagging selected data.'
 				for i in range(0,len(badasfextra)):
 					strge=badasfextra[i].split(';')
-					while len(strge)!=3:
+					while len(strge)!=4:
 						print 'Flagging parameters incorrect for',i+1,' entry'
 						strge=raw_input('Please enter flaggin parameters again, e.g., ;4:50;1;--<').split(';')
 					if ':' in strge[3]:

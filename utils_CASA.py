@@ -327,20 +327,18 @@ def source_dict_create(listobs_file):
 		scants=entry2s[0:3]
 		i1=intents.strip('[').strip(']')
 		i2=i1.split(',')
-		if 'Intent' not in newDict['Fields'][entry2s[4]]:
-			newDict['Fields'][entry2s[4]]['Intent']=i2
-			if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
-				val1=scants[0]
-				if '/' in val1:
-					val1=scants[0].split('/')[1]
-				newDict['Fields'][entry2s[4]]['scantimes']=val1+'~'+scants[2]
+		if 'SYSTEM_CONFIGURATION#UNSPECIFIED' not in i2:
+			if 'Intent' not in newDict['Fields'][entry2s[4]]:
+				newDict['Fields'][entry2s[4]]['Intent']=i2
+				if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
+					val1=scants[0]
+					if '/' in val1:
+						val1=scants[0].split('/')[1]
+					newDict['Fields'][entry2s[4]]['scantimes']=val1+'~'+scants[2]
 			else:
-				foo=2
-		else:
-			if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
-				newDict['Fields'][entry2s[4]]['scantimes']=val1+'~'+scants[2]
-			else:
-				foo=2
+				if 'CALIBRATE_BANDPASS#UNSPECIFIED' in i2 or 'CALIBRATE_FLUX#UNSPECIFIED' in i2:
+					val1=scants[0]
+					newDict['Fields'][entry2s[4]]['scantimes']=newDict['Fields'][entry2s[4]]['scantimes']+','+val1+'~'+scants[2]
 	file_listobs.close()
 	return(newDict,integs)
 
