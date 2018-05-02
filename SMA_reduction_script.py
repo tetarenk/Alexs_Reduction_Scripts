@@ -348,8 +348,8 @@ if skipflag=='n':
 	flag_pj=raw_input('Do you want to flag any known phase jumps?y or n-->')
 	dict_log.append(('flag_phasejump',flag_pj))
 	if flag_pj=='y':
-		badpjl=raw_input('Please enter bad ants,fields,timeranges to flag in lsb. e.g. 2,3,2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
-		badpju=raw_input('Please enter bad ants,fields,timeranges to flag in usb. e.g. 2,3,2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
+		badpjl=raw_input('Please enter bad ants,fields,timeranges to flag in lsb. e.g. 2;3;2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
+		badpju=raw_input('Please enter bad ants,fields,timeranges to flag in usb. e.g. 2;3;2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
 		dict_log.append(('bad_phasejumpl',badpjl))
 		dict_log.append(('bad_phasejumpl',badpju))
 		for i in range(0,len(badpjl)):
@@ -388,8 +388,8 @@ if skipflag=='n':
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 	while flag_again=='y':
 		count_f=1
-		badasflsb=raw_input('Please enter bad ant,spw,and field to flag in lsb (enter if none). e.g., 2,3;5:4~9;3 ;5;3-->').split(' ')
-		badasfusb=raw_input('Please enter bad ant,spw,and field to flag in usb (enter if none). e.g., 2,3;5:4~9;3 ;5;3-->').split(' ')
+		badasflsb=raw_input('Please enter bad ant,spw,field, scan/timerange to flag in lsb (enter if none). e.g., 2,3;5:4~9;3;10:54:00~10:56:00 ;5;3;4,5-->').split(' ')
+		badasfusb=raw_input('Please enter bad ant,spw,field, scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:54:00~10:56:00 ;5;3;4,5-->').split(' ')
 		dict_log.append((ms_namel_prefix+'_flag_antspwfield_lsb'+str(count_f),badasflsb))
 		dict_log.append((ms_nameu_prefix+'_flag_antspwfield_usb'+str(count_f),badasfusb))
 		if '' in badasflsb:
@@ -398,14 +398,20 @@ if skipflag=='n':
 			print 'Flagging selected lsb data.'
 			for i in range(0,len(badasflsb)):
 				strglsb=badasflsb[i].split(';')
-				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
+				if ':' in strglsb[3]:
+					flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+				else:
+					flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
 		if '' in badasfusb:
 			print 'Nothing to flag.'
 		else:
 			print 'Flagging selected usb data.'
 			for i in range(0,len(badasfusb)):
 				strgusb=badasfusb[i].split(';')
-				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
+				if ':' in strgusb[3]:
+					flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
+				else:
+					flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
 		print 'Plotting...'
 		print 'LSB...'
 		plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
