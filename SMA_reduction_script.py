@@ -367,8 +367,8 @@ if skipflag=='n':
 			flagdata(vis=ms_nameu, mode='manual', antenna=strg_pju[0],field=strg_pju[1],timerange=strg_pju[2])
 		raw_input('Please press enter when ready to continue.')
 	#other bad data ant,spw,field
-	badasflsb=raw_input('Please enter bad ant,spw,and field to flag in lsb(enter if none). e.g., 2,3;5:4~9;3 ;5;3-->').split(' ')
-	badasfusb=raw_input('Please enter bad ant,spw,and field to flag in usb (enter if none). e.g., 2,3;5:4~9;3 ;5;3-->').split(' ')
+	badasflsb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in lsb(enter if none). e.g., 2,3;5:4~9;3;10:52:01~10:53:03 ;5;3;4,5-->').split(' ')
+	badasfusb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:52:01~10:53:03 ;5;3;4,5-->').split(' ')
 	dict_log.append(('bad_antspefield_lsb',badasflsb))
 	dict_log.append(('bad_antspefield_usb',badasfusb))
 	if '' in badasflsb:
@@ -377,14 +377,20 @@ if skipflag=='n':
 		print 'Flagging selected lsb data.'
 		for i in range(0,len(badasflsb)):
 			strglsb=badasflsb[i].split(';')
-			flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2])
+			if ':' in strglsb[3]:
+				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+			else:
+				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
 	if '' in badasfusb:
 		print 'Nothing to flag.'
 	else:
 		print 'Flagging selected usb data.'
 		for i in range(0,len(badasfusb)):
 			strgusb=badasfusb[i].split(';')
-			flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2])
+			if ':' in strgusb[3]:
+				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
+			else:
+				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
 	print 'Final check of flagged data...'
 	print 'LSB...'
 	plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
@@ -430,6 +436,7 @@ if skipflag=='n':
 		flag_again=raw_input('Do you need to do more flagging? y or n-->')
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append(('interactive',intera))
+	writeDict(dict_log, my_dir+'user_input_'+obsDate+'flag.logg',str(datetime.datetime.now()))
 	if intera=='n':
 		print 'You have chosen to not do interactive calibration.'
 		print 'No plots will be made and no additional flagging is required.'
@@ -1193,7 +1200,7 @@ print 'Cleaning up...'
 os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+obsDate+'.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'

@@ -596,6 +596,7 @@ for kk in range(0,len(ms_name_list)):
 		dict_log.append((ms_name_prefix+'_ref_ant2',ref_ant))
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append((ms_name_prefix+'_interactive',intera))
+	writeDict(dict_log, my_dir+'user_input_'+date+'flag.logg',str(datetime.datetime.now()))
 	if intera=='n':
 		print 'You have chosen to not do interactive calibration.'
 		print 'No plots will be made and no additional flagging is required.'
@@ -1701,7 +1702,7 @@ os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+date+'.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+date+'full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'

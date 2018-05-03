@@ -397,6 +397,7 @@ while flag_again=='y':
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 #save flags
 flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_posttw'+'.flaggingbu_beforesetjy')
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'flag.logg',str(datetime.datetime.now()))
 #################################################
 
 #################################################
@@ -991,7 +992,7 @@ os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+obsDate+'.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'		
