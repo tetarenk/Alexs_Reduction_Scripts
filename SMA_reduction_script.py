@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - This script is intended to be used with raw data that has been converted to CASA MS format;
 	   	 There are 2 methods to get from raw data to CASA MS
          (1) -see instructions in how_to_sma_scripts.txt (recommended!)
-         (2) -Alternatively, the old way to convert is through miriad. 
-         If you can create raw miriad files (from idl2miriad task in MIR),
+         (2) Alternatively, the old way to convert is through miriad. 
+         If you have can create raw miriad files (from idl2miriad task in MIR),
          run miriad bash script (miriad2fits.sh) and run CASA script (fits2casa.py).
 WARNING: If you have SMA data calibrated in MIR or MIRIAD, use instructions here,
 https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
@@ -43,9 +43,10 @@ warnings.filterwarnings('ignore')
 from utils_CASA import imfit_point, phselfcal, writeDict
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
+from astropy.io import ascii
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/test_scripts/sma/'
+my_dir='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/'
 if not os.path.isdir(my_dir):
 	os.system('sudo mkdir '+my_dir)
 	os.system('sudo chown ubuntu '+my_dir)
@@ -56,7 +57,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/home/ubuntu/CASA_reduction_scripts/params_sma.txt'
+param_dir_file='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/params_sma.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -89,6 +90,8 @@ scans_usb=data_params.scans_usb
 remakems=data_params.remakems
 doImage=data_params.doImage
 bandsIM=data_params.bandsIM
+do_ant_correct=params.do_ant_correct
+ant_corr_file=params.ant_corr_file
 #general image params
 use_auto=data_params.use_auto
 mythreshold=data_params.mythreshold
@@ -107,7 +110,7 @@ uv_fit=data_params.uv_fit
 #write all variables to log dictionary
 dict_log.extend([('ms_name_lsb',ms_name_lsb),('ms_name_usb',ms_name_usb),('obsDate',obsDate),('target',target),\
 	('fields_lsb',fields_lsb),('spw_lsb',spw_lsb),('scans_lsb',scans_lsb),('fields_usb',fields_usb),('spw_usb',spw_usb),\
-	('scans_usb',scans_usb),('remakeMS',remakems),('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),\
+	('scans_usb',scans_usb),('remakeMS',remakems),('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('ant file',ant_corr_file),('ant_correct',do_ant_correct),\
 	('myniter',myniter),('mynterms',mynterms),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('use_auto',use_auto),('bandsIM',bandsIM)])
 #################################################
 
@@ -191,7 +194,9 @@ field_lst=[]
 [field_lst.append(i) for i in second_lst]
 [field_lst.append(i) for i in flux_lst]
 spw_low=raw_input('Please enter lower side-band spw range. e.g., 0~15; Do not include dummy spw!-->')
+first_lsb_spw=int(spw_low.split('~')[0])
 spw_high=raw_input('Please enter upper side-band spw range. e.g., 0~15; Do not include dummy spw!-->')
+first_usb_spw=int(spw_high.split('~')[0])
 band='1mm'
 band_low='219GHz'
 band_high='231GHz'
@@ -388,8 +393,8 @@ if skipflag=='n':
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 	while flag_again=='y':
 		count_f=1
-		badasflsb=raw_input('Please enter bad ant,spw,field, scan/timerange to flag in lsb (enter if none). e.g., 2,3;5:4~9;3;10:54:00~10:56:00 ;5;3;4,5-->').split(' ')
-		badasfusb=raw_input('Please enter bad ant,spw,field, scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:54:00~10:56:00 ;5;3;4,5-->').split(' ')
+		badasflsb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in lsb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
+		badasfusb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
 		dict_log.append((ms_namel_prefix+'_flag_antspwfield_lsb'+str(count_f),badasflsb))
 		dict_log.append((ms_nameu_prefix+'_flag_antspwfield_usb'+str(count_f),badasfusb))
 		if '' in badasflsb:
@@ -447,6 +452,26 @@ else:
 ########################################
 
 #####################################
+#Antenna position corrections
+#####################################
+if do_ant_correct=='T':
+	print 'Performing antenna position corrections...'
+	ant_pos_file_read=ascii.read(ant_corr_file,delimiter=' ',data_start=0,names=['ant_lst','X','Y','Z'],guess=False)
+	ant_lst=",".join(ant_pos_file_read['ant_lst'])
+	ant_lst_offset=[]
+	for i in range(0,len(ant_pos_file_read['ant_lst'])):
+		ant_lst_offset.append(1e-3*tt['X'][i])
+		ant_lst_offset.append(1e-3*tt['Y'][i])
+		ant_lst_offset.append(1e-3*tt['Z'][i])
+	print 'Selected antennas for corrections: ',ant_lst
+	print 'Offsets in meters (X,Y,Z looped over all antennas): ', ant_lst_offset
+	gencal(caltable=cal_table_prefixl+'antpos',vis=ms_namel, caltype='antpos',parameter=ant_lst_offset,antenna=ant_lst)
+	gencal(caltable=cal_table_prefixu+'antpos',vis=ms_nameu, caltype='antpos',parameter=ant_lst_offset,antenna=ant_lst)
+	applycal(vis=ms_namel,gaintable=cal_table_prefixl+'antpos',gainfield='')
+	applycal(vis=ms_nameu,gaintable=cal_table_prefixu+'antpos',gainfield='')
+#####################################
+
+#####################################
 #Bandpass and Phase solutions
 #####################################
 #initial phase solution to take away major phase variations with time
@@ -475,10 +500,10 @@ os.system('rm -rf '+cal_table_prefixu+'bandpassB.cal')
 print 'Bandpass solution...'
 bandpass(vis=ms_namel, caltable=cal_table_prefixl+'bandpassB.cal', field=bpf_cal,\
 	spw=spw_low, solint='inf', combine='scan',bandtype='B', refant=ref_ant,solnorm=True,\
-	 gaintable=cal_table_prefixl+'phase_int.cal',spwmap=[1])
+	 gaintable=cal_table_prefixl+'phase_int.cal',spwmap=[first_lsb_spw])
 bandpass(vis=ms_nameu, caltable=cal_table_prefixu+'bandpassB.cal', field=bpf_cal,\
 	spw=spw_high, solint='inf', combine='scan',bandtype='B', refant=ref_ant,solnorm=True,\
-	 gaintable=cal_table_prefixu+'phase_int.cal',spwmap=[1])
+	 gaintable=cal_table_prefixu+'phase_int.cal',spwmap=[first_usb_spw])
 if intera=='y':
 	print 'Plotting solutions...'
 	print 'LSB...'
@@ -524,10 +549,10 @@ os.system('rm -rf '+cal_table_prefixu+'ap.cal')
 print 'Amp solutions...'
 gaincal(vis=ms_namel, caltable=cal_table_prefixl+'ap.cal',field=bpf_cal, spw=spw_low,\
  gaintype='G', minsnr=2.0,refant=ref_ant, calmode='a',solint='300s', combine='spw',\
- gaintable=[cal_table_prefixl+"phase_all.cal",cal_table_prefixl+"bandpassB.cal"],spwmap=[[1],[]])
+ gaintable=[cal_table_prefixl+"phase_all.cal",cal_table_prefixl+"bandpassB.cal"],spwmap=[[first_lsb_spw],[]])
 gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'ap.cal',field=bpf_cal, spw=spw_high,\
  gaintype='G', minsnr=2.0,refant=ref_ant, calmode='a',solint='300s', combine='spw',\
- gaintable=[cal_table_prefixu+"phase_all.cal",cal_table_prefixu+"bandpassB.cal"],spwmap=[[1],[]])
+ gaintable=[cal_table_prefixu+"phase_all.cal",cal_table_prefixu+"bandpassB.cal"],spwmap=[[first_usb_spw],[]])
 if intera=='y':
 	print 'Plotting solutions...'
 	print 'LSB...'
@@ -549,11 +574,11 @@ print 'Applying Bandpass, phase and amp solutions to bp cal...'
 applycal(vis=ms_namel,spw=spw_low, field=bpf_cal,
 	gaintable=[cal_table_prefixl+"phase_all.cal",cal_table_prefixl+'ap.cal',
 	cal_table_prefixl+'bandpassB.cal'],
-	spwmap=[[1],[1],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal])
+	spwmap=[[first_lsb_spw],[first_lsb_spw],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal])
 applycal(vis=ms_nameu,spw=spw_high, field=bpf_cal,
 	gaintable=[cal_table_prefixu+"phase_all.cal",cal_table_prefixu+'ap.cal',
 	cal_table_prefixu+'bandpassB.cal'],
-	spwmap=[[1],[1],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal])
+	spwmap=[[first_usb_spw],[first_usb_spw],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal])
 #####################################
 
 #####################################
@@ -590,22 +615,22 @@ if doblcal=='y':
 	blcal(vis=ms_namel, caltable=cal_table_prefixl+'blcal1.cal',field=bpf_cal,\
 	 spw=spwflaglsb,solint='inf', combine='spw,scan',\
 	 gaintable=[cal_table_prefixl+"phase_all.cal",cal_table_prefixl+'ap.cal',\
-	 cal_table_prefixl+'bandpassB.cal'], calmode='a',spwmap=[[1],[1],[]])
+	 cal_table_prefixl+'bandpassB.cal'], calmode='a',spwmap=[[first_lsb_spw],[first_lsb_spw],[]])
 	blcal(vis=ms_namel, caltable=cal_table_prefixl+'blcal2.cal',field=bpf_cal,\
 	 spw=spwflaglsb,solint='inf', combine='scan',\
 	 gaintable=[cal_table_prefixl+"phase_all.cal",cal_table_prefixl+'ap.cal',\
-	 cal_table_prefixl+'blcal1.cal',cal_table_prefixl+'bandpassB.cal'], calmode='a',spwmap=[[1],[1],[1],[]])
+	 cal_table_prefixl+'blcal1.cal',cal_table_prefixl+'bandpassB.cal'], calmode='a',spwmap=[[first_lsb_spw],[first_lsb_spw],[first_lsb_spw],[]])
 	print 'USB...'
 	spwflagusb=raw_input('Please enter spw range not including those fully flagged in usb. e.g., 1~22,24~50-->')
 	dict_log.append(('unflagged_spwusb',spwflagusb))
 	blcal(vis=ms_nameu, caltable=cal_table_prefixu+'blcal1.cal',field=bpf_cal,\
 		spw=spwflagusb,solint='inf', combine='spw,scan',\
 		gaintable=[cal_table_prefixu+"phase_all.cal",cal_table_prefixu+'ap.cal',\
-		cal_table_prefixu+'bandpassB.cal'], calmode='a',spwmap=[[1],[1],[]])
+		cal_table_prefixu+'bandpassB.cal'], calmode='a',spwmap=[[first_usb_spw],[first_usb_spw],[]])
 	blcal(vis=ms_nameu, caltable=cal_table_prefixu+'blcal2.cal',field=bpf_cal,\
 		spw=spwflagusb,solint='inf', combine='scan',\
 		gaintable=[cal_table_prefixu+"phase_all.cal",cal_table_prefixu+'ap.cal',\
-		cal_table_prefixu+'blcal1.cal',cal_table_prefixu+'bandpassB.cal'], calmode='a',spwmap=[[1],[1],[1],[]])
+		cal_table_prefixu+'blcal1.cal',cal_table_prefixu+'bandpassB.cal'], calmode='a',spwmap=[[first_usb_spw],[first_usb_spw],[first_usb_spw],[]])
 	print 'Plotting solutions...'
 	print 'Should be close to 1.'
 	print 'LSB...'
@@ -622,10 +647,10 @@ if doblcal=='y':
 	print 'Reapplying solutions to BP cal...'
 	applycal(vis=ms_namel,spw=spw_low, field=bpf_cal,gaintable=[cal_table_prefixl+"phase_all.cal",\
 		cal_table_prefixl+'ap.cal',cal_table_prefixl+'blcal2.cal',cal_table_prefixl+'bandpassB.cal'],\
-		spwmap=[[1],[1],[],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal,bpf_cal])
+		spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal,bpf_cal])
 	applycal(vis=ms_nameu,spw=spw_high, field=bpf_cal,gaintable=[cal_table_prefixu+"phase_all.cal",\
 		cal_table_prefixu+'ap.cal',cal_table_prefixu+'blcal2.cal',cal_table_prefixu+'bandpassB.cal'],\
-		spwmap=[[1],[1],[],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal,bpf_cal])
+		spwmap=[[first_usb_spw],[first_usb_spw],[],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal,bpf_cal])
 	print 'Plotting solutions...'
 	print 'LSB...'
 	plotms(vis=ms_namel,xaxis="freq",yaxis="amp",ydatacolumn="corrected",iteraxis="baseline",spw=spw_low,\
@@ -744,37 +769,37 @@ if doblcal=='y':
 	gaincal(vis=ms_namel, caltable=cal_table_prefixl+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 		spw=spwflaglsb, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 		gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'bandpassB.cal',cal_table_prefixl+'blcal2.cal'],\
-		spwmap=[[1],[],[]])
+		spwmap=[[first_lsb_spw],[],[]])
 	if doif2=='y':
 		doif2sp=raw_input('Enter spw range of IF2. e.g., 25~50-->')
 		dict_log.append(('if2_spw_usb',doif2sp))
 		gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 			spw=doif2sp, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-			spwmap=[[1],[],[]])
+			spwmap=[[first_usb_spw],[],[]])
 	else:
 		gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 			spw=spwflagusb, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-			spwmap=[[1],[],[]])
+			spwmap=[[first_usb_spw],[],[]])
 
 else:
 	gaincal(vis=ms_namel, caltable=cal_table_prefixl+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,
 		spw=spw_low, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 		gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'bandpassB.cal'],\
-		spwmap=[[1],[]])
+		spwmap=[[first_lsb_spw],[]])
 	if doif2=='y':
 		doif2sp=raw_input('Enter spw range of IF2. e.g., 25~50-->')
 		dict_log.append(('if2_spw_usb',doif2sp))
 		gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 			spw=doif2sp, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'bandpassB.cal'],\
-			spwmap=[[1],[]])
+			spwmap=[[first_usb_spw],[]])
 	else:
 		gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'allap.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 			spw=spw_high, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'bandpassB.cal'],\
-			spwmap=[[1],[]])
+			spwmap=[[first_usb_spw],[]])
 if intera=='y':
 	print 'Plotting solutions...'
 	print 'LSB...'
@@ -821,127 +846,127 @@ for i in range(0,len(bpf_lst)):
 		applycal(vis=ms_namel,spw=spw_low, field=bpf_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal',cal_table_prefixl+'blcal2.cal'],\
-			spwmap=[[1],[1],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=bpf_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[if2startspw],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+				spwmap=[[first_usb_spw],[if2startspw],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=bpf_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[1],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+				spwmap=[[first_usb_spw],[first_usb_spw],[],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 	else:
 		applycal(vis=ms_namel,spw=spw_low, field=bpf_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal'],\
-			spwmap=[[1],[1],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=bpf_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[if2startspw],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+				spwmap=[[first_usb_spw],[if2startspw],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=bpf_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[1],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
+				spwmap=[[first_usb_spw],[first_usb_spw],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 print 'Flux cal(s)...'
 for i in range(0,len(flux_lst)):
 	if doblcal=='y':
 		applycal(vis=ms_namel,spw=spw_low, field=flux_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal',cal_table_prefixl+'blcal2.cal'],\
-			spwmap=[[1],[1],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=flux_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[if2startspw],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
+				spwmap=[[first_usb_spw],[if2startspw],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=flux_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[1],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
+				spwmap=[[first_usb_spw],[first_usb_spw],[],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal,bpf_cal])
 	else:
 		applycal(vis=ms_namel,spw=spw_low, field=flux_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal'],\
-			spwmap=[[1],[1],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=flux_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[if2startspw],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
+				spwmap=[[first_usb_spw],[if2startspw],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=flux_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[1],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
+				spwmap=[[first_usb_spw],[first_usb_spw],[]],gainfield=[flux_lst[i],flux_lst[i],bpf_cal])
 print 'Second cal(s)...'
 for i in range(0,len(second_lst)):
 	if doblcal=='y':
 		applycal(vis=ms_namel,spw=spw_low, field=second_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal',cal_table_prefixl+'blcal2.cal'],\
-			spwmap=[[1],[1],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=second_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[if2startspw],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
+				spwmap=[[first_usb_spw],[if2startspw],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=second_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-				spwmap=[[1],[1],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
+				spwmap=[[first_usb_spw],[first_usb_spw],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
 	else:
 		applycal(vis=ms_namel,spw=spw_low, field=second_lst[i],\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 			cal_table_prefixl+'bandpassB.cal'],\
-			spwmap=[[1],[1],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
+			spwmap=[[first_lsb_spw],[first_lsb_spw],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
 		if doif2=='y':
 			applycal(vis=ms_nameu,spw=spw_high, field=second_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[if2startspw],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
+				spwmap=[[first_usb_spw],[if2startspw],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=second_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 				cal_table_prefixu+'bandpassB.cal'],\
-				spwmap=[[1],[1],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
+				spwmap=[[first_usb_spw],[first_usb_spw],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal])
 print 'Target...'
 if doblcal=='y':
 	applycal(vis=ms_namel,spw=spw_low, field=target_id,\
 		gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 		cal_table_prefixl+'bandpassB.cal',cal_table_prefixl+'blcal2.cal'],\
-		spwmap=[[1],[1],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
+		spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
 	if doif2=='y':
 		applycal(vis=ms_nameu,spw=spw_high, field=target_id,\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 			cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-			spwmap=[[1],[if2startspw],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
+			spwmap=[[first_usb_spw],[if2startspw],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
 	else:
 		applycal(vis=ms_nameu,spw=spw_high, field=target_id,\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 			cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
-			spwmap=[[1],[1],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
+			spwmap=[[first_usb_spw],[first_usb_spw],[],[]], gainfield=[second_cal,second_cal,bpf_cal,bpf_cal])
 else:
 	applycal(vis=ms_namel,spw=spw_low, field=target_id,\
 		gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
 		cal_table_prefixl+'bandpassB.cal'],\
-		spwmap=[[1],[1],[]], gainfield=[second_cal,second_cal,bpf_cal])
+		spwmap=[[first_lsb_spw],[first_lsb_spw],[]], gainfield=[second_cal,second_cal,bpf_cal])
 	if doif2=='y':
 		applycal(vis=ms_nameu,spw=spw_high, field=target_id,\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 			cal_table_prefixu+'bandpassB.cal'],\
-			spwmap=[[1],[if2startspw],[]], gainfield=[second_cal,second_cal,bpf_cal])
+			spwmap=[[first_usb_spw],[if2startspw],[]], gainfield=[second_cal,second_cal,bpf_cal])
 	else:
 		applycal(vis=ms_nameu,spw=spw_high, field=target_id,\
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 			cal_table_prefixu+'bandpassB.cal'],\
-			spwmap=[[1],[1],[]], gainfield=[second_cal,second_cal,bpf_cal])
+			spwmap=[[first_usb_spw],[first_usb_spw],[]], gainfield=[second_cal,second_cal,bpf_cal])
 #####################################
 
 #####################################
@@ -1166,7 +1191,8 @@ print 'Cleaning up...'
 os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input.log',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
+

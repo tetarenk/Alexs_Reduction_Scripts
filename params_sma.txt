@@ -1,22 +1,25 @@
 #data set params
-ms_name_lsb='/mnt/bigdata/tetarenk/test_scripts/v404_jun17_lsb.ms'
-ms_name_usb='/mnt/bigdata/tetarenk/test_scripts/v404_jun17_usb.ms'
-obsDate='Jun172015'
-target='V404Cyg'
-spw_lsb='0~48'
-fields_lsb='1,2,3,4,5'
-scans_lsb='2~39'
-spw_usb='0~48'
-fields_usb='1,2,3,4,5'
-scans_usb='2~39'
+ms_name_lsb='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/MyDataLower'
+ms_name_usb='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/MyDataUpper'
+obsDate='April122018'
+target='Maxi1820p070'
+spw_lsb='1~4'
+fields_lsb='1,2,3,4,5,10'
+scans_lsb='2~36,39~91,94~99'
+spw_usb='1~4'
+fields_usb='1,2,3,4,5,10'
+scans_usb='2~36,39~91,94~99'
 remakems='F'
-doImage='F'
+doImage='T'
 bandsIM=['L','U','B']#L-lsb,U-usb,B-combined
+#antenna corrections-- file should be same format as SMA default;columns--> identifier(e.g., SMA3),X(mm),Y(mm),Z(mm)
+do_ant_correct='T'
+ant_corr_file='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/antennas_correct.txt'
 #general image params
 use_auto='F'
-mythreshold='0.5mJy'
+mythreshold='1mJy'
 myimsize=512
-mycell='0.2arcsec'
+mycell='0.15arcsec'
 mynterms=2
 myniter=5000
 multiscale=[]
