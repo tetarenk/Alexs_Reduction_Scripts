@@ -110,7 +110,7 @@ mymask=data_params.mymask
 uv_fit=data_params.uv_fit
 
 #write all variables to log dictionary
-dict_log.extend([('ms_name_lsb',ms_name_lsb),('ms_name_usb',ms_name_usb),('obsDate',obsDate),('target',target),\
+dict_log.extend([('ms_name_lsb',ms_name_lsb),('ms_name_usb',ms_name_usb),('obsDate',obsDate),('target',target),('bandlow',band_low),('bandhigh',band_high),\
 	('fields_lsb',fields_lsb),('spw_lsb',spw_lsb),('scans_lsb',scans_lsb),('fields_usb',fields_usb),('spw_usb',spw_usb),\
 	('scans_usb',scans_usb),('remakeMS',remakems),('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('ant file',ant_corr_file),('ant_correct',do_ant_correct),\
 	('myniter',myniter),('mynterms',mynterms),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('use_auto',use_auto),('bandsIM',bandsIM)])
