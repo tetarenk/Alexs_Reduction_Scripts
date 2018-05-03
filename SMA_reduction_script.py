@@ -145,7 +145,7 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'lsb.ms'):
 	split(vis=ms_name_lsb,outputvis=my_dir+'data_'+obsDate+'_'+'lsb.ms',\
 		spw=spw_lsb,datacolumn='data',scan=scans_lsb,field=fields_lsb)
 	flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
-		versionname=target+'_'+obsDate+'_'+band+'_initial',\
+		versionname=target+'_'+obsDate+'_'+band_low+'_initial',\
 		comment='after initial split')
 elif remakems=='T':
 	print 'Remaking split MS for lsb band...'
@@ -162,7 +162,7 @@ elif remakems=='T':
 	else:
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
-			versionname=target+'_'+obsDate+'_'+band+'_initial',\
+			versionname=target+'_'+obsDate+'_'+band_low+'_initial',\
 			comment='after initial split')
 else:
 	print 'Split MS for lsb already exists.'
@@ -171,7 +171,7 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
 		spw=spw_usb,datacolumn='data',scan=scans_usb,field=fields_usb)
 	flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
-		versionname=target+'_'+obsDate+'_'+band+'_initial',\
+		versionname=target+'_'+obsDate+'_'+band_high+'_initial',\
 		comment='after initial split')
 elif remakems=='T':
 	print 'Remaking split MS for usb band...'
@@ -188,7 +188,7 @@ elif remakems=='T':
 	else:
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
-			versionname=target+'_'+obsDate+'_'+band+'_initial',\
+			versionname=target+'_'+obsDate+'_'+band_high+'_initial',\
 			comment='after initial split')
 
 else:
@@ -428,8 +428,8 @@ if skipflag=='n':
 	plotms(vis=ms_nameu,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
 	raw_input('Please press enter when ready to continue.')
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
+	count_f=1
 	while flag_again=='y':
-		count_f=1
 		badasflsb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in lsb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
 		badasfusb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
 		dict_log.append((ms_namel_prefix+'_flag_antspwfield_lsb'+str(count_f),badasflsb))
@@ -467,10 +467,10 @@ if skipflag=='n':
 	dict_log.append(('interactive',intera))
 	writeDict(dict_log, my_dir+'user_input_'+obsDate+'flag.logg',str(datetime.datetime.now()))
 	flagmanager(vis=ms_namel,mode='save',\
-			versionname=target+'_'+obsDate+'_'+band+'_flagging',\
+			versionname=target+'_'+obsDate+'_'+band_low+'_flagging',\
 			comment='after flagging')
 	flagmanager(vis=ms_nameu,mode='save',\
-			versionname=target+'_'+obsDate+'_'+band+'_flagging',\
+			versionname=target+'_'+obsDate+'_'+band_high+'_flagging',\
 			comment='after flagging')
 	if intera=='n':
 		print 'You have chosen to not do interactive calibration.'
@@ -726,10 +726,10 @@ else:
 		spwmap=[[]],gainfield=[bpf_cal])
 
 flagmanager(vis=ms_namel,mode='save',\
-	versionname=target+'_'+obsDate+'_'+band+'_bpbl',\
+	versionname=target+'_'+obsDate+'_'+band_low+'_bpbl',\
 	comment='after BP/BL')
 flagmanager(vis=ms_nameu,mode='save',\
-	versionname=target+'_'+obsDate+'_'+band+'_bpbl',\
+	versionname=target+'_'+obsDate+'_'+band_high+'_bpbl',\
 	comment='after BP/BL')
 #####################################
 
@@ -1020,10 +1020,10 @@ else:
 			spwmap=[[first_usb_spw],[first_usb_spw],[]], gainfield=[second_cal,second_cal,bpf_cal])
 
 flagmanager(vis=ms_namel,mode='save',\
-	versionname=target+'_'+obsDate+'_'+band+'_applycal',\
+	versionname=target+'_'+obsDate+'_'+band_low+'_applycal',\
 	comment='after applycal')
 flagmanager(vis=ms_nameu,mode='save',\
-	versionname=target+'_'+obsDate+'_'+band+'_applycal',\
+	versionname=target+'_'+obsDate+'_'+band_high+'_applycal',\
 	comment='after applycal')
 #####################################
 

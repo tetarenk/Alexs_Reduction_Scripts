@@ -380,10 +380,11 @@ plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=second_cal+','+tar
 raw_input('Please press enter when ready to continue.')
 flag_again=raw_input('Do you need to do more flagging? y or n-->')
 dict_log.append(('flag again',flag_again))
+countf=1
 while flag_again=='y':
 	badasf2=raw_input('Please enter bad ant,spw,field,corr,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;9:52:10.0~9:53:10.0 ;5;3;;-->').split(' ')
 	raw_input('press enter to flag selected data.')
-	dict_log.append(('flags2',badasf2))
+	dict_log.append(('flags2'+str(countf),badasf2))
 	if '' in badasf2:
 		print 'Nothing to flag.'
 	else:
@@ -397,6 +398,7 @@ while flag_again=='y':
 	raw_input('Please press enter when ready to continue.')
 	raw_input('press enter to continue.')
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
+	countf=countf+1
 #save flags
 flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_flagging',comment='after flagging')
 writeDict(dict_log, my_dir+'user_input_'+obsDate+'_flag.logg',str(datetime.datetime.now()))
@@ -735,9 +737,11 @@ plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=target_id,\
 	iteraxis='spw',xselfscale=True,showgui=True)
 raw_input('Please press enter when ready to continue.')
 extraf=raw_input('Do you need to do additional flagging? y or n-->')
+countf=1
 if extraf=='y':
 	while extraf=='y':
 		badasfextra=raw_input('Please enter bad ant,spw,field, correlation, and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;10:52:11.0~10:53:11.0 ;5;3;-->').split(' ')
+		dict_log.append(('flags2'+str(countf),badasfextra))
 		if '' in badasfextra:
 			print 'Nothing to flag.'
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
@@ -748,6 +752,7 @@ if extraf=='y':
 				flagdata(vis=ms_name,flagbackup=True, mode='manual', antenna=strge[0],spw=strge[1],field=strge[2],correlation=strge[3],timerange=strge[4])
 			raw_input('press enter to continue.')
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
+		countf=countf+1
 else:
 	print 'No extra flagging requested.'
 flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_addflag',comment='after additional flagging')
