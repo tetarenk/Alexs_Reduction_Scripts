@@ -90,8 +90,8 @@ scans_usb=data_params.scans_usb
 remakems=data_params.remakems
 doImage=data_params.doImage
 bandsIM=data_params.bandsIM
-do_ant_correct=params.do_ant_correct
-ant_corr_file=params.ant_corr_file
+do_ant_correct=data_params.do_ant_correct
+ant_corr_file=data_params.ant_corr_file
 #general image params
 use_auto=data_params.use_auto
 mythreshold=data_params.mythreshold
