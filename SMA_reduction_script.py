@@ -144,24 +144,53 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'lsb.ms'):
 	print 'Making split MS for lsb band...'
 	split(vis=ms_name_lsb,outputvis=my_dir+'data_'+obsDate+'_'+'lsb.ms',\
 		spw=spw_lsb,datacolumn='data',scan=scans_lsb,field=fields_lsb)
+	flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
+		versionname=target+'_'+obsDate+'_'+band+'_initial',\
+		comment='after initial split')
 elif remakems=='T':
 	print 'Remaking split MS for lsb band...'
 	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms')
-	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
 	split(vis=ms_name_lsb,outputvis=my_dir+'data_'+obsDate+'_'+'lsb.ms',\
 		spw=spw_lsb,datacolumn='data',scan=scans_lsb,field=fields_lsb)
+	app_f_lsb=raw_input('Do you want to apply a previous flag version? y or n--> ')
+	if app_f_lsb=='y':
+		print 'Listing versions in flag manager...'
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='list')
+		version_fm_lsb=raw_input('Please enter version name to restore--> ')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='restore',\
+		versionname=version_fm_lsb,merge='replace')
+	else:
+		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
+			versionname=target+'_'+obsDate+'_'+band+'_initial',\
+			comment='after initial split')
 else:
 	print 'Split MS for lsb already exists.'
 if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 	print 'Making split MS for usb band...'
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
 		spw=spw_usb,datacolumn='data',scan=scans_usb,field=fields_usb)
+	flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
+		versionname=target+'_'+obsDate+'_'+band+'_initial',\
+		comment='after initial split')
 elif remakems=='T':
 	print 'Remaking split MS for usb band...'
 	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms')
-	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
 		spw=spw_usb,datacolumn='data',scan=scans_usb,field=fields_usb)
+	app_f_usb=raw_input('Do you want to apply a previous flag version? y or n--> ')
+	if app_f_usb=='y':
+		print 'Listing versions in flag manager...'
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='list')
+		version_fm_usb=raw_input('Please enter version name to restore--> ')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='restore',\
+		versionname=version_fm_usb,merge='replace')
+	else:
+		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
+			versionname=target+'_'+obsDate+'_'+band+'_initial',\
+			comment='after initial split')
+
 else:
 	print 'Split MS for usb already exists.'
 #################################################
@@ -437,6 +466,12 @@ if skipflag=='n':
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append(('interactive',intera))
 	writeDict(dict_log, my_dir+'user_input_'+obsDate+'flag.logg',str(datetime.datetime.now()))
+	flagmanager(vis=ms_namel,mode='save',\
+			versionname=target+'_'+obsDate+'_'+band+'_flagging',\
+			comment='after flagging')
+	flagmanager(vis=ms_nameu,mode='save',\
+			versionname=target+'_'+obsDate+'_'+band+'_flagging',\
+			comment='after flagging')
 	if intera=='n':
 		print 'You have chosen to not do interactive calibration.'
 		print 'No plots will be made and no additional flagging is required.'
@@ -689,6 +724,13 @@ else:
 	applycal(vis=ms_nameu,spw=spw_high, field=second_cal+','+flux_cal,\
 		gaintable=[cal_table_prefixu+'bandpassB.cal'],\
 		spwmap=[[]],gainfield=[bpf_cal])
+
+flagmanager(vis=ms_namel,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band+'_bpbl',\
+	comment='after BP/BL')
+flagmanager(vis=ms_nameu,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band+'_bpbl',\
+	comment='after BP/BL')
 #####################################
 
 #####################################
@@ -829,13 +871,13 @@ if intera=='y':
 #derive absolute flux scale with setjy above
 os.system('rm -rf '+cal_table_prefixl+'flux.cal')
 os.system('rm -rf '+cal_table_prefixu+'flux.cal')
-if2startspw=int(doif2sp.split('~')[0])
-dict_log.append(('if2_spw_start',if2startspw))
 print 'Deriving absolute flux scale...'
 fluxscale(vis=ms_namel,caltable=cal_table_prefixl+'allap.cal',\
 	fluxtable=cal_table_prefixl+'flux.cal',reference=flux_cal,\
 	transfer=bpf_cal+','+second_cal)
 if doif2=='y':
+	if2startspw=int(doif2sp.split('~')[0])
+	dict_log.append(('if2_spw_start',if2startspw))
 	fluxscale(vis=ms_nameu,caltable=cal_table_prefixu+'allap.cal',\
 		fluxtable=cal_table_prefixu+'flux.cal',reference=flux_cal,\
 		transfer=bpf_cal+','+second_cal,refspwmap=[if2startspw])
@@ -976,6 +1018,13 @@ else:
 			gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 			cal_table_prefixu+'bandpassB.cal'],\
 			spwmap=[[first_usb_spw],[first_usb_spw],[]], gainfield=[second_cal,second_cal,bpf_cal])
+
+flagmanager(vis=ms_namel,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band+'_applycal',\
+	comment='after applycal')
+flagmanager(vis=ms_nameu,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band+'_applycal',\
+	comment='after applycal')
 #####################################
 
 #####################################
@@ -1097,13 +1146,13 @@ if doImage=='T':
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		if mynterms>1:
-			imagenb=my_dir+target+date+'_both_clean1.image.tt0'
+			imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
 		else:
-			imagenb=my_dir+target+date+'_both_clean1.image'
+			imagenb=my_dir+target+'_'+date+'_both_clean1.image'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenb+'.pbcor')
 		os.system('rm -rf '+imagenb+'.pbcor.fits')
-		immath(imagename=[imagenb,my_dir+target+date+'_both_clean1.flux'],\
+		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
 			expr='IM0/IM1',outfile=imagenb+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
@@ -1200,7 +1249,7 @@ print 'Cleaning up...'
 os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+obsDate+'full.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'_full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'

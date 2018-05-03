@@ -122,6 +122,7 @@ else:
 	split(vis=d_name,outputvis=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'pretw.ms',datacolumn='data')
 
 ms_name=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'pretw.ms'
+flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_initial',comment='after initial split')
 
 #listobs first
 if not os.path.isfile(my_dir+obsDate+'_listfile.txt'):
@@ -293,6 +294,7 @@ os.system('rm -rf '+my_dir+obsDate+'_listfile_aftertw.txt')
 listobs(ms_name,listfile=my_dir+obsDate+'_listfile_aftertw.txt')
 os.system('pluma '+my_dir+obsDate+'_listfile_aftertw.txt &')
 raw_input('Please press enter when ready to continue.')
+flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_tsyswvr',comment='after tsys/wvr')
 #################################################
 
 
@@ -396,8 +398,8 @@ while flag_again=='y':
 	raw_input('press enter to continue.')
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 #save flags
-flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_posttw'+'.flaggingbu_beforesetjy')
-writeDict(dict_log, my_dir+'user_input_'+obsDate+'flag.logg',str(datetime.datetime.now()))
+flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_flagging',comment='after flagging')
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'_flag.logg',str(datetime.datetime.now()))
 #################################################
 
 #################################################
@@ -657,6 +659,7 @@ elif do_ant=='y':
 			cal_table_prefix+'.scanphase.gcal',cal_table_prefix+'.flux.cal'],\
 			interp=['','nearest','linear','linear'],\
 			gainfield=['',bpf_cal,second_cal,second_cal], flagbackup=True, calwt=False)
+flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_applycal',comment='after applycal')
 #################################################
 
 #################################################
@@ -747,6 +750,7 @@ if extraf=='y':
 			extraf=raw_input('Do you need to do additional flagging? y or n-->')
 else:
 	print 'No extra flagging requested.'
+flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_addflag',comment='after additional flagging')
 #################################################
 
 #################################################
@@ -992,7 +996,7 @@ os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+obsDate+'full.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+obsDate+'_full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'		

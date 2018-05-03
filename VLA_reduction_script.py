@@ -146,14 +146,28 @@ for i in range(0,len(bands)):
 		print 'Making split MS for ', bands[i],' band...'
 		split(vis=ms_name,outputvis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',\
 			spw=spw_bands[i],datacolumn='data',scan=scans[i])
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='save',\
+			versionname=target+'_'+obsDate+'_'+bands[i]+'_initial',\
+			comment='after initial split')
 		ms_name_list.append(my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
 	elif remakems=='T':
 		print 'Remaking MS for ',bands[i],' band...'
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
-		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions')
 		split(vis=ms_name,outputvis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',\
 			spw=spw_bands[i],datacolumn='data',scan=scans[i])
 		ms_name_list.append(my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
+		app_f=raw_input('Do you want to apply a previous flag version? y or n--> ')
+		if app_f=='y':
+			print 'Listing versions in flag manager...'
+			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='list')
+			version_fm=raw_input('Please enter version name to restore--> ')
+			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='restore',\
+				versionname=version_fm,merge='replace')
+		else:
+			os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions')
+			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='save',\
+				versionname=target+'_'+obsDate+'_'+bands[i]+'_initial',\
+				comment='after initial split')
 	else:
 		print 'Split MS for ',bands[i],' already exists.'
 		ms_name_list.append(my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
@@ -597,6 +611,9 @@ for kk in range(0,len(ms_name_list)):
 	intera=raw_input('Flagging is finished. Do you want to do interactive calibration?y or n-->')
 	dict_log.append((ms_name_prefix+'_interactive',intera))
 	writeDict(dict_log, my_dir+'user_input_'+date+'flag.logg',str(datetime.datetime.now()))
+	flagmanager(vis=ms_name,mode='save',\
+		versionname=target+'_'+obsDate+'_flagging',\
+		comment='after flagging')
 	if intera=='n':
 		print 'You have chosen to not do interactive calibration.'
 		print 'No plots will be made and no additional flagging is required.'
@@ -991,6 +1008,9 @@ for kk in range(0,len(ms_name_list)):
 	#pol_calib=raw_input('Do you wish to do poalrization calibration? y or n-->')
 	#dict_log.append((ms_name_prefix+'_pol_calib',pol_calib))
 	if pol_calib=='y':
+		flagmanager(vis=ms_name,mode='save',\
+			versionname=target+'_'+obsDate+'_prepol',\
+			comment='pre pol cal')
 		os.system('rm -rf '+cal_table_prefix+'.Kcross')
 		os.system('rm -rf '+cal_table_prefix+'_2.Kcross')
 		os.system('rm -rf '+cal_table_prefix+'.D1')
@@ -1211,6 +1231,9 @@ for kk in range(0,len(ms_name_list)):
 		gf_lst_high.remove(gf_lst_high[-4])
 		gi_lst_low.remove(gi_lst_low[-4])
 		gi_lst_high.remove(gi_lst_high[-4])
+		flagmanager(vis=ms_name,mode='save',\
+			versionname=target+'_'+obsDate+'_postpol',\
+			comment='post pol cal')
 	else:
 		print 'No polarization calibration done.'
 	########################################
@@ -1291,6 +1314,9 @@ for kk in range(0,len(ms_name_list)):
 		applycal(vis=ms_name,field=target_lst[i],\
 			gaintable=gt_lst_high,gainfield=gf_lst_high+[second_cal],interp=gi_lst_high+['linear'],\
 			calwt=[False],parang=pang,spw=spw_high)
+	flagmanager(vis=ms_name,mode='save',\
+		versionname=target+'_'+obsDate+'_applycal',\
+		comment='after applycal')
 	########################################
 
 	########################################
@@ -1396,6 +1422,9 @@ for kk in range(0,len(ms_name_list)):
 				extraf=raw_input('Do you need to do additional flagging? y or n-->')
 		else:
 			print 'No extra flagging requested.'
+		flagmanager(vis=ms_name,mode='save',\
+			versionname=target+'_'+obsDate+'_addflag',\
+			comment='after additional flagging')
 	##########################################
 
 	##########################################
@@ -1702,7 +1731,7 @@ os.system('rm -rf casa*.log')
 os.system('rm -rf *.last')
 os.system('rm -rf *.png')
 print 'Writing user_input log file...'
-writeDict(dict_log, my_dir+'user_input_'+date+'full.logg',str(datetime.datetime.now()))
+writeDict(dict_log, my_dir+'user_input_'+date+'_full.logg',str(datetime.datetime.now()))
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
