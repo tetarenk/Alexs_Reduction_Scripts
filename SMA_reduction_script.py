@@ -87,6 +87,8 @@ scans_lsb=data_params.scans_lsb
 fields_usb=data_params.fields_usb
 spw_usb=data_params.spw_usb
 scans_usb=data_params.scans_usb
+band_low=data_params.band_low
+band_high=data_params.band_high
 remakems=data_params.remakems
 doImage=data_params.doImage
 bandsIM=data_params.bandsIM
@@ -198,8 +200,8 @@ first_lsb_spw=int(spw_low.split('~')[0])
 spw_high=raw_input('Please enter upper side-band spw range. e.g., 0~15; Do not include dummy spw!-->')
 first_usb_spw=int(spw_high.split('~')[0])
 band='1mm'
-band_low='219GHz'
-band_high='231GHz'
+#band_low='219GHz'
+#band_high='231GHz'
 date=obsDate+'_'+band
 ant_plot=my_dir+'antennas_'+date+'.png'
 cal_table_prefixl=my_dir+target+'_'+date+'_lsb'
@@ -356,7 +358,7 @@ if skipflag=='n':
 		badpjl=raw_input('Please enter bad ants,fields,timeranges to flag in lsb. e.g. 2;3;2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
 		badpju=raw_input('Please enter bad ants,fields,timeranges to flag in usb. e.g. 2;3;2015/07/02/12:15:00.0~2015/07/02/12:30:00.0-->').split(' ')
 		dict_log.append(('bad_phasejumpl',badpjl))
-		dict_log.append(('bad_phasejumpl',badpju))
+		dict_log.append(('bad_phasejumpu',badpju))
 		for i in range(0,len(badpjl)):
 			strg_pjl=badpjl[i].split(';')
 			flagdata(vis=ms_namel, mode='manual', antenna=strg_pjl[0],field=strg_pjl[1],timerange=strg_pjl[2])
