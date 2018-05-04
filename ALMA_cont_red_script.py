@@ -96,12 +96,13 @@ outlierfile=data_params.outlierfile
 mymask=data_params.mymask
 #uv fitting
 uv_fit=data_params.uv_fit
+uv_initp=data_params.uv_initp
 
 #write all variables to log dictionary
 dict_log.extend([('raw_data_type',raw_type),('d_name_input',d_name),('obsDate', obsDate),('target',target),\
 	('bands_input',band),('do imaging',doImage),('bands to image',bandsIM),('weighting',weighting),('outfile',outlierfile),\
 	('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('myniter',myniter),('mynterms',mynterms),\
-	('mystokes',mystokes),('mymask',mymask),('uv_fit',uv_fit),('multiscale',multiscale),('robust',robust)])
+	('mystokes',mystokes),('mymask',mymask),('uv_fit',uv_fit),('multiscale',multiscale),('robust',robust),('uv init param file',uv_initp)])
 #################################################
 
 #################################################
@@ -925,16 +926,43 @@ if uv_fit=='T':
 	print 'UV fitting...'
 	for iii in range(0,len(target_lst)):
 		print 'Beginnning UV fitting of target id: ', target_lst[iii]
-		comp_uv='delta'
 		stokes_param=mystokes
 		vis=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_calibrated.ms'
+		phcen_rad=vishead(vis=vis,mode='get',hdkey='ptcs')
+		phcen=au.rad2radec(phcen_rad[0]['r1'][0][0][0],phcen_rad[0]['r1'][1][0][0],hmsdms=True).replace(',','')
+		if uv_initp != '':
+			file_uv0=open(uv_initp)
+			uv_num=sum(1 for line in file_uv0)-1
+			file_uv0.close()
+			initp_array=np.loadtxt(uv_initp)
+			init_uv=[]
+			if uv_num==1:
+				init_uv.extend([initp_array[0],initp_array[1],initp_array[2]])
+			else:
+				for jj in range(0,uv_num):
+					init_uv.extend([initp_array[jj,0],initp_array[jj,1],initp_array[jj,2]])
+		else:
+			init_uv=[]
+			uv_num=1
+		comp_uv=[]
+		var_uv=[]
+		for jj in range(0,uv_num):
+			comp_uv.append('delta')
+			var_uv.extend(['p['+str(3*jj)+'],p['+str(3*jj+1)+'],p['+str(3*jj+2)+']'])
+		#
 		print 'Combined base-band...'
 		combboth=vis.strip('.ms')
 		mstransform(vis=vis, outputvis=combboth+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-		fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data",\
-			uniform=False, model=[comp_uv],stokes = stokes_param,\
-			outfile=my_dir+'combmodelfit.dat',var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,\
-			cov_return=False, finetune=False, method="levenberg")
+		if uv_initp=='':
+			fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'combmodelfit.dat', OneFitPerChannel=False ,\
+				cov_return=False,finetune=False, method="levenberg")
+		else:
+			fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'combmodelfit.dat', OneFitPerChannel=False ,p_ini=init_uv,\
+				cov_return=False,finetune=False, method="levenberg")
 		src_uv_init=fitfulluv.result['Parameters'][2]
 		src_uv_err=fitfulluv.result['Uncertainties'][2]
 		print 'Writing uvfit results to file...'

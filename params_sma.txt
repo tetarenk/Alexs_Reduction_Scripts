@@ -31,3 +31,4 @@ weighting='natural'
 mymask=''
 #uv fitting
 uv_fit='F'
+uv_initp=''#see uvinit_example.txt for format

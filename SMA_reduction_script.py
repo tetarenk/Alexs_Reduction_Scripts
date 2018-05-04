@@ -18,6 +18,7 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
 WARNING: If you have SMA data calibrated in MIR or MIRIAD (rather than raw data), use instructions here,
 https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
 to convert to CASA MS for imaging.
+The MIR version is implemented in mircal_to_casa.py script.
 
 Written by: Alex J. Tetarenko
 Last Updated: May 4, 2018
@@ -112,12 +113,13 @@ weighting=data_params.weighting
 mymask=data_params.mymask
 #uv fitting
 uv_fit=data_params.uv_fit
+uv_initp=data_params.uv_initp
 
 #write all variables to log dictionary
 dict_log.extend([('ms_name_lsb',ms_name_lsb),('ms_name_usb',ms_name_usb),('obsDate',obsDate),('target',target),('bandlow',band_low),('bandhigh',band_high),\
 	('fields_lsb',fields_lsb),('spw_lsb',spw_lsb),('scans_lsb',scans_lsb),('fields_usb',fields_usb),('spw_usb',spw_usb),\
 	('scans_usb',scans_usb),('remakeMS',remakems),('mythreshold',mythreshold),('myimsize',myimsize),('mycell',mycell),('ant file',ant_corr_file),('ant_correct',do_ant_correct),\
-	('myniter',myniter),('mynterms',mynterms),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('use_auto',use_auto),('bandsIM',bandsIM)])
+	('myniter',myniter),('mynterms',mynterms),('mymask',mymask),('uv_fit',uv_fit),('doImage',doImage),('use_auto',use_auto),('bandsIM',bandsIM),('uv init param file',uv_initp)])
 #################################################
 
 
@@ -1223,31 +1225,73 @@ if doImage=='T':
 	#UVfitting
 	###########################################
 	if uv_fit=='T':
+		phcen_rad=vishead(vis=split_full,mode='get',hdkey='ptcs')
+		phcen=au.rad2radec(phcen_rad[0]['r1'][0][0][0],phcen_rad[0]['r1'][1][0][0],hmsdms=True).replace(',','')
+		if uv_initp != '':
+			file_uv0=open(uv_initp)
+			uv_num=sum(1 for line in file_uv0)-1
+			file_uv0.close()
+			initp_array=np.loadtxt(uv_initp)
+			init_uv=[]
+			if uv_num==1:
+				init_uv.extend([initp_array[0],initp_array[1],initp_array[2]])
+			else:
+				for jj in range(0,uv_num):
+					init_uv.extend([initp_array[jj,0],initp_array[jj,1],initp_array[jj,2]])
+		else:
+			init_uv=[]
+			uv_num=1
+		comp_uv=[]
+		var_uv=[]
+		for jj in range(0,uv_num):
+			comp_uv.append('delta')
+			var_uv.extend(['p['+str(3*jj)+'],p['+str(3*jj+1)+'],p['+str(3*jj+2)+']'])
+		#
 		print 'Performing UV fitting...'
-		comp_uv='delta'
 		stokes_param='LL'
 		print 'Lower side-band...'
 		comblsb=split_low.strip('.ms')
 		mstransform(vis=split_low, outputvis=comblsb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-		fitfulluv_low=uvm.uvmultifit(vis=comblsb+'_mstrans.ms', spw='', column = "data", \
-			uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'lsbmodelfit.dat',\
-			var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+		if uv_initp=='':
+			fitfulluv_low=uvm.uvmultifit(vis=comblsb+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'lsbmodelfit.dat', OneFitPerChannel=False ,\
+				cov_return=False,finetune=False, method="levenberg")
+		else:
+			fitfulluv_low=uvm.uvmultifit(vis=comblsb+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'lsbmodelfit.dat', OneFitPerChannel=False ,p_ini=init_uv,\
+				cov_return=False,finetune=False, method="levenberg")
 		src_uv_init_low=fitfulluv_low.result['Parameters'][2]
 		src_uv_err_low=fitfulluv_low.result['Uncertainties'][2]
 		print 'Upper side-band...'
 		combusb=split_high.strip('.ms')
 		mstransform(vis=split_high, outputvis=combusb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-		fitfulluv_high=uvm.uvmultifit(vis=combusb+'_mstrans.ms', spw='', column = "data", \
-			uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'usbmodelfit.dat',\
-			var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+		if uv_initp=='':
+			fitfulluv_high=uvm.uvmultifit(vis=combusb+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'usbmodelfit.dat', OneFitPerChannel=False ,\
+				cov_return=False,finetune=False, method="levenberg")
+		else:
+			fitfulluv_high=uvm.uvmultifit(vis=combusb+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'usbmodelfit.dat', OneFitPerChannel=False ,p_ini=init_uv,\
+				cov_return=False,finetune=False, method="levenberg")
 		src_uv_init_high=fitfulluv_high.result['Parameters'][2]
 		src_uv_err_high=fitfulluv_high.result['Uncertainties'][2]
 		print 'Combined side-band...'
 		combboth=split_full.strip('.ms')
 		mstransform(vis=split_full, outputvis=combboth+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
-		fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data", \
-			uniform=False, model=[comp_uv],stokes = stokes_param,outfile=my_dir+'bothmodelfit.dat',\
-			var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+		if uv_initp=='':
+			fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'bothmodelfit.dat', OneFitPerChannel=False ,\
+				cov_return=False,finetune=False, method="levenberg")
+		else:
+			fitfulluv=uvm.uvmultifit(vis=combboth+'_mstrans.ms', spw='', column = "data",\
+				uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+				outfile = my_dir+'bothmodelfit.dat', OneFitPerChannel=False ,p_ini=init_uv,\
+				cov_return=False,finetune=False, method="levenberg")
 		src_uv_init=fitfulluv.result['Parameters'][2]
 		src_uv_err=fitfulluv.result['Uncertainties'][2]
 

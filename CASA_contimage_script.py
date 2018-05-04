@@ -91,6 +91,7 @@ weighting=data_params.weighting
 mymask=data_params.mymask
 #uv fitting
 uv_fit=data_params.uv_fit
+uv_initp=data_params.uv_initp
 #################################################
 
 #################################################
@@ -216,15 +217,43 @@ elif dopsc=='y'and dofit=='y':
 #UVfitting
 ###########################################
 if uv_fit=='T':
-	print 'Performing UV fitting...'
-	comp_uv='delta'
+	phcen_rad=vishead(vis=ms_name,mode='get',hdkey='ptcs')
+	phcen=au.rad2radec(phcen_rad[0]['r1'][0][0][0],phcen_rad[0]['r1'][1][0][0],hmsdms=True).replace(',','')
+	if uv_initp != '':
+		file_uv0=open(uv_initp)
+		uv_num=sum(1 for line in file_uv0)-1
+		file_uv0.close()
+		initp_array=np.loadtxt(uv_initp)
+		init_uv=[]
+		if uv_num==1:
+			init_uv.extend([initp_array[0],initp_array[1],initp_array[2]])
+		else:
+			for jj in range(0,uv_num):
+				init_uv.extend([initp_array[jj,0],initp_array[jj,1],initp_array[jj,2]])
+	else:
+		init_uv=[]
+		uv_num=1
+	comp_uv=[]
+	var_uv=[]
+	for jj in range(0,uv_num):
+		comp_uv.append('delta')
+		var_uv.extend(['p['+str(3*jj)+'],p['+str(3*jj+1)+'],p['+str(3*jj+2)+']'])
+	#
+	print 'Performing UV fitting...'	
 	stokes_param=mystokes
 	comb=ms_name.strip('.ms')
 	mstransform(vis=ms_name, outputvis=comb+'_mstrans.ms', combinespws=True, spw='',datacolumn='data')
 	uvvis=comb+'_mstrans.ms'
-	fitfulluv=uvm.uvmultifit(vis=uvvis, spw=spw, column = "data", \
-		uniform=False, model=[comp_uv],stokes = stokes_param, \
-		var=['p[0],p[1],p[2]'],OneFitPerChannel=False ,cov_return=False, finetune=False, method="levenberg")
+	if uv_initp=='':
+		fitfulluv=uvm.uvmultifit(vis=uvvis, spw=spw, column = "data",\
+			uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+			outfile = my_dir+'modelfit.dat', OneFitPerChannel=False ,\
+			cov_return=False,finetune=False, method="levenberg")
+	else:
+		fitfulluv=uvm.uvmultifit(vis=uvvis, spw=spw, column = "data",\
+			uniform=False, model=comp_uv,stokes = stokes_param, var=var_uv, phase_center =phcen,\
+			outfile = my_dir+'modelfit.dat', OneFitPerChannel=False ,p_ini=init_uv,\
+			cov_return=False,finetune=False, method="levenberg")
 	src_uv_init=fitfulluv.result['Parameters'][2]
 	src_uv_err=fitfulluv.result['Uncertainties'][2]
 	print 'Flux density of ',src_uv_init,' +/- ',src_uv_err, 'Jy'

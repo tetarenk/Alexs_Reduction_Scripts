@@ -2,7 +2,7 @@
 #MIR to CASA for Calibrated SMA Data Script
 #################################################
 '''Convert calibrated SMA data (MIR format) to CASA for imaging
-INPUT: Path to uvfits files, and lists of source names and recievers input on line 12
+INPUT: Path to uvfits files, and lists of source names and recievers input on line 24
 OUTPUT: Concatenated CASA MS
 
 REMINDER: (1) Need to download MIRFITStoCASA.py code, which is a version
