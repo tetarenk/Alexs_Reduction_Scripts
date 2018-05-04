@@ -1,0 +1,4 @@
+#uv initial parameters file, first line is target! Format of this file is a row for each point source,with ra offset from phase center (arcsec),dec offset from phase center (arcsec), and flux (Jy) on each row.
+0 0 700e-3
+1 1 500e-3
+2 2 400e-3
