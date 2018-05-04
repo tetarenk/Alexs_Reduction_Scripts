@@ -150,8 +150,10 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'lsb.ms'):
 elif remakems=='T':
 	print 'Remaking split MS for lsb band...'
 	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms')
+	os.system('mv '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions_old')
 	split(vis=ms_name_lsb,outputvis=my_dir+'data_'+obsDate+'_'+'lsb.ms',\
 		spw=spw_lsb,datacolumn='data',scan=scans_lsb,field=fields_lsb)
+	os.system('mv '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions_old '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
 	app_f_lsb=raw_input('Do you want to apply a previous flag version? y or n--> ')
 	if app_f_lsb=='y':
 		print 'Listing versions in flag manager...'
@@ -159,6 +161,10 @@ elif remakems=='T':
 		version_fm_lsb=raw_input('Please enter version name to restore--> ')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='restore',\
 		versionname=version_fm_lsb,merge='replace')
+		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
+			versionname=target+'_'+obsDate+'_'+band_low+'_reapply',\
+			comment='after reapply previous flags')
 	else:
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'lsb.ms.flagversions')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'lsb.ms',mode='save',\
@@ -176,8 +182,10 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 elif remakems=='T':
 	print 'Remaking split MS for usb band...'
 	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms')
+	os.system('mv '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions_old')
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
 		spw=spw_usb,datacolumn='data',scan=scans_usb,field=fields_usb)
+	os.system('mv '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions_old '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
 	app_f_usb=raw_input('Do you want to apply a previous flag version? y or n--> ')
 	if app_f_usb=='y':
 		print 'Listing versions in flag manager...'
@@ -185,6 +193,10 @@ elif remakems=='T':
 		version_fm_usb=raw_input('Please enter version name to restore--> ')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='restore',\
 		versionname=version_fm_usb,merge='replace')
+		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
+		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
+			versionname=target+'_'+obsDate+'_'+band_high+'_reapply',\
+			comment='after reapply previous flags')
 	else:
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions')
 		flagmanager(vis=my_dir+'data_'+obsDate+'_'+'usb.ms',mode='save',\
@@ -1125,7 +1137,7 @@ if doImage=='T':
 		dict_log.append(('phself_usb',dopscu))
 		if dopscu=='y':
 			selfcal_high,scim_high=phselfcal(split_high,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'y','',multiscale,robust,weighting)
+		date,band_high,'y','',multiscale,robust,weighting)
 			fluxu_sc,erru_sc,unitu_sc,frequ_sc,erru_real_sc=imfit_point(scim_high,my_dir)
 	if 'B' in bandsIM:
 		print 'Combined side-band...'
@@ -1164,7 +1176,7 @@ if doImage=='T':
 		dict_log.append(('phself_both',dopscb))
 		if dopscb=='y':
 			selfcal_both,scim_both=phselfcal(split_full,mycell,mynterms,myimsize,mythreshold,ref_ant,my_dir,target,\
-		date,band_low,'y','',multiscale,robust,weighting)
+		date,band_low+band_high,'y','',multiscale,robust,weighting)
 			fluxb_sc,errb_sc,unitb_sc,freqb_sc,errb_real_sc=imfit_point(scim_both,my_dir)
 
 	#writing imfit result to file

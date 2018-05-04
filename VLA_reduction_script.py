@@ -153,8 +153,10 @@ for i in range(0,len(bands)):
 	elif remakems=='T':
 		print 'Remaking MS for ',bands[i],' band...'
 		os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
+		os.system('mv '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions_old')
 		split(vis=ms_name,outputvis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',\
 			spw=spw_bands[i],datacolumn='data',scan=scans[i])
+		os.system('mv '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions_old '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions')
 		ms_name_list.append(my_dir+'data_'+obsDate+'_'+bands[i]+'.ms')
 		app_f=raw_input('Do you want to apply a previous flag version? y or n--> ')
 		if app_f=='y':
@@ -163,6 +165,10 @@ for i in range(0,len(bands)):
 			version_fm=raw_input('Please enter version name to restore--> ')
 			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='restore',\
 				versionname=version_fm,merge='replace')
+			os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions')
+			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='save',\
+				versionname=target+'_'+obsDate+'_'+bands[i]+'_reapply',\
+				comment='after reapply previous flags')
 		else:
 			os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+bands[i]+'.ms.flagversions')
 			flagmanager(vis=my_dir+'data_'+obsDate+'_'+bands[i]+'.ms',mode='save',\
