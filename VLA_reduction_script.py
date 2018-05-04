@@ -14,11 +14,12 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - This script is intended to be used with raw data.
        - All input logged in user_input.log.
        - If autoflag is used summary presented in autoflag_log.txt
-Written by: Alex J. Tetarenko
-Last Updated: April 23, 2018
-Works in CASA-5.1.1 now!
 
-USAGE: Set path to parameter file (line 58) and output directory (line 47), then,
+Written by: Alex J. Tetarenko
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
+
+USAGE: Set path to parameter file (line 49) and output directory (line 60), then,
 run execfile('VLA_reduction_script.py') within CASA'''
 
 print '##################################################'

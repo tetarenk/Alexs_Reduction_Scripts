@@ -10,9 +10,14 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All output images are also converted to fits format (just append .fits to end of images above)
        - This script is intended to be used with raw data; can be asdm or ms format.
        - All input logged in user_input.logg.
+
 Written by: Alex J. Tetarenko
-Last Updated: Dec 22 2017
-Works in CASA-5.1.1 now!'''
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
+
+USAGE: Set path to parameter file (line 46) and output directory (line 57), then,
+run execfile('ALMA_cont_red_script.py') within CASA
+'''
 
 print '##################################################'
 print 'Welcome to Alexs ALMA Continuum Reduction Script'

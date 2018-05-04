@@ -13,15 +13,19 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
 	   	 There are 2 methods to get from raw data to CASA MS
          (1) -see instructions in how_to_sma_scripts.txt (recommended!)
          (2) Alternatively, the old way to convert is through miriad. 
-         If you have can create raw miriad files (from idl2miriad task in MIR),
+         If you can create raw miriad files (from idl2miriad task in MIR),
          run miriad bash script (miriad2fits.sh) and run CASA script (fits2casa.py).
-WARNING: If you have SMA data calibrated in MIR or MIRIAD, use instructions here,
+WARNING: If you have SMA data calibrated in MIR or MIRIAD (rather than raw data), use instructions here,
 https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
 to convert to CASA MS for imaging.
 
 Written by: Alex J. Tetarenko
-Last Updated: April 18 2018
-Works in CASA-5.1.1 now!'''
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
+
+USAGE: Set path to parameter file (line 53) and output directory (line 64), then,
+run execfile('SMA_reduction_script.py') within CASA
+'''
 
 print '##################################################'
 print 'Welcome to Alexs SMA Continuum Reduction Script'
@@ -172,6 +176,7 @@ elif remakems=='T':
 			comment='after initial split')
 else:
 	print 'Split MS for lsb already exists.'
+	clearcal(my_dir+'data_'+obsDate+'_'+'lsb.ms')
 if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 	print 'Making split MS for usb band...'
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
@@ -205,6 +210,7 @@ elif remakems=='T':
 
 else:
 	print 'Split MS for usb already exists.'
+	clearcal(my_dir+'data_'+obsDate+'_'+'usb.ms')
 #################################################
 
 print 'Beginning reduction process...'
@@ -231,7 +237,6 @@ second_lst=second_cal.split(',')
 flux_cal=raw_input('Please enter field id for flux cal (if >1 seperate by comma)-->')
 flux_lst=flux_cal.split(',')
 target_id=raw_input('Please enter field id for target-->')
-#timerbp=raw_input('Please enter the time range of the bandpass cal scan(s). e.g., 11:43:30.0~11:47:27.0-->')
 field_lst=[]
 [field_lst.append(i) for i in bpf_lst]
 [field_lst.append(i) for i in second_lst]
@@ -260,6 +265,8 @@ dict_log.append(('spw_high',spw_high))
 dict_log.append(('band',band))
 dict_log.append(('band_low',band_low))
 dict_log.append(('band_high',band_high))
+
+
 #########################################
 #Reference antenna and flagging
 #########################################
@@ -283,8 +290,8 @@ if skipflag=='n':
 		dict_log.append(('dum_scanl',dum_scanl))
 		dict_log.append(('dum_scanu',dum_scanu))
 		print 'Flagging dummy scans.'
-		flagdata(vis=ms_namel, flagbackup=True, mode='manual', scan=dum_scanl)
-		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', scan=dum_scanu)
+		flagdata(vis=ms_namel, mode='manual', scan=dum_scanl)
+		flagdata(vis=ms_nameu, mode='manual', scan=dum_scanu)
 	else:
 		print 'Dummy scans not flagged.'
 	#first integration
@@ -378,8 +385,8 @@ if skipflag=='n':
 		badau=raw_input('Please enter bad ants to flag in usb. e.g. 2,3-->')
 		dict_log.append(('badant_lsb',badal))
 		dict_log.append(('badant_usb',badau))
-		flagdata(vis=ms_namel, flagbackup=True, mode='manual', antenna=badal)
-		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', antenna=badau)
+		flagdata(vis=ms_namel, mode='manual', antenna=badal)
+		flagdata(vis=ms_nameu, mode='manual', antenna=badau)
 	raw_input('Please press enter when ready to continue.')
 	##bad scans
 	flag_badscan=raw_input('Do you want to flag any known bad scans?y or n-->')
@@ -389,8 +396,8 @@ if skipflag=='n':
 		badsu=raw_input('Please enter bad scans to flag in usb. e.g. 2,3-->')
 		dict_log.append(('badscan_lsb',badsl))
 		dict_log.append(('badscan_usb',badsu))
-		flagdata(vis=ms_namel, flagbackup=True, mode='manual', scan=badsl)
-		flagdata(vis=ms_nameu, flagbackup=True, mode='manual', scan=badsu)
+		flagdata(vis=ms_namel, mode='manual', scan=badsl)
+		flagdata(vis=ms_nameu, mode='manual', scan=badsu)
 	raw_input('Please press enter when ready to continue.')
 	#phase jumps; ant,field,timerange
 	flag_pj=raw_input('Do you want to flag any known phase jumps?y or n-->')
@@ -419,9 +426,9 @@ if skipflag=='n':
 		for i in range(0,len(badasflsb)):
 			strglsb=badasflsb[i].split(';')
 			if ':' in strglsb[3]:
-				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
 			else:
-				flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
+				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
 	if '' in badasfusb:
 		print 'Nothing to flag.'
 	else:
@@ -429,9 +436,9 @@ if skipflag=='n':
 		for i in range(0,len(badasfusb)):
 			strgusb=badasfusb[i].split(';')
 			if ':' in strgusb[3]:
-				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
+				flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
 			else:
-				flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
+				flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
 	print 'Final check of flagged data...'
 	print 'LSB...'
 	plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
@@ -453,9 +460,9 @@ if skipflag=='n':
 			for i in range(0,len(badasflsb)):
 				strglsb=badasflsb[i].split(';')
 				if ':' in strglsb[3]:
-					flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+					flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
 				else:
-					flagdata(vis=ms_namel,flagbackup=True, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
+					flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
 		if '' in badasfusb:
 			print 'Nothing to flag.'
 		else:
@@ -463,9 +470,9 @@ if skipflag=='n':
 			for i in range(0,len(badasfusb)):
 				strgusb=badasfusb[i].split(';')
 				if ':' in strgusb[3]:
-					flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
+					flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
 				else:
-					flagdata(vis=ms_nameu,flagbackup=True, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
+					flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
 		print 'Plotting...'
 		print 'LSB...'
 		plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
@@ -516,9 +523,9 @@ if do_ant_correct=='T':
 	ant_lst=",".join(ant_pos_file_read['ant_lst'])
 	ant_lst_offset=[]
 	for i in range(0,len(ant_pos_file_read['ant_lst'])):
-		ant_lst_offset.append(1e-3*tt['X'][i])
-		ant_lst_offset.append(1e-3*tt['Y'][i])
-		ant_lst_offset.append(1e-3*tt['Z'][i])
+		ant_lst_offset.append(1e-3*ant_pos_file_read['X'][i])
+		ant_lst_offset.append(1e-3*ant_pos_file_read['Y'][i])
+		ant_lst_offset.append(1e-3*ant_pos_file_read['Z'][i])
 	print 'Selected antennas for corrections: ',ant_lst
 	print 'Offsets in meters (X,Y,Z looped over all antennas): ', ant_lst_offset
 	gencal(caltable=cal_table_prefixl+'antpos',vis=ms_namel, caltype='antpos',parameter=ant_lst_offset,antenna=ant_lst)
@@ -1053,6 +1060,7 @@ split(vis=ms_nameu,outputvis=split_high,\
 print 'Making concatenated full LSB+USB MS...'
 concat(vis=[split_low,split_high],concatvis=split_full)
 ##########################################
+
 if doImage=='T':
 	###########################################
 	##Imaging
@@ -1254,7 +1262,6 @@ if doImage=='T':
 	print 'All side-band data sets have been reduced and imaged.'
 else:
 	print 'All side-band data sets have been reduced. No imaging was performed.'
-
 ###########################################
 
 print 'Cleaning up...'
@@ -1265,4 +1272,3 @@ writeDict(dict_log, my_dir+'user_input_'+obsDate+'_full.logg',str(datetime.datet
 print '********************************************************************'
 print 'The script is finished. Please inspect the resulting data products.'
 print '********************************************************************'
-
