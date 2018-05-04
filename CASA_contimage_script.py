@@ -36,6 +36,7 @@ warnings.filterwarnings('ignore')
 from utils_CASA import imfit_point, phselfcal
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
+import analysisUtils as au
 
 #define output directory
 my_dir='/mnt/bigdata/tetarenk/VLA_1758_1740/'

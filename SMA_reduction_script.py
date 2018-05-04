@@ -49,6 +49,7 @@ from utils_CASA import imfit_point, phselfcal, writeDict
 from ekoch_casa_tools import set_imagermode,has_field,set_cellsize,set_imagesize,find_expected_beams,getBaselinePercentile,get_mosaic_info
 import uvmultifit as uvm
 from astropy.io import ascii
+import analysisUtils as au
 
 #define output directory
 my_dir='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/'
