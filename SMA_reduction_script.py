@@ -179,7 +179,6 @@ elif remakems=='T':
 			comment='after initial split')
 else:
 	print 'Split MS for lsb already exists.'
-	clearcal(my_dir+'data_'+obsDate+'_'+'lsb.ms')
 if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 	print 'Making split MS for usb band...'
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
@@ -213,7 +212,6 @@ elif remakems=='T':
 
 else:
 	print 'Split MS for usb already exists.'
-	clearcal(my_dir+'data_'+obsDate+'_'+'usb.ms')
 #################################################
 
 print 'Beginning reduction process...'
@@ -308,8 +306,8 @@ if skipflag=='n':
 	dict_log.append(('dum_spw_flag',dum0))
 	if dum0=='y':
 		print 'Flagging dummy spw in both side-bands...'
-		flagdata(vis=ms_namel,spw='0',field='',antenna='')
-		flagdata(vis=ms_nameu,spw='0',field='',antenna='')
+		flagdata(vis=ms_namel,spw='0',field='',antenna='',mode='manual')
+		flagdata(vis=ms_nameu,spw='0',field='',antenna='',mode='manual')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
 	dict_log.append(('flag_end_channels',flag_end))
@@ -319,8 +317,8 @@ if skipflag=='n':
 		dict_log.append(('beginning_channels',beg))
 		dict_log.append(('end_channels',endd))
 		print 'Flagging end channels...'
-		flagdata(vis=ms_namel,spw=spw_low+':'+beg,field='',antenna='')
-		flagdata(vis=ms_nameu,spw=spw_high+':'+endd,field='',antenna='')
+		flagdata(vis=ms_namel,spw=spw_low+':'+beg,mode='manual')
+		flagdata(vis=ms_nameu,spw=spw_high+':'+endd,mode='manual')
 	else:
 		print 'End channels not flagged.'
 	print ' (1) Plotting Amp vs time. Look for obvious bad data and ipointing data.'
@@ -341,8 +339,8 @@ if skipflag=='n':
 		dict_log.append(('ipointl_time',point_lsbt))
 		dict_log.append(('ipointu_field',point_usbf))
 		dict_log.append(('ipointu_time',point_usbt))
-		flagdata(ms_namel,field=point_lsbf,timerange=point_lsbt)
-		flagdata(ms_nameu,field=point_usbf,timerange=point_usbt)
+		flagdata(ms_namel,field=point_lsbf,timerange=point_lsbt,mode='manual')
+		flagdata(ms_nameu,field=point_usbf,timerange=point_usbt,mode='manual')
 	else:
 		print 'No ipointing data to flag.'
 		dict_log.append(('ipointl_field','none'))
@@ -1047,6 +1045,80 @@ flagmanager(vis=ms_namel,mode='save',\
 flagmanager(vis=ms_nameu,mode='save',\
 	versionname=target+'_'+obsDate+'_'+band_high+'_applycal',\
 	comment='after applycal')
+#####################################
+
+#####################################
+#Check calibrated data
+#####################################
+print 'Checking calibrated data...'
+print 'LSB...'
+print 'Target Spectra'
+plotms(vis=ms_namel,yaxis='amp',xaxis='frequency',ydatacolumn='corrected',\
+	iteraxis='antenna',coloraxis='spw',field=target_id)
+raw_input('Please press enter when ready to continue.')
+print 'Target amp vs time'
+plotms(vis=ms_namel,yaxis='amp',xaxis='time',ydatacolumn='corrected',field=target_id)
+raw_input('Please press enter when ready to continue.')
+print 'Target amp vs uvdist'
+plotms(vis=ms_namel,yaxis='amp',xaxis='uvdist',ydatacolumn='corrected',field=target_id)
+raw_input('Please press enter when ready to continue.')
+print 'USB...'
+print 'Target Spectra'
+plotms(vis=ms_nameu,yaxis='amp',xaxis='frequency',ydatacolumn='corrected',\
+	iteraxis='antenna',coloraxis='spw',field=target_id)
+raw_input('Please press enter when ready to continue.')
+print 'Target amp vs time'
+plotms(vis=ms_namel,yaxis='amp',xaxis='time',ydatacolumn='corrected',field=target_id)
+raw_input('Please press enter when ready to continue.')
+print 'Target amp vs uvdist'
+plotms(vis=ms_namel,yaxis='amp',xaxis='uvdist',ydatacolumn='corrected',field=target_id)
+raw_input('Please press enter when ready to continue.')
+
+flag_again=raw_input('Do you need to do more flagging? y or n-->')
+count_f=1
+while flag_again=='y':
+	badasflsb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in lsb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
+	badasfusb=raw_input('Please enter bad ant,spw,field,scan/timerange to flag in usb (enter if none). e.g., 2,3;5:4~9;3;10:48:00~10:56:00 ;5;3;4,5-->').split(' ')
+	dict_log.append((ms_namel_prefix+'_flag_extra_lsb'+str(count_f),badasflsb))
+	dict_log.append((ms_nameu_prefix+'_flag_extra_usb'+str(count_f),badasfusb))
+	if '' in badasflsb:
+		print 'Nothing to flag.'
+	else:
+		print 'Flagging selected lsb data.'
+		for i in range(0,len(badasflsb)):
+			strglsb=badasflsb[i].split(';')
+			if ':' in strglsb[3]:
+				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+			else:
+				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
+	if '' in badasfusb:
+		print 'Nothing to flag.'
+	else:
+		print 'Flagging selected usb data.'
+		for i in range(0,len(badasfusb)):
+			strgusb=badasfusb[i].split(';')
+			if ':' in strgusb[3]:
+				flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
+			else:
+				flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
+	print 'Plotting...'
+	print 'LSB...'
+	plotms(vis=ms_namel,field=target_id,spw='', coloraxis='spw',xaxis='frequency',\
+		yaxis='amp',ydatacolumn='corrected')
+	raw_input('Please press enter when ready to continue.')
+	print 'USB...'
+	plotms(vis=ms_nameu,field=target_id,spw='', coloraxis='spw',xaxis='frequency',\
+		yaxis='amp',ydatacolumn='corrected')
+	raw_input('Please press enter when ready to continue.')
+	count_f=count_f+1
+	flag_again=raw_input('Do you need to do more flagging? y or n-->')
+
+flagmanager(vis=ms_namel,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band_low+'_extraflag',\
+	comment='after extraflag')
+flagmanager(vis=ms_nameu,mode='save',\
+	versionname=target+'_'+obsDate+'_'+band_high+'_extraflag',\
+	comment='after extraflag')
 #####################################
 
 #####################################
