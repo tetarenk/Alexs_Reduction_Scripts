@@ -308,6 +308,7 @@ if skipflag=='n':
 		print 'Flagging dummy spw in both side-bands...'
 		flagdata(vis=ms_namel,spw='0',field='',antenna='',mode='manual')
 		flagdata(vis=ms_nameu,spw='0',field='',antenna='',mode='manual')
+		raw_input('Please press enter when ready to continue.')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
 	dict_log.append(('flag_end_channels',flag_end))
@@ -317,10 +318,12 @@ if skipflag=='n':
 		dict_log.append(('beginning_channels',beg))
 		dict_log.append(('end_channels',endd))
 		print 'Flagging end channels...'
-		flagdata(vis=ms_namel,spw=spw_low+':'+beg,mode='manual')
-		flagdata(vis=ms_nameu,spw=spw_high+':'+endd,mode='manual')
+		flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+beg)
+		flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+endd)
+		raw_input('Please press enter when ready to continue.')
 	else:
 		print 'End channels not flagged.'
+		raw_input('Please press enter when ready to continue.')
 	print ' (1) Plotting Amp vs time. Look for obvious bad data and ipointing data.'
 	print 'LSB first...'
 	plotms(vis=ms_namel,xaxis="time",yaxis="amp",coloraxis="field",iteraxis="antenna")
