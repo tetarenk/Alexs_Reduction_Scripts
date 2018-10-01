@@ -294,10 +294,10 @@ if skipflag=='n':
 	#check flux cal for lines
 	print 'Checking flux cal for lines...'
 	print 'LSB...'
-	plotms(vis=ms_namel,xaxis="time",yaxis="amp",coloraxis="spw",iteraxis="field",field=flux_lst)
+	plotms(vis=ms_namel,xaxis="frequency",yaxis="amp",coloraxis="spw",iteraxis="field",field=','.join([i for i in flux_lst]))
 	raw_input('Please press enter when ready to continue.')
 	print 'USB...'
-	plotms(vis=ms_nameu,xaxis="time",yaxis="amp",coloraxis="spw",iteraxis="field",field=flux_lst)
+	plotms(vis=ms_nameu,xaxis="frequency",yaxis="amp",coloraxis="spw",iteraxis="field",field=','.join([i for i in flux_lst]))
 	raw_input('Please press enter when ready to continue.')
 	fluxc_flag=raw_input('Do you need to flag line channels in the flux cal(s)? y or n-->')
 	dict_log.append(('flag_lines_fluxcal',fluxc_flag))
@@ -1317,7 +1317,7 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean2',field='',spw='',interactive=True,\
+			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
