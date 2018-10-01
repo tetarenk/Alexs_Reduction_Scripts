@@ -306,13 +306,13 @@ if skipflag=='n':
 		for i in range(0,len(flux_lst)):
 			print 'For flux cal id: ',flux_lst[i]
 			flagfluxlsb=raw_input('Please enter channels to flag. e.g., 0~3-->')
-			dict_log.append(('lines_lsb_channels_srcid_'flux_lst[i]+,flagfluxlsb))
+			dict_log.append(('lines_lsb_channels_srcid_'+flux_lst[i],flagfluxlsb))
 			flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+flagfluxlsb,field=flux_lst[i],antenna='')
 		print 'USB...'
 		for i in range(0,len(flux_lst)):
 			print 'For flux cal id: ',flux_lst[i]
 			flagfluxusb=raw_input('Please enter channels to flag. e.g., 0~3-->')
-			dict_log.append(('lines_usb_channels_srcid_'flux_lst[i]+,flagfluxusb))
+			dict_log.append(('lines_usb_channels_srcid_'+flux_lst[i],flagfluxusb))
 			flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+flagfluxusb,field=flux_lst[i],antenna='')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
