@@ -41,11 +41,11 @@ import analysisUtils as au
 #define output directory
 my_dir='/mnt/bigdata/tetarenk/VLA_1758_1740/'
 if not os.path.isdir(my_dir):
-	os.system('sudo mkdir '+my_dir)
-	os.system('sudo chown ubuntu '+my_dir)
-	os.system('sudo chmod -R u+r '+my_dir) 
-	os.system('sudo chmod -R u+w '+my_dir)
-	os.system('sudo chmod -R u+x '+my_dir)
+	os.system('mkdir '+my_dir)
+	os.system('chown ubuntu '+my_dir)
+	os.system('chmod -R u+r '+my_dir) 
+	os.system('chmod -R u+w '+my_dir)
+	os.system('chmod -R u+x '+my_dir)
 print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
@@ -108,7 +108,7 @@ if mymask=='':
 	print 'Cleaning...'
 	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=True,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-		mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Cleaning...'

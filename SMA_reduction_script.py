@@ -40,7 +40,6 @@ import sys
 import imp
 import os
 import linecache
-import find
 import warnings
 import webbrowser
 import datetime
@@ -52,18 +51,18 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/both/callisto_3c279/'
+my_dir='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/rec230/'
 if not os.path.isdir(my_dir):
-	os.system('sudo mkdir '+my_dir)
-	os.system('sudo chown ubuntu '+my_dir)
-	os.system('sudo chmod -R u+r '+my_dir) 
-	os.system('sudo chmod -R u+w '+my_dir)
-	os.system('sudo chmod -R u+x '+my_dir)
+	os.system('mkdir '+my_dir)
+	os.system('chown ubuntu '+my_dir)
+	os.system('chmod -R u+r '+my_dir) 
+	os.system('chmod -R u+w '+my_dir)
+	os.system('chmod -R u+x '+my_dir)
 print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/both/params_sma.txt'
+param_dir_file='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/params_sma.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -140,8 +139,8 @@ else:
 	print 'Listobs usb file already exists'
 seelo=raw_input('Do you want to see the listobs? y or n-->')
 if seelo=='y':
-	os.system('pluma '+my_dir+obsDate+'_lsb_listfile.txt &')
-	os.system('pluma '+my_dir+obsDate+'_usb_listfile.txt &')
+	os.system('gedit '+my_dir+obsDate+'_lsb_listfile.txt &')
+	os.system('gedit '+my_dir+obsDate+'_usb_listfile.txt &')
 	raw_input('Please press enter to continue when you are done.')
 else:
 	print 'Okay. Moving on.'
@@ -209,10 +208,10 @@ ms_namel_prefix=ms_namel.strip('.ms')
 ms_nameu_prefix=ms_nameu.strip('.ms')
 os.system('rm -rf '+ms_namel_prefix+'_listfile.txt')
 listobs(ms_namel,listfile=ms_namel_prefix+'_listfile.txt')
-os.system('pluma '+ms_namel_prefix+'_listfile.txt &')
+os.system('gedit '+ms_namel_prefix+'_listfile.txt &')
 os.system('rm -rf '+ms_nameu_prefix+'_listfile.txt')
 listobs(ms_nameu,listfile=ms_nameu_prefix+'_listfile.txt')
-os.system('pluma '+ms_nameu_prefix+'_listfile.txt &')
+os.system('gedit '+ms_nameu_prefix+'_listfile.txt &')
 raw_input('Please press enter to continue when you are done.')
 #define variables specific to each band
 print 'Please enter the following data set specifics:'
@@ -292,6 +291,29 @@ if skipflag=='n':
 		flagdata(vis=ms_namel,spw='0',field='',antenna='',mode='manual')
 		flagdata(vis=ms_nameu,spw='0',field='',antenna='',mode='manual')
 		raw_input('Please press enter when ready to continue.')
+	#check flux cal for lines
+	print 'Checking flux cal for lines...'
+	print 'LSB...'
+	plotms(vis=ms_namel,xaxis="time",yaxis="amp",coloraxis="spw",iteraxis="field",field=flux_lst)
+	raw_input('Please press enter when ready to continue.')
+	print 'USB...'
+	plotms(vis=ms_nameu,xaxis="time",yaxis="amp",coloraxis="spw",iteraxis="field",field=flux_lst)
+	raw_input('Please press enter when ready to continue.')
+	fluxc_flag=raw_input('Do you need to flag line channels in the flux cal(s)? y or n-->')
+	dict_log.append(('flag_lines_fluxcal',fluxc_flag))
+	if fluxc_flag=='y':
+		print 'LSB...'
+		for i in range(0,len(flux_lst)):
+			print 'For flux cal id: ',flux_lst[i]
+			flagfluxlsb=raw_input('Please enter channels to flag. e.g., 0~3-->')
+			dict_log.append(('lines_lsb_channels_srcid_'flux_lst[i]+,flagfluxlsb))
+			flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+flagfluxlsb,field=flux_lst[i],antenna='')
+		print 'USB...'
+		for i in range(0,len(flux_lst)):
+			print 'For flux cal id: ',flux_lst[i]
+			flagfluxusb=raw_input('Please enter channels to flag. e.g., 0~3-->')
+			dict_log.append(('lines_usb_channels_srcid_'flux_lst[i]+,flagfluxusb))
+			flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+flagfluxusb,field=flux_lst[i],antenna='')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
 	dict_log.append(('flag_end_channels',flag_end))
@@ -301,8 +323,8 @@ if skipflag=='n':
 		dict_log.append(('beginning_channels',beg))
 		dict_log.append(('end_channels',endd))
 		print 'Flagging end channels...'
-		flagdata(vis=ms_namel,spw=spw_low+':'+beg,field='',antenna='',mode='manual')
-		flagdata(vis=ms_nameu,spw=spw_high+':'+endd,field='',antenna='',mode='manual')
+		flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+beg,field='',antenna='')
+		flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+endd,field='',antenna='')
 		raw_input('Please press enter when ready to continue.')
 	else:
 		print 'End channels not flagged.'
@@ -462,10 +484,10 @@ if skipflag=='n':
 					flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],scan=strgusb[3])
 		print 'Plotting...'
 		print 'LSB...'
-		plotms(vis=ms_namel,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
+		plotms(vis=ms_namel,field=second_cal,spw='', antenna='',xaxis='frequency',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
 		print 'USB...'
-		plotms(vis=ms_nameu,field=second_cal,spw='', antenna=ref_ant,xaxis='frequency',yaxis='amp')
+		plotms(vis=ms_nameu,field=second_cal,spw='', antenna='',xaxis='frequency',yaxis='amp')
 		raw_input('Please press enter when ready to continue.')
 		count_f=count_f+1
 		flag_again=raw_input('Do you need to do more flagging? y or n-->')
@@ -736,8 +758,19 @@ flagmanager(vis=ms_nameu,mode='save',versionname=target+obsDate+'_'+band_high+'_
 #####################################
 print 'Setting flux scale...'
 for i in range(0,len(flux_lst)):
-	setjy(vis=ms_namel, field=flux_lst[i], spw=spw_low,standard='Butler-JPL-Horizons 2012')
-	setjy(vis=ms_nameu, field=flux_lst[i], spw=spw_high,standard='Butler-JPL-Horizons 2012')
+	print 'For flux cal id: ',flux_lst[i]
+	manual_fs=raw_input('Do you want to set flux scale manually? y or n?--> ')
+	dict_log.append(('manual_flux_scale',manual_fs))
+	if manual_fs=='y':
+		lsb_flux_manual=raw_input('Enter Stokes I flux density in Jy for LSB...')
+		usb_flux_manual=raw_input('Enter Stokes I flux density in Jy for USB...')
+		dict_log.append(('manual_flux_scale_lsb_ID'+flux_lst[i],lsb_flux_manual))
+		dict_log.append(('manual_flux_scale_usb_ID'+flux_lst[i],usb_flux_manual))
+		setjy(vis=ms_namel, field=flux_lst[i], fluxdensity=[float(lsb_flux_manual), 0.0, 0.0, 0.0],spw=spw_low,standard='manual')
+		setjy(vis=ms_nameu, field=flux_lst[i], fluxdensity=[float(usb_flux_manual), 0.0, 0.0, 0.0],spw=spw_high,standard='manual')
+	else:
+		setjy(vis=ms_namel, field=flux_lst[i], spw=spw_low,standard='Butler-JPL-Horizons 2012')
+		setjy(vis=ms_nameu, field=flux_lst[i], spw=spw_high,standard='Butler-JPL-Horizons 2012')
 #####################################
 
 #####################################
@@ -1208,7 +1241,7 @@ if doImage=='T':
 			print 'Cleaning...'
 			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
+				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 			print 'Cleaning...'
@@ -1247,7 +1280,7 @@ if doImage=='T':
 			print 'Cleaning...'
 			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
+				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 			print 'Cleaning...'
@@ -1284,9 +1317,9 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
+			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean2',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=0,nterms=mynterms,multiscale=multiscale,robust=robust)
+				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Cleaning...'

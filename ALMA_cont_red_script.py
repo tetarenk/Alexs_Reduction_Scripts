@@ -31,7 +31,7 @@ import sys
 import imp
 import os
 import linecache
-import find
+#import find
 import warnings
 import webbrowser
 import datetime
@@ -43,18 +43,18 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/ALMA_maxi1535/my_red/ep1/b6/'
+my_dir='/export/data/atetarenko/ALMA_maxi1535/reduced/ep5/b6/'
 if not os.path.isdir(my_dir):
-	os.system('sudo mkdir '+my_dir)
-	os.system('sudo chown ubuntu '+my_dir)
-	os.system('sudo chmod -R u+r '+my_dir) 
-	os.system('sudo chmod -R u+w '+my_dir)
-	os.system('sudo chmod -R u+x '+my_dir)
+	os.system('mkdir '+my_dir)
+	os.system('chown ubuntu '+my_dir)
+	os.system('chmod -R u+r '+my_dir) 
+	os.system('chmod -R u+w '+my_dir)
+	os.system('chmod -R u+x '+my_dir)
 print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/mnt/bigdata/tetarenk/ALMA_maxi1535/params_alma.txt'
+param_dir_file='/export/data/atetarenko/ALMA_maxi1535/params_alma.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -137,7 +137,7 @@ if not os.path.isfile(my_dir+obsDate+'_listfile.txt'):
 else:
 	print 'Listobs file already exists'
 print 'Opening listobs file...'
-os.system('pluma '+my_dir+obsDate+'_listfile.txt &')
+os.system('gedit '+my_dir+obsDate+'_listfile.txt &')
 raw_input('Please press enter when ready to continue.')
 
 #enter some data specifics
@@ -200,7 +200,7 @@ print 'Showing listobs for Tsys measurments...'
 os.system('rm -rf '+my_dir+obsDate+'_listfile_tsys.txt')
 listobs(vis=ms_name, verbose=False, selectdata=True, intent='CALIBRATE_ATMOS*',\
 	listfile=my_dir+obsDate+'_listfile_tsys.txt')
-os.system('pluma '+my_dir+obsDate+'_listfile_tsys.txt &')
+os.system('gedit '+my_dir+obsDate+'_listfile_tsys.txt &')
 raw_input('Please press enter when ready to continue.')
 
 tsys_fields=raw_input('Please enter fields with Tsys measurments, e.g., 1,2,3--> ').split(',')
@@ -291,6 +291,7 @@ raw_input('Please press enter when ready to continue.')
 #split out science data
 print 'Splitting out science data...'
 os.system('rm -rf ' + my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'posttw.ms')
+os.system('rm -rf ' + my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'posttw.ms.flagversions')
 split(vis=ms_name,outputvis=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'posttw.ms',\
 	datacolumn='corrected',spw=",".join(science_spw))
 ms_name=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'posttw.ms'
@@ -298,7 +299,7 @@ ms_name=my_dir+'data_'+target+'_'+obsDate+'_'+band+'_'+'posttw.ms'
 print 'Opening listobs for split data set...'
 os.system('rm -rf '+my_dir+obsDate+'_listfile_aftertw.txt')
 listobs(ms_name,listfile=my_dir+obsDate+'_listfile_aftertw.txt')
-os.system('pluma '+my_dir+obsDate+'_listfile_aftertw.txt &')
+os.system('gedit '+my_dir+obsDate+'_listfile_aftertw.txt &')
 raw_input('Please press enter when ready to continue.')
 flagmanager(vis=ms_name,mode='save',versionname=target+'_'+obsDate+'_'+band+'_tsyswvr',comment='after tsys/wvr')
 #################################################
@@ -389,7 +390,7 @@ dict_log.append(('flag again',flag_again))
 countf=1
 while flag_again=='y':
 	badasf2=raw_input('Please enter bad ant,spw,field,corr,and timerange to flag (enter if none). e.g., DV10,DA12;5:4~9;3;YY;9:52:10.0~9:53:10.0 ;5;3;;-->').split(' ')
-	raw_input('press enter to flag selected data.')
+	raw_input('Press enter to flag selected data.')
 	dict_log.append(('flags2'+str(countf),badasf2))
 	if '' in badasf2:
 		print 'Nothing to flag.'
@@ -402,7 +403,7 @@ while flag_again=='y':
 	plotms(vis=ms_name,spw='',xaxis='frequency',yaxis='amp',field=second_cal+','+target_id,\
 		avgtime='1e8',avgscan=True,coloraxis='field',iteraxis='spw',xselfscale=True,yselfscale=True,showgui=True)
 	raw_input('Please press enter when ready to continue.')
-	raw_input('press enter to continue.')
+	raw_input('Press enter to continue.')
 	flag_again=raw_input('Do you need to do more flagging? y or n-->')
 	countf=countf+1
 #save flags
@@ -803,7 +804,7 @@ if doImage=='T':
 				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
 					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-					interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
+					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			else:
 				print 'Cleaning...'
@@ -812,13 +813,13 @@ if doImage=='T':
 				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
 					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-					interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
+					interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
 			if int(mynterms) > 1:
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
-				os.system('sudo mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
+				os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
 			immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
 				'fullbandim.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.flux'],\
 				expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
@@ -850,7 +851,7 @@ if doImage=='T':
 					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
 						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-						interactive=True,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
+						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				else:
 					print 'Cleaning...'
@@ -859,13 +860,13 @@ if doImage=='T':
 					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
 						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-						interactive=False,threshold=mythreshold,niter=0,pbcor=False,minpb=0.2,multiscale=multiscale)
+						interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
 				if int(mynterms) > 1:
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
-					os.system('sudo mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
+					os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
 				immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
 					'_spw'+str(j)+'im.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.flux'],\
 					expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
@@ -988,45 +989,51 @@ mjd_err=((end_m-start_m)/2.)
 mjd_mid=mjd_err+start_m
 dict_log.append(('mjd_mid',mjd_mid))
 dict_log.append(('mjd_err',mjd_err))
-print 'OBS MJD= ',mjd_mid, '+/- ',mjd_err 
+print 'OBS MJD= ',mjd_mid, '+/- ',mjd_err
+raw_input('Please press enter when ready to continue.\n')
 
 #time on src
 min_onsrc=au.timeOnSource(ms_name_final)
 print 'Time on Target Source: ',min_onsrc['minutes_on_science'],'minutes'
 dict_log.append(('min_on_src',min_onsrc['minutes_on_science']))
+raw_input('Please press enter when ready to continue.\n')
 
 #ALMA cycle
 alma_cy=au.surmiseCycle(ms_name_final)
 print 'Data is from ALMA Cycle ',alma_cy
 dict_log.append(('alma_cycle',alma_cy))
+raw_input('Please press enter when ready to continue.\n')
 
 #ALMA config
 alma_config=au.surmiseConfiguration(ms_name_final)
 print 'Data is taken in ALMA configuration: ',alma_config
 dict_log.append(('alma_config',alma_config))
+raw_input('Please press enter when ready to continue.\n')
 
 #spectral resolution
 spec_res=au.effectiveResolution(ms_name_final,0,kms=True)
-spec_res2=au.effectiveResolution(ms_name_final,0),kms=False)
+spec_res2=au.effectiveResolution(ms_name_final,0,kms=False)
 print 'Spectral resolution is: ',spec_res,'km/s or ',spec_res2, 'Hz'
 dict_log.append(('spec_res_kms',spec_res))
 dict_log.append(('spec_res_Hz',spec_res2))
+raw_input('Please press enter when ready to continue.\n')
 
 #median PWV
 pwv=au.getMedianPWV(ms_name_final)
 print 'Median PWV in data set is: ',pwv[0],'+/-',pwv[1],'mm'
 dict_log.append(('med_pwv',pwv[0]))
 dict_log.append(('med_pwv_err',pwv[1]))
+raw_input('Please press enter when ready to continue.\n')
 
 #plot weather cond.
 print 'Plotting weather conditions...'
 au.plotWeather(ms_name_final,figfile=my_dir+'weather_cond.png')
-raw_input('Please press enter when ready to continue.')
+raw_input('Please press enter when ready to continue.\n')
 
 #plot bands
 print 'Plotting bands...'
 au.plotspws(ms_name_final,intents=['*TARGET*'],plotfile=my_dir+'bands.png')
-raw_input('Please press enter when ready to continue.')
+raw_input('Please press enter when ready to continue.\n')
 ###########################################
 
 print 'Cleaning up...'

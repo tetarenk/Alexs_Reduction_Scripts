@@ -45,7 +45,7 @@ for i in range(0,len(uvfits_files)):
 	importuvfits(fitsfile=uvfits_files[i],vis=my_dir+'noema_'+target+'_'+msname+'.ms')
 	print 'Listobs...'
 	listobs(my_dir+'noema_'+target+'_'+msname+'.ms',listfile=my_dir+'noema_'+target+'_'+msname+'_listobs.txt')
-	os.system('pluma 'my_dir+'noema_'+target+'_'+msname+'_listobs.txt &')
+	os.system('gedit 'my_dir+'noema_'+target+'_'+msname+'_listobs.txt &')
 	raw_input('Please press enter when ready to continue.')
 	print 'Plotting visibility data...'
 	plotms(vis=my_dir+'noema_'+target+'_'+msname+'.ms',xaxis="time",yaxis="amp",ydatacolumn='data',iteraxis="antenna")
@@ -56,6 +56,6 @@ for i in range(0,len(uvfits_files)):
 		mycell=set_cellsize(my_dir+'noema_'+target+'_'+msname+'.ms','0')
 	clean(vis=my_dir+'noema_'+target+'_'+msname+'.ms', imagename=my_dir+'noema_'+target+'_'+obsDate+'_'+band,\
 		field='', interactive=True, cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',\
-		threshold=mythresh,mode='mfs',myniter=0)
+		threshold=mythresh,mode='mfs',myniter=myniter)
 	imview(my_dir+'noema_'+target+'_'+obsDate+'_'+band+'.image')
 	raw_input('Please press enter when ready to continue.')

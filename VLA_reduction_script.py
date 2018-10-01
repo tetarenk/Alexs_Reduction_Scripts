@@ -48,11 +48,11 @@ import analysisUtils as au
 #define output directory
 my_dir='/mnt/bigdata/tetarenk/VLA_neutrino2/tester/'
 if not os.path.isdir(my_dir):
-	os.system('sudo mkdir '+my_dir)
-	os.system('sudo chown ubuntu '+my_dir)
-	os.system('sudo chmod -R u+r '+my_dir) 
-	os.system('sudo chmod -R u+w '+my_dir)
-	os.system('sudo chmod -R u+x '+my_dir)
+	os.system('mkdir '+my_dir)
+	os.system('chown ubuntu '+my_dir)
+	os.system('chmod -R u+r '+my_dir) 
+	os.system('chmod -R u+w '+my_dir)
+	os.system('chmod -R u+x '+my_dir)
 print 'You have set your output directory to ', my_dir,'\n'
 print 'All output images & intermediate data products are put in this directory.\n'
 
@@ -126,7 +126,7 @@ else:
 	print 'Listobs file already exists'
 seelo=raw_input('Do you want to see the listobs? y or n-->')
 if seelo=='y':
-	os.system('pluma '+my_dir+obsDate+'_listfile.txt &')
+	os.system('gedit '+my_dir+obsDate+'_listfile.txt &')
 else:
 	print 'Okay. Moving on.'
 seeurl=raw_input('Do you want to open the log file in your web browser?y or n-->')
@@ -199,7 +199,7 @@ for kk in range(0,len(ms_name_list)):
 	print 'Running listobs. Please examine file for fields ids & spw ranges.'
 	os.system('rm -rf '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
 	listobs(ms_name_list[kk],listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
-	os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt &')
+	os.system('gedit '+my_dir+obsDate+'_'+bands[kk]+'_listfile.txt &')
 	raw_input('Please press enter when ready to continue.')
 	#define variables specific to each band
 	src_dict,quakint=source_dict_create(my_dir+obsDate+'_'+bands[kk]+'_listfile.txt')
@@ -603,7 +603,7 @@ for kk in range(0,len(ms_name_list)):
 			ms_name=ms_name_prefix+'_hs.ms'
 			ms_name_prefix=ms_name.strip('.ms')
 			listobs(ms_name,listfile=my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt')
-			os.system('pluma '+my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt &')
+			os.system('gedit '+my_dir+obsDate+'_'+bands[kk]+'_listfile_hs.txt &')
 	newref=raw_input('Do you need to change ref_ant?y or n-->')
 	if newref=='y':
 		plotants(vis=ms_name,figfile=ant_plot)
@@ -1477,7 +1477,7 @@ for kk in range(0,len(ms_name_list)):
 					print 'Cleaning...'
 					clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
-						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 					print 'Cleaning...'
@@ -1516,7 +1516,7 @@ for kk in range(0,len(ms_name_list)):
 					print 'Cleaning...'
 					clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
-						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 					print 'Cleaning...'
@@ -1555,7 +1555,7 @@ for kk in range(0,len(ms_name_list)):
 					print 'Cleaning...'
 					clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
-						mode='mfs',niter=0,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
+						mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,multiscale=multiscale,robust=robust,outlierfile=outlierfile)
 				else:
 					os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 					print 'Cleaning...'
