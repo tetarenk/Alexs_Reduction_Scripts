@@ -1317,7 +1317,7 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean',field='',spw='',interactive=True,\
+			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
 				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
 		else:
