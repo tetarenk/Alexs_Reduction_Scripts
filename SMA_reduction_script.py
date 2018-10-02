@@ -25,10 +25,10 @@ Last Updated: May 4, 2018
 Tested in CASA versions up to 5.1.2
 
 USAGE: Set path to parameter file (line 54) and output directory (line 65), then,
-run execfile('SMA_reduction_script.py') within CASA
+run execfile('SMA_reduction_script.py') within CASA 
 '''
 
-print '##################################################'
+print '###################################################'
 print 'Welcome to Alexs SMA Continuum Reduction Script'
 print '##################################################\n'
 
