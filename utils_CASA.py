@@ -108,7 +108,7 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 				interp=['nearest'], calwt=[False])
 		flagmanager(vis=selfcalvis,mode='save',versionname='after_phase'+str(attemptnum))
 		print 'Interactive Cleaning selfcaled data...'
-		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11*')
+		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
 		clean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11',field='',spw='',interactive=True,\
 			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,mode='mfs',niter=0,nterms=1,outlierfile=outlierf,multiscale=multiscale,robust=robust)
 		raw_input('Please press enter when ready to continue.')
