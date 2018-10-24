@@ -16,6 +16,7 @@ mynterms=2#
 myniter=5000
 mystokes='I'
 outlierfile=''
+decon='hogbom'#hogbom if nterms=1,mtmfs if nterms>1,multiscale if using scales
 multiscale=[]
 weighting='natural'
 robust=0.0

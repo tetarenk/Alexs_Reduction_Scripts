@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All output images are also converted to fits format (just append .fits to end of images 1 above)
        - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
 Written by: Alex J. Tetarenko
-Last Updated: November 13 2017
-Works in CASA-5.1.1 now!'''
+Last Updated: Oct 24, 2018
+Works in CASA-5.3 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs CASA Continuum Imaging/Selfcal Script'
@@ -59,13 +59,9 @@ print 'Please make sure all parameters are correct, they will change for each da
 #################################################
 print 'Reading in parameters...'
 #read in param file
-def getVar(filename):
-	'''Easy way to read in variables from parameter file'''
-	f=open(filename)
-	global data_params
-	data_params=imp.load_source('data_params','',f)
-	f.close()
-getVar(param_dir_file)
+f=open(param_dir_file)
+data_params=imp.load_source('data_params','',f)
+f.close()
 #data set params
 ms_name=data_params.ms_name
 obsDate=data_params.obsDate
@@ -81,6 +77,7 @@ mythreshold=data_params.mythreshold
 myimsize=data_params.myimsize
 mycell=data_params.mycell
 mynterms=data_params.mynterms
+decon=data_params.decon
 myniter=data_params.myniter
 mystokes=data_params.mystokes
 outlierf=data_params.outlierf
@@ -106,15 +103,15 @@ if mymask=='':
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Using interactive mode so you can make a mask...'
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=True,\
-		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+	tclean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',spw=spw,interactive=True,\
+		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,deconvolver=decon,gridder='standard',\
+		specmode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,scales=multiscale,robust=robust)
 else:
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1*')
 	print 'Cleaning...'
-	clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=False,\
-		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-		mode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,multiscale=multiscale,robust=robust)
+	tclean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=False,\
+		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,deconvolver=decon,gridder='standard',\
+		specmode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,scales=multiscale,robust=robust)
 if mynterms>1:
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image.tt0'
 else:
@@ -122,7 +119,7 @@ else:
 print 'Correcting for PB...'
 os.system('rm -rf '+imagen+'.pbcor')
 os.system('rm -rf '+imagen+'.pbcor.fits')
-immath(imagename=[imagen,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.flux'],\
+immath(imagename=[imagen,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.pb'],\
 	expr='IM0/IM1',outfile=imagen+'.pbcor')
 print 'Making fits image...'
 exportfits(imagename=imagen+'.pbcor',fitsimage=imagen+'.pbcor.fits')
@@ -142,15 +139,15 @@ if do_pol=='y':
 	os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV*')
 	print 'Imaging polarization cube...'
 	if mymask=='':
-		clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
+		tclean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
 			field='',spw=spw,interactive=True,cell=[mycell], imsize=myimsize,gain=0.1,
-			weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
-			stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierf,psfmode='clarkstokes')
+			weighting=weighting,threshold=mythreshold,specmode='mfs',niter=myniter,nterms=mynterms,
+			stokes='IQUV',scales=multiscale,robust=robust,outlierfile=outlierf,deconvolver='clarkstokes',gridder='standard')
 	else:
-		clean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
+		tclean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV',
 			field='',mask=mymask,spw=spw,interactive=False,cell=[mycell], imsize=myimsize,gain=0.1,
-			weighting=weighting,threshold=mythreshold,mode='mfs',niter=myniter,nterms=mynterms,
-			stokes='IQUV',multiscale=multiscale,robust=robust,outlierfile=outlierf,psfmode='clarkstokes')
+			weighting=weighting,threshold=mythreshold,specmode='mfs',niter=myniter,nterms=mynterms,
+			stokes='IQUV',scales=multiscale,robust=robust,outlierfile=outlierf,deconvolver='clarkstokes',gridder='standard')
 	if mynterms>1:
 		imagenpol=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.image.tt0'
 	else:
@@ -158,7 +155,7 @@ if do_pol=='y':
 	print 'Correcting for PB...'
 	os.system('rm -rf '+imagenpol+'.pbcor')
 	os.system('rm -rf '+imagenpol+'.pbcor.fits')
-	immath(imagename=[imagenpol,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.flux'],
+	immath(imagename=[imagenpol,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.pb'],
 		expr='IM0/IM1',outfile=imagenpol+'.pbcor')
 	print 'Making fits image...'
 	exportfits(imagename=imagenpol+'.pbcor',fitsimage=imagenpol+'.pbcor.fits')

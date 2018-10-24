@@ -22,6 +22,7 @@ use_auto='F'
 mythreshold='1mJy'
 myimsize=512
 mycell='0.15arcsec'
+decon='hogbom'#hogbom if nterms=1,mtmfs if nterms>1,multiscale if using scales
 mynterms=2
 myniter=5000
 multiscale=[]

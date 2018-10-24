@@ -13,6 +13,7 @@ mythreshold='0.02mJy'
 myimsize=512
 mycell='0.6arcsec'
 mynterms=1
+decon='hogbom'#hogbom if nterms=1,mtmfs if nterms>1,multiscale if using scales
 myniter=5000
 mystokes='I'
 outlierf=''

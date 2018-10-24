@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.logg.
 
 Written by: Alex J. Tetarenko
-Last Updated: May 4, 2018
-Tested in CASA versions up to 5.1.2
+Last Updated: Oct 24, 2018
+Tested in CASA versions up to 5.3
 
 USAGE: Set path to parameter file (line 46) and output directory (line 57), then,
 run execfile('ALMA_cont_red_script.py') within CASA
@@ -66,13 +66,9 @@ dict_log=[]
 #################################################
 print 'Reading in parameters...'
 #read in param file
-def getVar(filename):
-	'''Easy way to read in variables from parameter file'''
-	f=open(filename)
-	global data_params
-	data_params=imp.load_source('data_params','',f)
-	f.close()
-getVar(param_dir_file)
+f=open(param_dir_file)
+data_params=imp.load_source('data_params','',f)
+f.close()
 #data set params
 raw_type=data_params.raw_type
 d_name=data_params.d_name
@@ -87,6 +83,7 @@ myimsize=data_params.myimsize
 mycell=data_params.mycell
 myniter=data_params.myniter
 mynterms=data_params.mynterms
+decon=data_params.decon
 mystokes=data_params.mystokes
 multiscale=data_params.multiscale
 robust=data_params.robust
@@ -801,19 +798,19 @@ if doImage=='T':
 				print 'Using interactive mode so you can make a mask...'
 				print 'Cleaning...'
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
-				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
-					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
+				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
+					specmode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
+					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			else:
 				print 'Cleaning...'
 				print 'This make take awhile, please go do something else for a while.'
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
-				clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
-					mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
+				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
+					mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-					interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
+					interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
@@ -821,7 +818,7 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
 				os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
 			immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
-				'fullbandim.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.flux'],\
+				'fullbandim.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.pb'],\
 				expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			exportfits(imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor',\
 				fitsimage=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
@@ -848,19 +845,19 @@ if doImage=='T':
 					print 'Using interactive mode so you can make a mask...'
 					print 'Cleaning...'
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
-					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
-						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
+					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
+						mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
+						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				else:
 					print 'Cleaning...'
 					print 'This make take awhile, please go do something else for a while.'
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
-					clean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
-						mode='mfs',imagermode='csclean',imsize=myimsize,cell=mycell,spw='',\
+					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
+						mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-						interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,multiscale=multiscale)
+						interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
@@ -868,7 +865,7 @@ if doImage=='T':
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
 					os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
 				immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
-					'_spw'+str(j)+'im.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.flux'],\
+					'_spw'+str(j)+'im.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.pb'],\
 					expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				exportfits(imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor',\
 					fitsimage=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')

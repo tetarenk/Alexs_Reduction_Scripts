@@ -15,6 +15,7 @@ use_auto='F'
 mythreshold=['10mJy']
 myimsize=[4096]
 mycell=['0.1arcsec']
+decon='hogbom'#hogbom if nterms=1,mtmfs if nterms>1,multiscale if using scales
 mynterms=1
 myniter=5000
 mystokes='I'

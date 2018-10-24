@@ -21,14 +21,14 @@ to convert to CASA MS for imaging.
 The MIR versin is implemented in mircal_to_casa.py script.
 
 Written by: Alex J. Tetarenko
-Last Updated: May 4, 2018
-Tested in CASA versions up to 5.1.2
+Last Updated: Oct 24, 2018
+Tested in CASA versions up to 5.3
 
 USAGE: Set path to parameter file (line 54) and output directory (line 65), then,
-run execfile('SMA_reduction_script.py') within CASA 
+run execfile('SMA_reduction_script.py') within CASA
 '''
 
-print '###################################################'
+print '##################################################'
 print 'Welcome to Alexs SMA Continuum Reduction Script'
 print '##################################################\n'
 
@@ -51,7 +51,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/rec230/'
+my_dir='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/April12/redo/rec240/'
 if not os.path.isdir(my_dir):
 	os.system('mkdir '+my_dir)
 	os.system('chown ubuntu '+my_dir)
@@ -62,7 +62,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/params_sma.txt'
+param_dir_file='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/April12/redo/rec240/params_sma.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -74,13 +74,9 @@ dict_log=[]
 #################################################
 print 'Reading in parameters...'
 #read in param file
-def getVar(filename):
-	'''Easy way to read in variables from parameter file'''
-	f=open(filename)
-	global data_params
-	data_params=imp.load_source('data_params','',f)
-	f.close()
-getVar(param_dir_file)
+f=open(param_dir_file)
+data_params=imp.load_source('data_params','',f)
+f.close()
 #data set params
 ms_name_lsb=data_params.ms_name_lsb
 ms_name_usb=data_params.ms_name_usb
@@ -97,6 +93,7 @@ band_high=data_params.band_high#'231GHz'
 remakems=data_params.remakems
 doImage=data_params.doImage
 bandsIM=data_params.bandsIM
+
 do_ant_correct=data_params.do_ant_correct
 ant_corr_file=data_params.ant_corr_file
 #general image params
@@ -106,6 +103,7 @@ myimsize=data_params.myimsize
 mycell=data_params.mycell
 myniter=data_params.myniter
 mynterms=data_params.mynterms
+decon=data_params.decon
 multiscale=data_params.multiscale
 robust=data_params.robust
 weighting=data_params.weighting
@@ -141,6 +139,7 @@ seelo=raw_input('Do you want to see the listobs? y or n-->')
 if seelo=='y':
 	os.system('gedit '+my_dir+obsDate+'_lsb_listfile.txt &')
 	os.system('gedit '+my_dir+obsDate+'_usb_listfile.txt &')
+
 	raw_input('Please press enter to continue when you are done.')
 else:
 	print 'Okay. Moving on.'
@@ -179,6 +178,7 @@ if not os.path.isdir(my_dir+'data_'+obsDate+'_'+'usb.ms'):
 elif remakems=='T':
 	print 'Remaking split MS for usb band...'
 	os.system('rm -rf '+my_dir+'data_'+obsDate+'_'+'usb.ms')
+
 	os.system('mv '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions '+my_dir+'data_'+obsDate+'_'+'usb.ms.flagversions_old')
 	split(vis=ms_name_usb,outputvis=my_dir+'data_'+obsDate+'_'+'usb.ms',\
 		spw=spw_usb,datacolumn='data',scan=scans_usb,field=fields_usb)
@@ -316,6 +316,7 @@ if skipflag=='n':
 			flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+flagfluxusb,field=flux_lst[i],antenna='')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
+
 	dict_log.append(('flag_end_channels',flag_end))
 	if flag_end=='y':
 		beg=raw_input('Please enter beginning channels to flag. e.g., 0~3-->')
@@ -323,8 +324,8 @@ if skipflag=='n':
 		dict_log.append(('beginning_channels',beg))
 		dict_log.append(('end_channels',endd))
 		print 'Flagging end channels...'
-		flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+beg,field='',antenna='')
-		flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+endd,field='',antenna='')
+		flagdata(vis=ms_namel,mode='manual',antenna='',spw=spw_low+':'+beg,field='',timerange='')
+		flagdata(vis=ms_nameu,mode='manual',antenna='',spw=spw_high+':'+endd,field='',timerange='')
 		raw_input('Please press enter when ready to continue.')
 	else:
 		print 'End channels not flagged.'
@@ -363,6 +364,7 @@ if skipflag=='n':
 	plotms(vis=ms_namel,field=lastf,spw='', antenna=fant,xaxis='antenna2',yaxis='amp')
 	raw_input('Please press enter when ready to continue.')
 	print 'USB...'
+
 	plotms(vis=ms_nameu,field=lastf,spw='', antenna=fant,xaxis='antenna2',yaxis='amp')
 	raw_input('Please press enter when ready to continue.')
 	print '(3) Bandpass for reference antenna (second_cal)...'
@@ -407,6 +409,7 @@ if skipflag=='n':
 		dict_log.append(('badscan_usb',badsu))
 		flagdata(vis=ms_namel, mode='manual', scan=badsl)
 		flagdata(vis=ms_nameu, mode='manual', scan=badsu)
+
 	raw_input('Please press enter when ready to continue.')
 	#phase jumps; ant,field,timerange
 	flag_pj=raw_input('Do you want to flag any known phase jumps?y or n-->')
@@ -478,6 +481,7 @@ if skipflag=='n':
 			print 'Flagging selected usb data.'
 			for i in range(0,len(badasfusb)):
 				strgusb=badasfusb[i].split(';')
+
 				if ':' in strgusb[3]:
 					flagdata(vis=ms_nameu, mode='manual', antenna=strgusb[0],spw=strgusb[1],field=strgusb[2],timerange=strgusb[3])
 				else:
@@ -525,6 +529,7 @@ else:
 if do_ant_correct=='T':
 	print 'Performing antenna position corrections...'
 	ant_pos_file_read=ascii.read(ant_corr_file,delimiter=' ',data_start=0,names=['ant_lst','X','Y','Z'],guess=False)
+
 	ant_lst=",".join(ant_pos_file_read['ant_lst'])
 	ant_lst_offset=[]
 	for i in range(0,len(ant_pos_file_read['ant_lst'])):
@@ -590,6 +595,7 @@ if intera=='y':
 os.system('rm -rf '+cal_table_prefixl+"phase_all.cal")
 os.system('rm -rf '+cal_table_prefixu+"phase_all.cal")
 print 'Redo phase solution after bandpass...'
+
 gaincal(vis=ms_namel,caltable=cal_table_prefixl+"phase_all.cal",field=bpf_cal,solint="int",calmode="p",\
 	refant=ref_ant,gaintype="G",minsnr=2.0,spw=spw_low,combine="spw",gaintable=cal_table_prefixl+"bandpassB.cal")
 gaincal(vis=ms_nameu,caltable=cal_table_prefixu+"phase_all.cal",field=bpf_cal,solint="int",calmode="p",\
@@ -652,6 +658,7 @@ applycal(vis=ms_nameu,spw=spw_high, field=bpf_cal,
 #####################################
 #Check for latent baseline issues
 #####################################
+
 #check no latent baseline issues, that need to be calibrated out
 #have to do blcal if you see them
 if intera=='n':
@@ -714,6 +721,7 @@ if doblcal=='y':
 	#reapply solutions to bp cal
 	print 'Reapplying solutions to BP cal...'
 	applycal(vis=ms_namel,spw=spw_low, field=bpf_cal,gaintable=[cal_table_prefixl+"phase_all.cal",\
+
 		cal_table_prefixl+'ap.cal',cal_table_prefixl+'blcal2.cal',cal_table_prefixl+'bandpassB.cal'],\
 		spwmap=[[first_lsb_spw],[first_lsb_spw],[],[]],gainfield=[bpf_cal,bpf_cal,bpf_cal,bpf_cal])
 	applycal(vis=ms_nameu,spw=spw_high, field=bpf_cal,gaintable=[cal_table_prefixu+"phase_all.cal",\
@@ -770,6 +778,7 @@ for i in range(0,len(flux_lst)):
 		setjy(vis=ms_nameu, field=flux_lst[i], fluxdensity=[float(usb_flux_manual), 0.0, 0.0, 0.0],spw=spw_high,standard='manual')
 	else:
 		setjy(vis=ms_namel, field=flux_lst[i], spw=spw_low,standard='Butler-JPL-Horizons 2012')
+
 		setjy(vis=ms_nameu, field=flux_lst[i], spw=spw_high,standard='Butler-JPL-Horizons 2012')
 #####################################
 
@@ -814,6 +823,7 @@ else:
 	gaincal(vis=ms_nameu, caltable=cal_table_prefixu+'allpscan.cal',field=flux_cal+','+bpf_cal+','+second_cal,\
 		spw=spw_high, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='p',solint='inf', combine='spw',\
 		gaintable=[cal_table_prefixu+'bandpassB.cal'],spwmap=[[]])
+
 if intera=='y':
 	print 'Plotting solutions...'
 	print 'LSB short solution...'
@@ -888,6 +898,7 @@ else:
 			spw=spw_low, gaintype='G', minsnr=2.0,refant=ref_ant, calmode='ap',solint='300s', combine='spw',\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'bandpassB.cal'],\
 			spwmap=[[first_lsb_spw],[]])
+
 	if doif2u=='y':
 		doif2spu=raw_input('Enter spw range of IF2. e.g., 25~50-->')
 		dict_log.append(('if2_spw_usb',doif2spu))
@@ -932,6 +943,7 @@ if doif2l=='y':
 	fluxscale(vis=ms_namel,caltable=cal_table_prefixl+'allap.cal',\
 		fluxtable=cal_table_prefixl+'flux.cal',reference=flux_cal,\
 		transfer=bpf_cal+','+second_cal,refspwmap=mapl)
+
 else:
 	refspwmapl.fill(first_lsb_spw)
 	mapl=[int(i) for i in refspwmapl.tolist()]
@@ -1000,6 +1012,7 @@ for i in range(0,len(bpf_lst)):
 		else:
 			applycal(vis=ms_nameu,spw=spw_high, field=bpf_lst[i],\
 				gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
+
 				cal_table_prefixu+'bandpassB.cal'],\
 				spwmap=[[first_usb_spw],[first_usb_spw],[]],gainfield=[bpf_lst[i],bpf_lst[i],bpf_lst[i]])
 print 'Flux cal(s)...'
@@ -1050,6 +1063,7 @@ for i in range(0,len(flux_lst)):
 print 'Second cal(s)...'
 for i in range(0,len(second_lst)):
 	if second_lst[i] not in flux_lst and second_lst[i] not in bpf_lst:
+
 		if doblcal=='y':
 			if doif2l=='y':
 				applycal(vis=ms_namel,spw=spw_low, field=second_lst[i],\
@@ -1070,6 +1084,7 @@ for i in range(0,len(second_lst)):
 				applycal(vis=ms_nameu,spw=spw_high, field=second_lst[i],\
 					gaintable=[cal_table_prefixu+'allp.cal',cal_table_prefixu+'flux.cal',\
 					cal_table_prefixu+'bandpassB.cal',cal_table_prefixu+'blcal2.cal'],\
+
 					spwmap=[[first_usb_spw],[first_usb_spw],[],[]], gainfield=[second_lst[i],second_lst[i],bpf_cal,bpf_cal])
 		else:
 			if doif2l=='y':
@@ -1123,6 +1138,7 @@ else:
 	else:
 		applycal(vis=ms_namel,spw=spw_low, field=target_id,\
 			gaintable=[cal_table_prefixl+'allp.cal',cal_table_prefixl+'flux.cal',\
+
 			cal_table_prefixl+'bandpassB.cal'],\
 			spwmap=[[first_lsb_spw],[first_lsb_spw],[]], gainfield=[second_cal,second_cal,bpf_cal])
 	if doif2u=='y':
@@ -1176,6 +1192,7 @@ while flag_again=='y':
 			strglsb=badasflsb[i].split(';')
 			if ':' in strglsb[3]:
 				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],timerange=strglsb[3])
+
 			else:
 				flagdata(vis=ms_namel, mode='manual', antenna=strglsb[0],spw=strglsb[1],field=strglsb[2],scan=strglsb[3])
 	if '' in badasfusb:
@@ -1239,23 +1256,24 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
+			tclean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_low+'_clean1*')
 			print 'Cleaning...'
-			clean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=False,\
+			tclean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
 		else:
 			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenl+'.pbcor')
+
 		os.system('rm -rf '+imagenl+'.pbcor.fits')
-		immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.flux'],\
+		immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.pb'],\
 			expr='IM0/IM1',outfile=imagenl+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
@@ -1278,15 +1296,15 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
+			tclean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_'+band_high+'_clean1*')
 			print 'Cleaning...'
-			clean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=False,\
+			tclean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
 		else:
@@ -1294,7 +1312,7 @@ if doImage=='T':
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenu+'.pbcor')
 		os.system('rm -rf '+imagenu+'.pbcor.fits')
-		immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.flux'],\
+		immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.pb'],\
 			expr='IM0/IM1',outfile=imagenu+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
@@ -1317,15 +1335,15 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Using interactive mode so you can make a mask...'
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
+			tclean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',spw='',interactive=True,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		else:
 			os.system('rm -rf '+my_dir+target+'_'+date+'_both_clean1*')
 			print 'Cleaning...'
-			clean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=False,\
+			tclean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=False,\
 				cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,\
-				mode='mfs',niter=myniter,nterms=mynterms,multiscale=multiscale,robust=robust)
+				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
 		else:
@@ -1333,7 +1351,7 @@ if doImage=='T':
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenb+'.pbcor')
 		os.system('rm -rf '+imagenb+'.pbcor.fits')
-		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.flux'],\
+		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.pb'],\
 			expr='IM0/IM1',outfile=imagenb+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
