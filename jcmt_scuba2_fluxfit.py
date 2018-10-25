@@ -1,7 +1,7 @@
 #######################################
 # JCMT SCUBA-2 Flux Fitting Code
 #######################################
-'''Fits a 2D Gaussian to JCMT fits images using withe MCMC or a simple least squares algorithm.
+'''Fits a 2D Gaussian to JCMT fits images with an MCMC or a simple least squares algorithm.
 INPUT: my_dir: Output directory
        fitsim: Target FITS image
        w: Beam Parameters from STARLINK; [BMAJ (arcsec), BMIN (arcsec), BPA (deg)]
@@ -9,8 +9,7 @@ INPUT: my_dir: Output directory
        ranges/ranges_cal: pixel ranges to search for source/calibrator in FITS images
 OUTPUT: Results file (my_dir/fit_results.txt)
 	Resulting images/models (my_dir/calibrator_fit.png,my_dir/target_fit.png)
-NOTES: The uncertainties output are simply from the least squares covariance matrix.
-It is recommended to use image RMS as an uncertainty measurment on flux instead.
+NOTES: It is recommended to use image RMS as an uncertainty measurment on flux.
 The beam is fixed in target fitting, so only flux and position vary.
 
 Written by: Alex J. Tetarenko
