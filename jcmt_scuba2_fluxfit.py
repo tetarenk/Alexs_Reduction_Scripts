@@ -1,7 +1,7 @@
 #######################################
 # JCMT SCUBA-2 Flux Fitting Code
 #######################################
-'''Fits a 2D Gaussian to JCMT fits images with an MCMC or a simple least squares algorithm.
+'''Fits a 2D Gaussian to JCMT fits images with an MCMC or simple least squares algorithm.
 INPUT: my_dir: Output directory
        fitsim: Target FITS image
        w: Beam Parameters from STARLINK; [BMAJ (arcsec), BMIN (arcsec), BPA (deg)]
