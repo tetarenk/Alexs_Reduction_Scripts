@@ -15,18 +15,18 @@
 ############################
 #Defining variables section
 ############################
-data_dir=/mnt/bigdata/tetarenk/JACPOT_V404Cyg/JCMT/JCMT_ep3
-my_dir=/mnt/bigdata/tetarenk/JACPOT_V404Cyg/JCMT/v404_uplims
+data_dir=/export/data2/atetarenko/JCMT_maxi1820/
+my_dir=/export/data2/atetarenko/JCMT_maxi1820/
 file_lst=$data_dir/cadcUrlList.txt
-date=20150702
+date=20181022
 scan8=(16 18 20 21 25 26 28 29)
 #len8=${#scan8[@]}
 scan4=(16 18 20 21 25 26 28 29)
-numscans=8
-cal_scan4=31
-cal_scan8=31
+numscans=2
+cal_scan4=7
+cal_scan8=7
 cal='crl2688'
-target='v404cyg'
+target='maxi1820p070'
 do_mb='y'
 do_timing="n"
 shortm8=200
