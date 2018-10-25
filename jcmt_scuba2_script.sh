@@ -10,18 +10,18 @@
 #		 (6) Combined scans timing cube (if scans >1) -- [target]_[date]_[band]_shortmap_cube_cal_all.sdf/.fits
 #		 NOTE: Map RMS is printed to terminal after each individual scan reduction.
 #Written by: Alex J Tetarenko
-#Last Updated: Jan 9 2017
+#Last Updated: Oct 24, 2018
 
 ############################
 #Defining variables section
 ############################
-data_dir=/export/data2/atetarenko/JCMT_maxi1820/
-my_dir=/export/data2/atetarenko/JCMT_maxi1820/
-file_lst=$data_dir/cadcUrlList.txt
+data_dir=/export/data2/atetarenko/JCMT_maxi1820/data
+my_dir=/export/data2/atetarenko/JCMT_maxi1820/results
+file_lst=/export/data2/atetarenko/JCMT_maxi1820/cadcUrlList.txt
 date=20181022
-scan8=(16 18 20 21 25 26 28 29)
+scan8=(15 16)
 #len8=${#scan8[@]}
-scan4=(16 18 20 21 25 26 28 29)
+scan4=(15 16)
 numscans=2
 cal_scan4=7
 cal_scan8=7
@@ -31,7 +31,7 @@ do_mb='y'
 do_timing="n"
 shortm8=200
 shortm4=400
-mypars=$my_dir/mypars.lis
+mypars=/export/data2/atetarenko/JCMT_maxi1820/mypars.lis
 ############################
 
 
@@ -81,7 +81,7 @@ then
 		echo "   shortmap=$shortm4" >> $my_dir/dimmconfig'_'bright'_'compact_shortmap4.lis
 	fi
 fi
-#read -r -p 'Please press enter when ready to continue >>> '
+read -r -p 'Please press enter when ready to continue >>> '
 Nscans=$(expr $numscans - 1)
 for i in $(seq 0 $Nscans)
 do
@@ -117,7 +117,7 @@ do
 	then
 		echo '850um calibrator scan already reduced.'
 	else
-		ls $data_dir/s8*$date'_'000$cal_scan8*.sdf > $my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst 
+		ls $data_dir/s8*$date'_'0000$cal_scan8*.sdf > $my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst 
 		echo 'Making 850um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst out=$my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
 		#read -r -p 'Please press enter when ready to continue >>> '
@@ -125,6 +125,15 @@ do
 		echo 'Running SCUBA2_CHECK_CAL recipe for 850um cal scan...'
 		picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap.sdf'
 		read -r -p 'Please enter fcf for 850um >>> ' fcf8
+		read -r -p 'Please enter BMAJ (arcsec) for 850um >>> ' bmaj8
+		read -r -p 'Please enter BMIN (arcsec) for 850um >>> ' bmin8
+		read -r -p 'Please enter BPA (deg) for 850um >>> ' bpa8
+		echo 'FCF850_'$scan8'='$fcf8 > $my_dir/output_results.logg
+		echo 'BMAJ850_'$scan8'='$bmaj8 >> $my_dir/output_results.logg
+		echo 'BMIN850_'$scan8'='$bmin8 >> $my_dir/output_results.logg
+		echo 'BPA850_'$scan8'='$bpa8 >> $my_dir/output_results.logg
+		cmult in=$my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.sdf' scalar=$fcf8
+		ndf2fits $my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.fits'
 		read -r -p 'Please press enter when ready to continue >>> '
 		## Storing new FCF for 850: 549.081 +/-   9.185 Jy/beam/pW (cf 537: 2.2% higher)
 	fi
@@ -132,7 +141,7 @@ do
 	then
 		echo '450um calibrator scan already reduced.'
 	else
-		ls $data_dir/s4*$date'_'000$cal_scan4*.sdf > $my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst
+		ls $data_dir/s4*$date'_'0000$cal_scan4*.sdf > $my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst
 		echo 'Making 450um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst out=$my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
 		#read -r -p 'Please press enter when ready to continue >>> '
@@ -141,6 +150,15 @@ do
 		picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap.sdf'
 		## Storing new FCF for 850: 549.081 +/-   9.185 Jy/beam/pW (cf 537: 2.2% higher)
 		read -r -p 'Please enter fcf for 450um >>> ' fcf4
+		read -r -p 'Please enter BMAJ (arcsec) for 450um >>> ' bmaj4
+		read -r -p 'Please enter BMIN (arcsec) for 450um >>> ' bmin4
+		read -r -p 'Please enter BPA (deg) for 450um >>> ' bpa4
+		echo 'FCF450_'$scan4'='$fcf4 >> $my_dir/output_results.logg
+		echo 'BMAJ450_'$scan4'='$bmaj4 >> $my_dir/output_results.logg
+		echo 'BMIN450_'$scan4'='$bmin4 >> $my_dir/output_results.logg
+		echo 'BPA450_'$scan4'='$bpa4 >> $my_dir/output_results.logg
+		cmult in=$my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap_cal.sdf' scalar=$fcf4
+		ndf2fits $my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap_cal.fits'
 		read -r -p 'Please press enter when ready to continue >>> '
 	fi
 	echo 'Running cmult to do absolute flux calibration on target maps...'
@@ -157,6 +175,8 @@ do
 	picard -log sf -recpars $mypars CROP_SCUBA2_IMAGES $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal.sdf'
 	mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf' $my_dir
 	mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf' $my_dir
+	mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop_psf.sdf' $my_dir
+	mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop_psf.sdf' $my_dir
 
 	#matched beam filter
 	if [ $do_mb = 'y' ]
@@ -180,11 +200,15 @@ do
 		rm -rf $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf_noi.sdf'
 		makesnr in=$my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf.sdf' out=$my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_snr.sdf' minvar=1.0e-20
 		stats comp=err $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf.sdf'
+		read -r -p 'Please enter RMS (mean) for 850um >>> ' rms8
+		echo 'RMS850_'$scan4'='$rms8 >> $my_dir/output_results.logg
 		read -r -p 'Please press enter when ready to continue >>> '
 		ndfcopy $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf.sdf' comp=err $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_noi.sdf'
 		echo 'Making noise map and esimating noise in target map at 450um...'
 		makesnr in=$my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf.sdf' out=$my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf_snr.sdf' minvar=1.0e-20
 		stats comp=err $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf.sdf'
+		read -r -p 'Please enter RMS (mean) for 450um >>> ' rms4
+		echo 'RMS450_'$scan4'='$rms4 >> $my_dir/output_results.logg
 		read -r -p 'Please press enter when ready to continue >>> '
 		ndfcopy $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf.sdf' comp=err $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf_noi.sdf'
 	else
@@ -195,11 +219,15 @@ do
 		rm -rf $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_noi.sdf'
 		makesnr in=$my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf' out=$my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_snr.sdf' minvar=1.0e-20
 		stats comp=err $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf'
+		read -r -p 'Please enter RMS (mean) for 850um >>> ' rms8
+		echo 'RMS850_'$scan8'='$rms8 >> $my_dir/output_results.logg
 		read -r -p 'Please press enter when ready to continue >>> '
 		ndfcopy $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf' comp=err $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_noi.sdf'
 		echo 'Making noise map and esimating noise in target map at 450um...'
 		makesnr in=$my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf' out=$my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_snr.sdf' minvar=1.0e-20
 		stats comp=err $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf'
+		read -r -p 'Please enter RMS (mean) for 450um >>> ' rms4
+		echo 'RMS450_'$scan4'='$rms4 >> $my_dir/output_results.logg
 		read -r -p 'Please press enter when ready to continue >>> '
 		ndfcopy $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf' comp=err $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_noi.sdf'
 	fi
@@ -211,7 +239,7 @@ do
 		gaia $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf.sdf'
 		read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Viewing 850um noise map...'
-		gaia $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_noi.sdf'
+		gaia $my_dir/$targetmv *.sdf $my_dir'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_noi.sdf'
 		read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Viewing 450um target map...'
 		gaia $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf.sdf'
@@ -334,6 +362,11 @@ then
 	rm -rf $my_dir/$target'_'$date'_all_850_fullmap_all.fits'
 	wcsmosaic in=^$my_dir/all_scan8.lst out=$my_dir/$target'_'$date'_all_850_fullmap_all.sdf'
 	ndf2fits $my_dir/$target'_'$date'_all_850_fullmap_all.sdf' $my_dir/$target'_'$date'_all_850_fullmap_all.fits'
+	makesnr in=$my_dir/$target'_'$date'_all_850_fullmap_all.sdf' out=$my_dir/$target'_'$date'_all_850_fullmap_all_snr.sdf' minvar=1.0e-20
+	ndfcopy $my_dir/$target'_'$date'_all_850_fullmap_all.sdf' comp=err $my_dir/$target'_'$date'_all_850_fullmap_all_noi.sdf'
+	stats comp=err $my_dir/$target'_'$date'_all_850_fullmap_all.sdf'
+	read -r -p 'Please enter RMS (mean) for 850um >>> ' rmsfull8
+	echo 'RMSFULL850='$rmsfull8 >> $my_dir/output_results.logg
 else
 	echo 'Only 1 850um scan present.'
 fi
@@ -344,6 +377,11 @@ then
 	rm -rf $my_dir/$target'_'$date'_all_450_fullmap_all.fits'
 	wcsmosaic in=^$my_dir/all_scan4.lst out=$my_dir/$target'_'$date'_all_450_fullmap_all.sdf'
 	ndf2fits $my_dir/$target'_'$date'_all_450_fullmap_all.sdf' $my_dir/$target'_'$date'_all_450_fullmap_all.fits'
+	makesnr in=$my_dir/$target'_'$date'_all_450_fullmap_all.sdf' out=$my_dir/$target'_'$date'_all_450_fullmap_all_snr.sdf' minvar=1.0e-20
+	ndfcopy $my_dir/$target'_'$date'_all_450_fullmap_all.sdf' comp=err $my_dir/$target'_'$date'_all_450_fullmap_all_noi.sdf'
+	stats comp=err $my_dir/$target'_'$date'_all_450_fullmap_all.sdf'
+	read -r -p 'Please enter RMS (mean) for 450um >>> ' rmsfull4
+	echo 'RMSFULL450='$rmsfull4 >> $my_dir/output_results.logg
 else
 	echo 'Only 1 450um scan present.'
 fi
@@ -379,10 +417,14 @@ then
 	fi
 fi
 
-#remove adam directories that starlink creates
+#remove extra stuff that starlink creates
 echo 'Cleaning up...'
-rm -rf $my_dir/adam*
-rm -rf adam*
+rm -rf *.sdf
+mv log.* $my_dir
+mv rules.badobs $my_dir
+mv disp.dat  $my_dir
+#rm -rf $my_dir/adam*
+#rm -rf adam*
 
 echo '********************************************************************'
 echo 'The script is finished. Please inspect the resulting data products.'

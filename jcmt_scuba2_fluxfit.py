@@ -1,7 +1,7 @@
 #######################################
 # JCMT SCUBA-2 Flux Fitting Code
 #######################################
-'''Fits a 2D Gaussian to JCMT fits images with an MCMC or simple least squares algorithm.
+'''Fits a 2D Gaussian to JCMT fits images using MCMC or a simple least squares algorithm.
 INPUT: my_dir: Output directory
        fitsim: Target FITS image
        w: Beam Parameters from STARLINK; [BMAJ (arcsec), BMIN (arcsec), BPA (deg)]
@@ -46,6 +46,9 @@ def lp(p,data,error,fixp,guess,pixsize):
 	Xval, Yval = np.meshgrid(xval, yval)
 	mod1=mod0(Xval,Yval)
 	re=-0.5*np.nansum(np.log(2*np.pi*error**2))-np.nansum((mod1-data)**2/(2*error**2))
+	#re=np.nansum((mod1-data)**2/(2*error**2))
+	#re=np.nansum((mod1-data)**2)
+	#chi_total=np.nansum(re)
 	prior=prior_func(p,fixp,guess)
 	return(re+prior)
 def prior_func(pval,fixp,guess):
