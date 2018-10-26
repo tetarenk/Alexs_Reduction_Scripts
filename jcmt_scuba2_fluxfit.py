@@ -46,9 +46,6 @@ def lp(p,data,error,fixp,guess,pixsize):
 	Xval, Yval = np.meshgrid(xval, yval)
 	mod1=mod0(Xval,Yval)
 	re=-0.5*np.nansum(np.log(2*np.pi*error**2))-np.nansum((mod1-data)**2/(2*error**2))
-	#re=np.nansum((mod1-data)**2/(2*error**2))
-	#re=np.nansum((mod1-data)**2)
-	#chi_total=np.nansum(re)
 	prior=prior_func(p,fixp,guess)
 	return(re+prior)
 def prior_func(pval,fixp,guess):
@@ -120,17 +117,17 @@ print 'Reading in parameters...'
 #User input
 ####################################
 #input/output directory
-my_dir='/export/data2/atetarenko/JCMT_maxi1820/results/'
+my_dir='/export/data2/atetarenko/JCMT_maxi1820/results/oct24/'
 #fits images
-fitsim=my_dir+'maxi1820p070_20181022_all_850_fullmap_all.fits'
-cal_im=my_dir+'crl2688_20181022_7_850_fullmap_cal.fits'
+fitsim=my_dir+'maxi1820p070_20181024_17_850_fullmap_cal_crop_mf.fits'
+cal_im=my_dir+'crl2688_20181024_13_850_fullmap_cal.fits'
 #flux guesses for cal and target in mJy
 flux_guess=[5000,10]
 #size of gaussian beam in arcsec,pa in deg
-w=[14.97,14.23,0.]
+w=[14.87,14.51,135.87]
 #boxes to search for source x1,x2,y1,y2
 ranges=[45,57,45,57]
-ranges_cal=[115,135,115,135]
+ranges_cal=[120,130,110,120]
 #fit algorithm -- mcmc or lsq
 fit_alg='mcmc'
 #########################################
@@ -153,18 +150,18 @@ outfile.write('\n')
 cal_fit=raw_input('Do you want to fit beam size from calibrator? y or n?--> ')
 if cal_fit=='y':
 	#fit calibrator to get beam size
-	data_psf=getdata(cal_im,0)[0,ranges_cal[0]:ranges_cal[1],ranges_cal[2]:ranges_cal[3]]
-	var_psf=getdata(cal_im,1)[0,ranges_cal[0]:ranges_cal[1],ranges_cal[2]:ranges_cal[3]]
-	print "Fitting calibator scan..."
-	param_guess=[flux_guess[0]/1e3,data_psf.shape[0]/2.,data_psf.shape[0]/2.,w[0]/(2.*pixsize),w[1]/(2.*pixsize),w[2]]#amplitude,X,Y,width_x,width_y,rota
+	data_psf=getdata(cal_im,0)[0,ranges_cal[2]:ranges_cal[3],ranges_cal[0]:ranges_cal[1]]
+	var_psf=getdata(cal_im,1)[0,ranges_cal[2]:ranges_cal[3],ranges_cal[0]:ranges_cal[1]]
+	print "Fitting calibrator scan..."
+	param_guess=[flux_guess[0]/1e3,data_psf.shape[0]/2.,data_psf.shape[0]/2.,w[0],w[1],w[2]]#amplitude,X,Y,width_x,width_y,rota
 	psf_fixed_params={'amplitude':False,'x_mean':False,'y_mean':False,'x_stddev':False,'y_stddev':False,'theta':True}
 	x=np.arange(0,len(data_psf[0,:]))
 	y=np.arange(0,len(data_psf[:,0]))
 	X, Y = np.meshgrid(x, y)
 	Z=data_psf
 	if fit_alg=='lsq':
-		M=models.Gaussian2D(param_guess[0],param_guess[1],param_guess[2],param_guess[3],\
-			param_guess[4],param_guess[5],fixed=psf_fixed_params)
+		M=models.Gaussian2D(param_guess[0],param_guess[1],param_guess[2],param_guess[3]/(2.*pixsize),\
+			param_guess[4]/(2.*pixsize),param_guess[5],fixed=psf_fixed_params)
 		lmf=fitting.LevMarLSQFitter()
 		res=lmf(M,X,Y,Z)
 		amp_cal=[res.parameters[0]*1e3,1e3*np.sqrt(np.diag(lmf.fit_info['param_cov']))[0]]
@@ -174,8 +171,8 @@ if cal_fit=='y':
 		bmin=res.parameters[4]*2.*pixsize
 		bpa=res.parameters[5]
 	elif fit_alg=='mcmc':
-		amp_cal0,xx_cal0,yy_cal0,bmaj0,bmin0,bpa0=mcmc_fit(data_psf*1e3,var_psf*1e3,[param_guess[0]*1e3,param_guess[1],param_guess[2],(2.*pixsize)*param_guess[3],\
-			(2.*pixsize)*param_guess[4],param_guess[5]],[False,False,False,False,False,False],500,1500,'y',pixsize)
+		amp_cal0,xx_cal0,yy_cal0,bmaj0,bmin0,bpa0=mcmc_fit(data_psf*1e3,var_psf*1e3,[param_guess[0]*1e3,param_guess[1],param_guess[2],param_guess[3],\
+			param_guess[4],param_guess[5]],[False,False,False,False,False,False],500,1500,'n',pixsize)
 		amp_cal=[amp_cal0[0],np.sqrt(amp_cal0[1]**2+amp_cal0[2]**2)]
 		xx_cal=xx_cal0[0]
 		yy_cal=yy_cal0[0]
@@ -226,22 +223,22 @@ if cal_fit=='y':
 	raw_input('Please press enter when ready to continue.')
 
 #fit target by fixing beam size
-data_target=getdata(fitsim,0)[0,ranges[0]:ranges[1],ranges[2]:ranges[3]]
-vartarget=getdata(fitsim,1)[0,ranges[0]:ranges[1],ranges[2]:ranges[3]]
+data_target=getdata(fitsim,0)[0,ranges[2]:ranges[3],ranges[0]:ranges[1]]
+vartarget=getdata(fitsim,1)[0,ranges[2]:ranges[3],ranges[0]:ranges[1]]
 print "Fitting Target..."
 fix=raw_input('Do you want to fix the beam to the starlink values or the calibrator fit (if selected above)? star or cal?--> ')
 if fix=='cal':
-	param_guess=[flux_guess[1]/1e3,data_target.shape[0]/2.,data_target.shape[0]/2.,res.parameters[3],res.parameters[4],res.parameters[5]]
+	param_guess=[flux_guess[1]/1e3,data_target.shape[0]/2.,data_target.shape[0]/2.,bmaj,bmin,bpa]
 elif fix=='star':
-	param_guess=[1.,data_target.shape[0]/2.,data_target.shape[0]/2.,w[0]/(2.*pixsize),w[1]/(2.*pixsize),w[2]]
+	param_guess=[flux_guess[1]/1e3,data_target.shape[0]/2.,data_target.shape[0]/2.,w[0],w[1],w[2]]
 tar_fixed_params={'amplitude':False,'x_mean':False,'y_mean':False,'x_stddev':True,'y_stddev':True,'theta':True}
 x=np.arange(0,len(data_target[0,:]))
 y=np.arange(0,len(data_target[:,0]))
 X, Y = np.meshgrid(x, y)
 Z=data_target
 if fit_alg=='lsq':
-	M=models.Gaussian2D(param_guess[0],param_guess[1],param_guess[2],param_guess[3],\
-		param_guess[4],param_guess[5],fixed=tar_fixed_params)
+	M=models.Gaussian2D(param_guess[0],param_guess[1],param_guess[2],param_guess[3]/(2.*pixsize),\
+		param_guess[4]/(2.*pixsize),param_guess[5],fixed=tar_fixed_params)
 	lmf=fitting.LevMarLSQFitter()
 	res=lmf(M,X,Y,Z)
 	amp_tar=[res.parameters[0]*1e3,1e3*np.sqrt(np.diag(lmf.fit_info['param_cov']))[0]]
@@ -249,7 +246,7 @@ if fit_alg=='lsq':
 	yyt=res.parameters[2]
 elif fit_alg=='mcmc':
 	ampt,xxt0,yyt0,bmajt,bmint,bpat=mcmc_fit(data_target*1e3,vartarget*1e3,[param_guess[0]*1e3,param_guess[1],param_guess[2],bmaj,\
-		bmin,bpa],[False,False,False,True,True,True],500,1500,'y',pixsize)
+		bmin,bpa],[False,False,False,True,True,True],500,1500,'n',pixsize)
 	amp_tar=[ampt[0],np.sqrt(ampt[1]**2+ampt[2]**2)]
 	xxt=xxt0[0]
 	yyt=yyt0[0]
@@ -270,8 +267,7 @@ print 'Plotting result...'
 fig=plt.figure()
 ax=plt.subplot(111,projection=wmaptar.celestial)
 ax.imshow(data_target,origin='lower')
-#ax.contour(res(X,Y),colors='w',levels=res.parameters[0]*np.array([0.2,0.5,0.8]))
-res2=models.Gaussian2D(amp_tar[0],xxt,yyt,param_guess[3],param_guess[4],param_guess[5])
+res2=models.Gaussian2D(amp_tar[0],xxt,yyt,param_guess[3]/(2.*pixsize),param_guess[4]/(2.*pixsize),param_guess[5])
 ax.contour(res2(X,Y),colors='w',levels=amp_tar[0]*np.array([0.2,0.5,0.8]))
 ax.coords['ra'].set_axislabel('Right Ascension')
 ax.coords['dec'].set_axislabel('Declination',minpad=-0.1)

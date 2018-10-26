@@ -3,28 +3,28 @@
 #JCMT SCUBA-2 reduction script for bright compact sources
 #INPUT: parameters defined in section below, raw scuba2 data, map cropping param file (mypars)
 #OUTPUT: (1) Maps of calibrted 850um and 450um scan(s) -- [target]_[date]_[scan]_[band]_fullmap_cal_crop(_mf).sdf/.fits
-#		 (2) Maps of 850um and 450um calibrator scan -- [cal]_[date]_[cal_scan]_[band]_fullmap_cal_crop(_mf).sdf
-#		 (3) Noise Maps -- [target]_[date]_[scan]_[band]_fullmap_cal_crop(_mf)_noi.sdf
-#		 (4) Timing Cubes (if requested) -- [target]_[date]_[scan]_[band]_shortmap_cube_cal.sdf/.fits
-#		 (5) Combined scans map (if scans >1) -- [target]_[date]_[scan]_[band]_fullmap_all.sdf/.fits
-#		 (6) Combined scans timing cube (if scans >1) -- [target]_[date]_[band]_shortmap_cube_cal_all.sdf/.fits
-#		 NOTE: Map RMS is printed to terminal after each individual scan reduction.
+#        (2) Maps of 850um and 450um calibrator scan -- [cal]_[date]_[cal_scan]_[band]_fullmap_cal_crop(_mf).sdf
+#        (3) Noise Maps -- [target]_[date]_[scan]_[band]_fullmap_cal_crop(_mf)_noi.sdf
+#        (4) Timing Cubes (if requested) -- [target]_[date]_[scan]_[band]_shortmap_cube_cal.sdf/.fits
+#        (5) Combined scans map (if scans >1) -- [target]_[date]_[scan]_[band]_fullmap_all.sdf/.fits
+#        (6) Combined scans timing cube (if scans >1) -- [target]_[date]_[band]_shortmap_cube_cal_all.sdf/.fits
+#        (7) Log file of FCFs, beam sizes, and maps RMS for individual scans -- output_results.logg
 #Written by: Alex J Tetarenko
 #Last Updated: Oct 24, 2018
 
 ############################
 #Defining variables section
 ############################
-data_dir=/export/data2/atetarenko/JCMT_maxi1820/data
-my_dir=/export/data2/atetarenko/JCMT_maxi1820/results
-file_lst=/export/data2/atetarenko/JCMT_maxi1820/cadcUrlList.txt
-date=20181022
-scan8=(15 16)
-#len8=${#scan8[@]}
-scan4=(15 16)
-numscans=2
-cal_scan4=7
-cal_scan8=7
+data_dir=/export/data2/atetarenko/JCMT_maxi1820/data/oct24
+my_dir=/export/data2/atetarenko/JCMT_maxi1820/results/oct24
+file_lst=/export/data2/atetarenko/JCMT_maxi1820/cadcUrlList2.txt
+date=20181024
+#scans need to be 2 digits, e.g., scan 7 is 07
+scan8=(17)
+scan4=(17)
+numscans=1
+cal_scan4=13
+cal_scan8=13
 cal='crl2688'
 target='maxi1820p070'
 do_mb='y'
@@ -50,6 +50,7 @@ source $STARLINK_DIR/etc/profile
 eval 'kappa'
 eval 'smurf'
 eval 'convert'
+export ORAC_DATA_OUT=$my_dir
 
 #copy mapping recipe-only do once, add shortmap parameter to timing config files.
 FILE1=$my_dir/dimmconfig'_'bright'_'compact.lis
@@ -117,7 +118,7 @@ do
 	then
 		echo '850um calibrator scan already reduced.'
 	else
-		ls $data_dir/s8*$date'_'0000$cal_scan8*.sdf > $my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst 
+		ls $data_dir/s8*$date'_'000$cal_scan8*.sdf > $my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst 
 		echo 'Making 850um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'$date'_'850'_'$cal_scan8.lst out=$my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
 		#read -r -p 'Please press enter when ready to continue >>> '
@@ -141,7 +142,7 @@ do
 	then
 		echo '450um calibrator scan already reduced.'
 	else
-		ls $data_dir/s4*$date'_'0000$cal_scan4*.sdf > $my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst
+		ls $data_dir/s4*$date'_'000$cal_scan4*.sdf > $my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst
 		echo 'Making 450um map for cal scan...'
 		makemap in=^$my_dir/$cal'_'$date'_'450'_'$cal_scan4.lst out=$my_dir/$cal'_'$date'_'$cal_scan4'_450_fullmap' config=^$my_dir/dimmconfig'_'bright'_'compact.lis
 		#read -r -p 'Please press enter when ready to continue >>> '
@@ -173,10 +174,10 @@ do
 	rm -rf $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf'
 	picard -log sf -recpars $mypars CROP_SCUBA2_IMAGES $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal.sdf'
 	picard -log sf -recpars $mypars CROP_SCUBA2_IMAGES $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal.sdf'
-	mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf' $my_dir
-	mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf' $my_dir
-	mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop_psf.sdf' $my_dir
-	mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop_psf.sdf' $my_dir
+	#mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop.sdf' $my_dir
+	#mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop.sdf' $my_dir
+	#mv $target'_'$date'_'$scan8'_850_fullmap_cal_crop_psf.sdf' $my_dir
+	#mv $target'_'$date'_'$scan4'_450_fullmap_cal_crop_psf.sdf' $my_dir
 
 	#matched beam filter
 	if [ $do_mb = 'y' ]
@@ -239,7 +240,7 @@ do
 		gaia $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf.sdf'
 		read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Viewing 850um noise map...'
-		gaia $my_dir/$targetmv *.sdf $my_dir'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_noi.sdf'
+		gaia $my_dir/$target'_'$date'_'$scan8'_850_fullmap_cal_crop_mf_noi.sdf'
 		read -r -p 'Please press enter when ready to continue >>> '
 		echo 'Viewing 450um target map...'
 		gaia $my_dir/$target'_'$date'_'$scan4'_450_fullmap_cal_crop_mf.sdf'
