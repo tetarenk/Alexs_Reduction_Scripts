@@ -21,8 +21,8 @@ to convert to CASA MS for imaging.
 The MIR versin is implemented in mircal_to_casa.py script.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018
-Tested in CASA versions up to 5.3
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
 
 USAGE: Set path to parameter file (line 54) and output directory (line 65), then,
 run execfile('SMA_reduction_script.py') within CASA
@@ -1267,13 +1267,15 @@ if doImage=='T':
 				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
+			imagenlpb=my_dir+target+'_'+date+'_'+band_low+'_clean1.pb.tt0'
 		else:
 			imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
+			imagenlpb=my_dir+target+'_'+date+'_'+band_low+'_clean1.pb'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenl+'.pbcor')
 
 		os.system('rm -rf '+imagenl+'.pbcor.fits')
-		immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.pb'],\
+		immath(imagename=[imagenl,imagenlpb],\
 			expr='IM0/IM1',outfile=imagenl+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
@@ -1307,12 +1309,14 @@ if doImage=='T':
 				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
+			imagenupb=my_dir+target+'_'+date+'_'+band_high+'_clean1.pb.tt0'
 		else:
 			imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
+			imagenupb=my_dir+target+'_'+date+'_'+band_high+'_clean1.pb'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenu+'.pbcor')
 		os.system('rm -rf '+imagenu+'.pbcor.fits')
-		immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.pb'],\
+		immath(imagename=[imagenu,imagenupb],\
 			expr='IM0/IM1',outfile=imagenu+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
@@ -1346,12 +1350,14 @@ if doImage=='T':
 				specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,scales=multiscale,robust=robust)
 		if mynterms>1:
 			imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
+			imagenbpb=my_dir+target+'_'+date+'_both_clean1.pb.tt0'
 		else:
 			imagenb=my_dir+target+'_'+date+'_both_clean1.image'
+			imagenbpb=my_dir+target+'_'+date+'_both_clean1.pb'
 		print 'Correcting for PB...'
 		os.system('rm -rf '+imagenb+'.pbcor')
 		os.system('rm -rf '+imagenb+'.pbcor.fits')
-		immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.pb'],\
+		immath(imagename=[imagenb,imagenbpb],\
 			expr='IM0/IM1',outfile=imagenb+'.pbcor')
 		print 'Making fits image...'
 		exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')

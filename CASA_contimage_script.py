@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All output images are also converted to fits format (just append .fits to end of images 1 above)
        - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018
-Works in CASA-5.3 now!'''
+Last Updated: November 13 2017
+Works in CASA-5.1.1 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs CASA Continuum Imaging/Selfcal Script'
@@ -114,12 +114,14 @@ else:
 		specmode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,scales=multiscale,robust=robust)
 if mynterms>1:
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image.tt0'
+	imagenpb=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.pb.tt0'
 else:
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image'
+	imagenpb=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.pb'
 print 'Correcting for PB...'
 os.system('rm -rf '+imagen+'.pbcor')
 os.system('rm -rf '+imagen+'.pbcor.fits')
-immath(imagename=[imagen,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.pb'],\
+immath(imagename=[imagen,imagenpb],\
 	expr='IM0/IM1',outfile=imagen+'.pbcor')
 print 'Making fits image...'
 exportfits(imagename=imagen+'.pbcor',fitsimage=imagen+'.pbcor.fits')
@@ -150,12 +152,14 @@ if do_pol=='y':
 			stokes='IQUV',scales=multiscale,robust=robust,outlierfile=outlierf,deconvolver='clarkstokes',gridder='standard')
 	if mynterms>1:
 		imagenpol=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.image.tt0'
+		imagenpolpb=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.pb.tt0'
 	else:
 		imagenpol=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.image'
+		imagenpolpb=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.pb'
 	print 'Correcting for PB...'
 	os.system('rm -rf '+imagenpol+'.pbcor')
 	os.system('rm -rf '+imagenpol+'.pbcor.fits')
-	immath(imagename=[imagenpol,my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_polcube_IQUV.pb'],
+	immath(imagename=[imagenpol,imagenpolpb],
 		expr='IM0/IM1',outfile=imagenpol+'.pbcor')
 	print 'Making fits image...'
 	exportfits(imagename=imagenpol+'.pbcor',fitsimage=imagenpol+'.pbcor.fits')

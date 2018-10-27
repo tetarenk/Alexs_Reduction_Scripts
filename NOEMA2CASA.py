@@ -28,7 +28,9 @@ band='1mm'
 mycell='0.5arcsec'
 mythresh='1mJy'
 myimsize=64
+myniter=5000
 use_auto='F'
+deconvolver='hogbom'#multiscale,mtmfs,hogbom
 ############################
 
 #get list of uvfits files for importing
@@ -54,8 +56,8 @@ for i in range(0,len(uvfits_files)):
 	if use_auto=='T':
 		myimsize=set_imagesize(my_dir+'noema_'+target+'_'+msname+'.ms','0','0')
 		mycell=set_cellsize(my_dir+'noema_'+target+'_'+msname+'.ms','0')
-	clean(vis=my_dir+'noema_'+target+'_'+msname+'.ms', imagename=my_dir+'noema_'+target+'_'+obsDate+'_'+band,\
+	tclean(vis=my_dir+'noema_'+target+'_'+msname+'.ms', imagename=my_dir+'noema_'+target+'_'+obsDate+'_'+band,\
 		field='', interactive=True, cell=[mycell], imsize=myimsize,gain=0.1,weighting='natural',\
-		threshold=mythresh,mode='mfs',myniter=myniter)
+		threshold=mythresh,specmode='mfs',myniter=myniter,gridder='standard',deconvolver=deconvolver)
 	imview(my_dir+'noema_'+target+'_'+obsDate+'_'+band+'.image')
 	raw_input('Please press enter when ready to continue.')

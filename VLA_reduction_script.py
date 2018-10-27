@@ -16,8 +16,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - If autoflag is used summary presented in autoflag_log.txt
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018
-Tested in CASA versions up to 5.3
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
 
 USAGE: Set path to parameter file (line 49) and output directory (line 60), then,
 run execfile('VLA_reduction_script.py') within CASA'''
@@ -1483,12 +1483,14 @@ for kk in range(0,len(ms_name_list)):
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
 					imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
+					imagenlpb=my_dir+target+'_'+date+'_'+band_low+'_clean1.pb.tt0'
 				else:
 					imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image'
+					imagenlpb=my_dir+target+'_'+date+'_'+band_low+'_clean1.pb'
 				print 'Correcting for PB...'
 				os.system('rm -rf '+imagenl+'.pbcor')
 				os.system('rm -rf '+imagenl+'.pbcor.fits')
-				immath(imagename=[imagenl,my_dir+target+'_'+date+'_'+band_low+'_clean1.pb'],\
+				immath(imagename=[imagenl,imagenlpb],\
 					expr='IM0/IM1',outfile=imagenl+'.pbcor')
 				print 'Making fits image...'
 				exportfits(imagename=imagenl+'.pbcor',fitsimage=imagenl+'.pbcor.fits')
@@ -1522,12 +1524,14 @@ for kk in range(0,len(ms_name_list)):
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
 					imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
+					imagenupb=my_dir+target+'_'+date+'_'+band_high+'_clean1.pb.tt0'
 				else:
 					imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image'
+					imagenupb=my_dir+target+'_'+date+'_'+band_high+'_clean1.pb'
 				print 'Correcting for PB...'
 				os.system('rm -rf '+imagenu+'.pbcor')
 				os.system('rm -rf '+imagenu+'.pbcor.fits')
-				immath(imagename=[imagenu,my_dir+target+'_'+date+'_'+band_high+'_clean1.pb'],\
+				immath(imagename=[imagenu,imagenupb],\
 					expr='IM0/IM1',outfile=imagenu+'.pbcor')
 				print 'Making fits image...'
 				exportfits(imagename=imagenu+'.pbcor',fitsimage=imagenu+'.pbcor.fits')
@@ -1561,12 +1565,14 @@ for kk in range(0,len(ms_name_list)):
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
 				if mynterms>1:
 					imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
+					imagenbpb=my_dir+target+'_'+date+'_both_clean1.pb.tt0'
 				else:
 					imagenb=my_dir+target+'_'+date+'_both_clean1.image'
+					imagenbpb=my_dir+target+'_'+date+'_both_clean1.pb'
 				print 'Correcting for PB...'
 				os.system('rm -rf '+imagenb+'.pbcor')
 				os.system('rm -rf '+imagenb+'.pbcor.fits')
-				immath(imagename=[imagenb,my_dir+target+'_'+date+'_both_clean1.pb'],\
+				immath(imagename=[imagenb,imagenbpb],\
 					expr='IM0/IM1',outfile=imagenb+'.pbcor')
 				print 'Making fits image...'
 				exportfits(imagename=imagenb+'.pbcor',fitsimage=imagenb+'.pbcor.fits')
@@ -1595,12 +1601,14 @@ for kk in range(0,len(ms_name_list)):
 						stokes='IQUV',scales=multiscale,robust=robust,outlierfile=outlierfile,deconvolver='clarkstokes',gridder='standard')
 				if mynterms>1:
 					imagenpol=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.image.tt0'
+					imagenpolpb=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.pb.tt0'
 				else:
 					imagenpol=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.image'
+					imagenpolpb=my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.pb'
 				print 'Correcting for PB...'
 				os.system('rm -rf '+imagenpol+'.pbcor')
 				os.system('rm -rf '+imagenpol+'.pbcor.fits')
-				immath(imagename=[imagenpol,my_dir+target+'_'+date+'_'+band+'_polcube_IQUV.pb'],\
+				immath(imagename=[imagenpol,imagenpolpb],\
 					expr='IM0/IM1',outfile=imagenpol+'.pbcor')
 				print 'Making fits image...'
 				exportfits(imagename=imagenpol+'.pbcor',fitsimage=imagenpol+'.pbcor.fits')

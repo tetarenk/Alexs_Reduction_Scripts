@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.logg.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018
-Tested in CASA versions up to 5.3
+Last Updated: May 4, 2018
+Tested in CASA versions up to 5.1.2
 
 USAGE: Set path to parameter file (line 46) and output directory (line 57), then,
 run execfile('ALMA_cont_red_script.py') within CASA
@@ -816,7 +816,9 @@ if doImage=='T':
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
 			if int(mynterms) > 1:
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
+				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.pb')
 				os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image')
+				os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.pb.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.pb')
 			immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
 				'fullbandim.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.pb'],\
 				expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
@@ -863,7 +865,9 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
 				if int(mynterms) > 1:
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
+					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.pb')
 					os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image')
+					os.system('mv '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.pb.tt0 '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.pb')
 				immath(imagename=[my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+\
 					'_spw'+str(j)+'im.image',my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.pb'],\
 					expr='IM0/IM1',outfile=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
