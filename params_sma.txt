@@ -14,7 +14,7 @@ band_high='231GHz'
 remakems='F'
 doImage='T'
 bandsIM=['L','U','B']#L-lsb,U-usb,B-combined
-#antenna corrections-- file should be same format as SMA default;columns--> identifier(e.g., SMA3),X(mm),Y(mm),Z(mm)
+#antenna corrections-- file should be same format as SMA default;columns--> identifier(e.g., SMA3),X(m),Y(m),Z(m)
 do_ant_correct='T'
 ant_corr_file='/mnt/bigdata/tetarenk/SMA_maxi1820/raw_data/final_MS/rec230/antennas_correct.txt'
 #general image params

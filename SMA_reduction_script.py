@@ -533,9 +533,9 @@ if do_ant_correct=='T':
 	ant_lst=",".join(ant_pos_file_read['ant_lst'])
 	ant_lst_offset=[]
 	for i in range(0,len(ant_pos_file_read['ant_lst'])):
-		ant_lst_offset.append(1e-3*ant_pos_file_read['X'][i])
-		ant_lst_offset.append(1e-3*ant_pos_file_read['Y'][i])
-		ant_lst_offset.append(1e-3*ant_pos_file_read['Z'][i])
+		ant_lst_offset.append(ant_pos_file_read['X'][i])
+		ant_lst_offset.append(ant_pos_file_read['Y'][i])
+		ant_lst_offset.append(ant_pos_file_read['Z'][i])
 	print 'Selected antennas for corrections: ',ant_lst
 	print 'Offsets in meters (X,Y,Z looped over all antennas): ', ant_lst_offset
 	gencal(caltable=cal_table_prefixl+'antpos',vis=ms_namel, caltype='antpos',parameter=ant_lst_offset,antenna=ant_lst)
