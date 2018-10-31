@@ -44,8 +44,10 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 			if manual_mod=='n':
 				print 'Interactive Clean to get source model...'
 				os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0*')
-				tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,\
+				tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,savemodel='modelcolumn',\
 					cell=mycell, deconvolver='hogbom',imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,specmode='mfs',gridder='standard',niter=5000,nterms=1,outlierfile=outlierf,robust=robust)
+				tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean0',field='',spw='',interactive=True,savemodel='modelcolumn',niter=0,calcres=False,calcpsf=False,\
+					cell=mycell, deconvolver='hogbom',imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,specmode='mfs',gridder='standard',nterms=1,outlierfile=outlierf,robust=robust)
 				raw_input('Please press enter when ready to continue.')
 			elif manual_mod=='y':
 				pos_man=raw_input('Enter position of point source, e.g. 19h33m09s 15d01m20s--> ')
@@ -108,9 +110,11 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 				interp=['nearest'], calwt=[False])
 		flagmanager(vis=selfcalvis,mode='save',versionname='after_phase'+str(attemptnum))
 		print 'Interactive Cleaning selfcaled data...'
-		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1*')
-		tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11',field='',spw='',interactive=True,\
-			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,specmode='mfs',gridder='standard',deconvolver='hogbom',niter=5000,nterms=1,outlierfile=outlierf,robust=robust)
+		os.system('rm -rf '+my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean11*')
+		tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=True,\
+			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,savemodel='modelcolumn',threshold=mythreshold,specmode='mfs',gridder='standard',deconvolver='hogbom',niter=5000,nterms=1,outlierfile=outlierf,robust=robust)
+		tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1',field='',spw='',interactive=True,niter=0,calcres=False,calcpsf=False,\
+			cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,savemodel='modelcolumn',threshold=mythreshold,specmode='mfs',gridder='standard',deconvolver='hogbom',nterms=1,outlierfile=outlierf,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
 		scim=my_dir+target+'_'+date+'_'+bband+'_phasesc'+str(attemptnum)+'_clean1.image'
@@ -170,8 +174,10 @@ def phselfcal(visi='',mycell='',mynterms='',myimsize='',mythreshold='',ref_ant='
 		print 'Interactive Cleaning selfcaled data...'
 		tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1',\
 			field='',spw='',interactive=True,cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,\
-			threshold=mythreshold,specmode='mfs',gridder='standard',deconvolver='hogbom',niter=5000,nterms=1,outlierfile=outlierf,\
-			robust=robust)
+			threshold=mythreshold,specmode='mfs',niter=5000,nterms=1,savemodel='modelcolumn',gridder='standard',deconvolver='hogbom',outlierfile=outlierf,robust=robust)
+		tclean(vis=selfcalvis, imagename=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1',\
+			field='',spw='',interactive=True,cell=mycell, imsize=myimsize,gain=0.1,weighting=weighting,niter=0,calcres=False,calcpsf=False,\
+			threshold=mythreshold,specmode='mfs',nterms=1,savemodel='modelcolumn',gridder='standard',deconvolver='hogbom',outlierfile=outlierf,robust=robust)
 		raw_input('Please press enter when ready to continue.')
 		print 'Viewing selfcaled image...'
 		scim=my_dir+target+'_'+date+'_'+bband+'_phaseampsc'+'_clean1.image'
