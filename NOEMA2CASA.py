@@ -9,8 +9,9 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
 	   - All output images are also converted to fits format (just append .fits to end of images above)
 	   - This script is intended to be used with calibrated data that has been converted to uvfits format
 	     following instructions here; http://www.iram.fr/IRAMFR/ARC/documents/filler/casa-gildas.pdf
+WARNING: Must use CASA version <4.7!
 Written by: Alex J. Tetarenko
-Last Updated: November 13 2017'''
+Last Updated: Oct. 2018'''
 
 
 #needed packages

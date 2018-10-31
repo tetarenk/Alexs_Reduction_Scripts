@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.logg.
 
 Written by: Alex J. Tetarenko
-Last Updated: May 4, 2018
-Tested in CASA versions up to 5.1.2
+Last Updated: Oct. 2018
+Tested in CASA versions up to 5.3
 
 USAGE: Set path to parameter file (line 46) and output directory (line 57), then,
 run execfile('ALMA_cont_red_script.py') within CASA

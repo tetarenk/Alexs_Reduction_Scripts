@@ -13,16 +13,16 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
 	   	 There are 2 methods to get from raw data to CASA MS
          (1) -see instructions in how_to_sma_scripts.txt (recommended!)
          (2) Alternatively, the old way to convert is through miriad. 
-         If you have can create raw miriad files (from idl2miriad task in MIR),
+         If you can create raw miriad files (from idl2miriad task in MIR),
          run miriad bash script (miriad2fits.sh) and run CASA script (fits2casa.py).
 WARNING: If you have SMA data calibrated in MIR or MIRIAD, use instructions here,
 https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
 to convert to CASA MS for imaging.
-The MIR versin is implemented in mircal_to_casa.py script.
+The MIR version is implemented in mircal_to_casa.py script.
 
 Written by: Alex J. Tetarenko
-Last Updated: May 4, 2018
-Tested in CASA versions up to 5.1.2
+Last Updated: Oct. 2018
+Tested in CASA versions up to 5.3
 
 USAGE: Set path to parameter file (line 54) and output directory (line 65), then,
 run execfile('SMA_reduction_script.py') within CASA

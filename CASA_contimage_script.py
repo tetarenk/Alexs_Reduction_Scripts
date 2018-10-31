@@ -12,8 +12,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All output images are also converted to fits format (just append .fits to end of images 1 above)
        - This script images and selfcals an already calibrated CASA MS and fits a point source in the image/uv plane.
 Written by: Alex J. Tetarenko
-Last Updated: November 13 2017
-Works in CASA-5.1.1 now!'''
+Last Updated: Oct. 2018
+Works in CASA-5.3 now!'''
 
 print '##################################################'
 print 'Welcome to Alexs CASA Continuum Imaging/Selfcal Script'
