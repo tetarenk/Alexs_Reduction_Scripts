@@ -288,8 +288,9 @@ if skipflag=='n':
 	dict_log.append(('dum_spw_flag',dum0))
 	if dum0=='y':
 		print 'Flagging dummy spw in both side-bands...'
-		flagdata(vis=ms_namel,spw='0',field='',antenna='',mode='manual')
-		flagdata(vis=ms_nameu,spw='0',field='',antenna='',mode='manual')
+		dum0spw=raw_input('Enter dummy spe ID. e.g., 0--> ')
+		flagdata(vis=ms_namel,spw=dum0spw,field='',antenna='',mode='manual')
+		flagdata(vis=ms_nameu,spw=dum0spw,field='',antenna='',mode='manual')
 		raw_input('Please press enter when ready to continue.')
 	#check flux cal for lines
 	print 'Checking flux cal for lines...'
