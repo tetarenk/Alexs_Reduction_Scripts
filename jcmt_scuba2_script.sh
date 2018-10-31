@@ -420,10 +420,7 @@ fi
 
 #remove extra stuff that starlink creates
 echo 'Cleaning up...'
-rm -rf *.sdf
-mv log.* $my_dir
-mv rules.badobs $my_dir
-mv disp.dat  $my_dir
+echo 'Please make sure to remove temp directory starlink creates, it is usually called a number sequence...'
 #rm -rf $my_dir/adam*
 #rm -rf adam*
 
