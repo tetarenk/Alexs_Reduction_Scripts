@@ -112,7 +112,7 @@ else:
 	tclean(vis=ms_name, imagename=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1',field='',mask=mymask,spw=spw,interactive=False,\
 		cell=[mycell], imsize=myimsize,gain=0.1,weighting=weighting,threshold=mythreshold,deconvolver=decon,gridder='standard',\
 		specmode='mfs',niter=myniter,nterms=mynterms,stokes=mystokes,outlierfile=outlierf,scales=multiscale,robust=robust)
-if mynterms>1:
+if mynterms>1 and decon=='mtmfs':
 	imagen=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.image.tt0'
 	imagenpb=my_dir+target+'_'+obsDate+'_'+band+'_'+subband+'_clean1.pb.tt0'
 else:

@@ -1481,7 +1481,7 @@ for kk in range(0,len(ms_name_list)):
 					tclean(vis=split_low, imagename=my_dir+target+'_'+date+'_'+band_low+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
-				if mynterms>1:
+				if mynterms>1 and decon=='mtmfs':
 					imagenl=my_dir+target+'_'+date+'_'+band_low+'_clean1.image.tt0'
 					imagenlpb=my_dir+target+'_'+date+'_'+band_low+'_clean1.pb.tt0'
 				else:
@@ -1522,7 +1522,7 @@ for kk in range(0,len(ms_name_list)):
 					tclean(vis=split_high, imagename=my_dir+target+'_'+date+'_'+band_high+'_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
-				if mynterms>1:
+				if mynterms>1 and decon=='mtmfs':
 					imagenu=my_dir+target+'_'+date+'_'+band_high+'_clean1.image.tt0'
 					imagenupb=my_dir+target+'_'+date+'_'+band_high+'_clean1.pb.tt0'
 				else:
@@ -1563,7 +1563,7 @@ for kk in range(0,len(ms_name_list)):
 					tclean(vis=[split_low,split_high], imagename=my_dir+target+'_'+date+'_both_clean1',field='',mask=mymask,spw='',interactive=False,\
 						cell=[mycell0], imsize=myimsize0,gain=0.1,weighting=weighting,threshold=mythreshold0,\
 						specmode='mfs',deconvolver=decon,gridder='standard',niter=myniter,nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,outlierfile=outlierfile)
-				if mynterms>1:
+				if mynterms>1 and decon=='mtmfs':
 					imagenb=my_dir+target+'_'+date+'_both_clean1.image.tt0'
 					imagenbpb=my_dir+target+'_'+date+'_both_clean1.pb.tt0'
 				else:
