@@ -1175,7 +1175,7 @@ plotms(vis=ms_nameu,yaxis='amp',xaxis='frequency',ydatacolumn='corrected',\
 	iteraxis='antenna',coloraxis='spw',field=target_id)
 raw_input('Please press enter when ready to continue.')
 print 'Target amp vs time'
-plotms(vis=ms_namel,yaxis='amp',xaxis='time',ydatacolumn='corrected',field=target_id)
+plotms(vis=ms_nameu,yaxis='amp',xaxis='time',ydatacolumn='corrected',field=target_id)
 raw_input('Please press enter when ready to continue.')
 
 flag_again=raw_input('Do you need to do more flagging? y or n-->')
