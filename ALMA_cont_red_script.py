@@ -800,8 +800,8 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
 				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					specmode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
-					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
+					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',\
+					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			else:
 				print 'Cleaning...'
@@ -809,8 +809,8 @@ if doImage=='T':
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
 				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
 					mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
-					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-					interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
+					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,\
+					interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
 				raw_input('Please press enter to continue when you are done.')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor')
 			os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim.image.pbcor.fits')
@@ -849,8 +849,8 @@ if doImage=='T':
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
 					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
-						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',usescratch=False,\
-						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
+						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',\
+						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				else:
 					print 'Cleaning...'
@@ -858,8 +858,8 @@ if doImage=='T':
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
 					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
 						mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
-						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,usescratch=False,\
-						interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,minpb=0.2,scales=multiscale)
+						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask=mymask,\
+						interactive=False,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
 					raw_input('Please press enter to continue when you are done.')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor')
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im.image.pbcor.fits')
