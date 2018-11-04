@@ -227,6 +227,18 @@ def imfit_point(pbimage='',my_dir='',stokes='',help='F'):
 	x_sizeu=float(box.split(',')[2])
 	y_sizel=float(box.split(',')[1])
 	y_sizeu=float(box.split(',')[3])
+	box_check=='y'
+	while box_check=='y':
+		if x_sizeu<x_sizel or ysizeu<ysizel:
+			print 'Error in box coordinates, please enter again.'
+			box=raw_input('Please enter target box. e.g., x1,y1,x2,y2-->')
+			x_sizel=float(box.split(',')[0])
+			x_sizeu=float(box.split(',')[2])
+			y_sizel=float(box.split(',')[1])
+			y_sizeu=float(box.split(',')[3])
+			box_check='y'
+		else:
+			box_check='n'
 	cen_annulus='['+str(((x_sizeu-x_sizel)/2.)+x_sizel)+'pix,'+str(((y_sizeu-y_sizel)/2.)+y_sizel)+'pix]'
 	cen_radius='['+str(annulus_rad_inner)+'pix,'+str(annulus_rad_outer)+'pix]'
 	print 'Fitting point source...'
