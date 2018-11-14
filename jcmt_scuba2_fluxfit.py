@@ -245,8 +245,8 @@ if fit_alg=='lsq':
 	xxt=res.parameters[1]
 	yyt=res.parameters[2]
 elif fit_alg=='mcmc':
-	ampt,xxt0,yyt0,bmajt,bmint,bpat=mcmc_fit(data_target*1e3,vartarget*1e3,[param_guess[0]*1e3,param_guess[1],param_guess[2],bmaj,\
-		bmin,bpa],[False,False,False,True,True,True],500,1500,'n',pixsize)
+	ampt,xxt0,yyt0,bmajt,bmint,bpat=mcmc_fit(data_target*1e3,vartarget*1e3,[param_guess[0]*1e3,param_guess[1],param_guess[2],w[0],\
+		w[1],w[2]],[False,False,False,True,True,True],500,1500,'n',pixsize)
 	amp_tar=[ampt[0],np.sqrt(ampt[1]**2+ampt[2]**2)]
 	xxt=xxt0[0]
 	yyt=yyt0[0]

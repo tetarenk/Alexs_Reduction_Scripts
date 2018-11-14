@@ -356,7 +356,7 @@ else
 fi
 NUMOFLINESscan8=$(cat $my_dir/all_scan8.lst | wc -l )
 NUMOFLINESscan4=$(cat $my_dir/all_scan4.lst | wc -l )
-if [ $NUMOFLINESscan8 > 1 ]
+if [ $NUMOFLINESscan8 -gt 1 ]
 then
 	echo 'Mosaicing all target 850 um scans...'
 	rm -rf $my_dir/$target'_'$date'_all_850_fullmap_all.sdf'
@@ -371,7 +371,7 @@ then
 else
 	echo 'Only 1 850um scan present.'
 fi
-if [ $NUMOFLINESscan4 > 1 ]
+if [ $NUMOFLINESscan4 -gt 1 ]
 then
 	echo 'Mosaicing all target 450 um scans...'
 	rm -rf $my_dir/$target'_'$date'_all_450_fullmap_all.sdf'
@@ -396,7 +396,7 @@ then
 	ls $my_dir/$target'_'$date'_'*'_450_shortmap_cube_cal.sdf' > $my_dir/all4.lst
 	NUMOFLINES8=$(cat $my_dir/all8.lst | wc -l )
 	NUMOFLINES4=$(cat $my_dir/all4.lst | wc -l )
-	if [ $NUMOFLINES8 > 1 ]
+	if [ $NUMOFLINES8 -gt 1 ]
 	then
 		echo 'Mosaicing all 850um shortmap cubes for all target scans...'
 		rm -rf $my_dir/$target'_'$date'_850_shortmap_cube_cal_all.sdf'
@@ -406,7 +406,7 @@ then
 	else
 		echo 'Only 1 850um scan present.'	
 	fi
-	if [ $NUMOFLINES4 > 1 ]
+	if [ $NUMOFLINES4 -gt 1 ]
 	then
 		echo 'Mosaicing all 450um shortmap cubes for all target scans...'
 		rm -rf $my_dir/$target'_'$date'_450_shortmap_cube_cal_all.sdf'
