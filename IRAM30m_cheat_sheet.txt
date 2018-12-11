@@ -2,7 +2,7 @@
 GILDAS/CLASS Cheat Sheet for Reducing IRAM 30m OTF Data
 
 The following are my notes that attempt to decifer the nearly impossible
-to parse document that is the CLASS "cookbook; found here-->
+to parse document that is the CLASS "cookbook"; found here-->
 https://www.iram.fr/IRAMFR/GILDAS/doc/pdf/class.pdf
 ########################################################################
 
@@ -118,7 +118,7 @@ get next
 base 1
 write
 next ient
-verbose 	! again this was supposed to turn prinintg to terminal back on, but command doesn't exist either???
+verbose 	! again this was supposed to turn printing to terminal back on, but command doesn't exist either???
 
 c) create plots of baselined data,
 
@@ -127,14 +127,14 @@ clear plot 	! clear plotting window
 file in SOURCELINE-base 	! read in base-lined file
 find 	! build the index
 load 	! load the index
-plot /index 	!plot the 2D spectra
+plot /index 	! plot the 2D spectra
 
 #plot baseline rms--> I think this is rms noise in the spectra of the different scans???
 clear plot 	! clear plotting window
 file in SOURCELINE-base 	! read in base-lined file
 find 	! build the index
 variable base /index
-g\limit /var idx%num idx%head%bas%sigfi 	! plot usinf GREG (the g means you are working in the GREG plotting pkg?)
+g\limit /var idx%num idx%head%bas%sigfi 	! plot using GREG (the g means you are working in the GREG plotting pkg?)
 g\box
 g\set marker 4 3 0.15
 g\point idx%num idx%head%bas%sigfi
