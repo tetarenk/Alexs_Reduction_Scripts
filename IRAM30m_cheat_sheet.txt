@@ -250,7 +250,7 @@ go 3view
 let name SOURCE_LINE
 let type lmv
 let first 1 	! select line free channel?
-let last 1 		! select line free channel?
+let last 1 	! select line free channel?
 go bit
 poly
 mean
