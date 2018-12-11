@@ -1,0 +1,267 @@
+########################################################################
+GILDAS/CLASS Cheat Sheet for Reducing IRAM 30m OTF Data
+
+The following are my notes that attempt to decifer the nearly impossible
+to parse document that is the CLASS "cookbook; found here-->
+https://www.iram.fr/IRAMFR/GILDAS/doc/pdf/class.pdf
+########################################################################
+
+1. Your starting point is pipeline calibrated *.30m files for each day of 
+observations. These files contain everything: all calibration data, all target
+sources, all lines, all scans. To obtian this data you should be able to rsync
+these files (using your observer account) off of the IRAM computers.
+
+2. First you will need to install and start up GILDAS/CLASS.
+
+After installing GILDAS, your bashrc (or equivalent in another shell) should have
+something like the following,
+
+export GAG_ROOT_DIR=/jcmt_sw/CLASS/GILDAS-feb18c/gildas-exe-feb18c
+export GAG_EXEC_SYSTEM=x86_64-redhat6.9-gfortran
+alias gildas="source $GAG_ROOT_DIR/etc/bash_profile"
+
+Then to startup the software,
+gildas
+class
+
+3. To simply load in a file and list its contents (e.g., target sources, lines, scans),
+
+file in *.30m	! loads data set
+list in /toc	! lists "table of contents" for data
+list /scan /brief	! lists scans
+
+4. To create a file that only contains 1 source and 1 line,
+
+file out OUTNAME single	! create output file
+find /line LINE /source SOURCE 	! select data of 1 source and 1 line
+copy	! copy the selcted data to output file
+file in OUTNAME 	! read in newly created file
+
+Now do a consistency check. I have no idea what this is acutally checking, but
+nothing else will work unless the file passes this test.
+
+set nomatch
+find
+consistency
+
+5. Merge data sets from different days,
+
+set tel *	! select all detectors
+file out merged_SOURCE_LINE single /over 	! create output file
+file in DAY1.30m 	! read in first file
+list in /toc 	! list contents of first file
+find /line LINE /source SOURCE 	! select desired line/source from first file
+copy 	!copy selected data from first file into output file
+file in DAY2.30m 	! repeat procedure for all other files you want to merge
+list in /toc
+find /line LINE /source SOURCE
+copy
+file in merged_SOURCE_LINE 	! read in merged file
+set nomatch 	! run consistency check again
+find
+consistency
+list in /toc 	! double check that merged file contains what you want
+
+6. Now to actually examine the data,
+
+(a) To plot an average of all spectra,
+
+file in merged_SOURCE_LINE 	! read in merged file
+find 	! build index of spectra
+set nomatch
+set align f c
+average 	! average all spectra in data set
+set unit v f 	! unit is velocity
+plot 	! plot averaged spectra
+
+2D spectra plot (i.e., x-axis is velocity, y-axis is spectra number, z-axis is line intensity):
+
+file in merged_SOURCE_LINE 	! read in merged file
+find /tel TEL_NAME 	! select a single detector instead of all of them (you find these in the list /toc output)
+load 	! load in index of all spectra
+set mode x -5 5 	! set x-axis (velocity) limits
+set mode z 5000 12000 	! set z axis (spectra #) limits
+set mode y -1 1 	! set y axis (intensity) limits
+plot /index 	! plot 2D spectra
+
+
+6. Next you need to do baselining,
+
+a) first test on average of all spectra to find good baseline model,
+
+file in merged_SOURCE_LINE 	! read in merged file
+set nomatch 	! consistency check
+find
+consistency
+set nomatch
+set align f c
+average 	! plot averaged spectra to test baseline model
+set unit v f 	! set unit to velocity
+set mode x -20 40 	! set velocity range
+plot 	! plot averaged spectra
+set window -3 25 -10 -4 	! make a window around all lines/spikes; syntax is add a pair of values (lower_limit upper_limit) for each window
+draw window 	! show selected windows on plot
+base 0 /plot 	! start with fitting a polynomial of order 0 (i.e., a constant) to data outside set window
+				! Now you can try a bunch of other polynomials by repeating same command with different order.
+plot 	! plot the averaged spectra after correcting the baseline with the model from the last run of the base command
+
+
+b) apply to all spectra
+
+find 	! build the index of all the spectra again
+load 	! load in the index again
+file out SOURCELINE-base single /over 	! create an output file for result
+get zero
+quiet 	! this is supposed to stop printing to terminal to speed up process, but command doesnt exist??? Never mind then...
+for ient 1 to found 	! loop over all spectra fitting a polynomial to the baseline, correcting, and writing to output file
+get next
+base 1
+write
+next ient
+verbose 	! again this was supposed to turn prinintg to terminal back on, but command doesn't exist either???
+
+c) create plots of baselined data,
+
+#2d plot of spectra
+clear plot 	! clear plotting window
+file in SOURCELINE-base 	! read in base-lined file
+find 	! build the index
+load 	! load the index
+plot /index 	!plot the 2D spectra
+
+#plot baseline rms--> I think this is rms noise in the spectra of the different scans???
+clear plot 	! clear plotting window
+file in SOURCELINE-base 	! read in base-lined file
+find 	! build the index
+variable base /index
+g\limit /var idx%num idx%head%bas%sigfi 	! plot usinf GREG (the g means you are working in the GREG plotting pkg?)
+g\box
+g\set marker 4 3 0.15
+g\point idx%num idx%head%bas%sigfi
+g\label "Observation number" /X
+g\label "rms [K]" /Y
+
+7. De-spiking
+
+(a) Apply despiking to all spectra
+
+file out SOURCELINE-fill single /over 	! create an output file for result
+find 	! build the index
+load 	! load the index
+for ient 1 to found 	! loop over all spectra, despiking as you go
+get next
+fill -10 -4 /noise 	! Fill contaminated channels (i.e., the ones with weird spikes you identified in step 6a above) with Gaussian noise
+write
+next ient
+
+(b) create plots of de-spiked data
+
+#average plot
+clear plot 	! clear plotting window
+file in SOURCELINE-fill 	! read in de-spiked data
+find 	! build the index
+average 	! create averaged spectra
+plot 	! plot averaged specta
+
+#redo 2d plot of spectra
+clear plot 	! clear plotting window
+file in SOURCELINE-fill 	! read in de-spiked data
+find 	! build the index
+load 	! load the index
+plot /index 	! plot the 2D spectra
+
+8. Platforming check --> scan by scan basis check to see if there is a "platform" (i.e., discrete jumps in spectra) in the data.
+
+(a) First list scans,
+
+clear plot 	! clear plotting window
+list /scan /brief 	! list scans
+
+Output to terminal should look soemthing like this,
+
+Current index contains:                                                               
+   14: 13365   16: 10692   18: 10692   20: 10692   22: 13365   34: 10692              
+   36: 10692  110: 10692  112: 13365  114: 10692  116: 10692  128: 10692              
+  130: 13365  132: 10692  162: 10692
+
+(b) Now loop through all scans, plotting 2D and 1 D spectra to check for "platform". If you have a scan affectefd by this,
+one part of the spectra will be at zero baseline, and another part will have a non-zero baseline (like a step function).
+
+find /scan 14 	! build the index containing only data from one scan
+load 	! load the index
+plot /index 	! plot 2D spectra
+
+find /scan 14 	! build the index containing only data from one scan
+average 	! created average spectra
+plot 	! plot averaged spectra
+
+If you need to correct, do this,
+
+set sort none
+file out SOURCELINE-plat multiple /over 	! create output file where multiple occurences of one spectrum enabled
+copy 	! copy over data to output file where correction will happen in place
+find /scan 14 	! build index of data only from offending scan
+get first
+define real ty /like ry 	! define an intermediate array of intensities identical to the data
+get zero 	! reset index counter to zero
+get next
+plot 	! plot spectra
+set window -200 -42.3 -22 0 90 100 	! put windows around all lines/spikes, as well as the piece of spectra at zero baseline (here -200 -42.3)
+base 2 /pl 	! attempt baseline fit for piece of spectra with non-zero baseline
+let ty ry /where rx.gt.-42.3 	! write baselined data for section of spectra that was just corrected to the array we created
+set window -95 -75 -42.5 +200 ! put windows around all lines/spikes, as well as the piece of the spectra that was just corrected (here -42.5 to +200)
+base 0 /pl 	! baseline fit of a constant for piece of spectra that was originally at zero baseline
+let ry ty /where rx.gt.-42.3 	! now write the section of fixed spectra (stored in the array) back into data array
+plot 	! plot corrected specta
+
+
+9. Grid data to make a cube and output to fits file
+
+(a) make table, grid table data to cube, view cube
+
+file in SOURCELINE-fill 	! read in de-spiked or de-platformed data
+let name SOURCE_LINE 	!set name of output files
+let type lmv ! set file type
+find 	! build index
+load 	! load index
+table SOURCE_LINE new /range -50 50 v 	! build a table of spectra in a velocity range (creates *.tab file)
+xy_map SOURCE_LINE !  resampling of the non-regularly spaced spectra on a regular grid (creates *.lmv file)
+go view 	! gives you a single channel map/spectra that is interactive, as well as an integrated intensity map
+
+(b) other maps you can create
+
+#channel maps
+let name SOURCE_LINE
+let type lmv
+go bit
+input bit
+
+#spectra across region
+let name SOURCE_LINE
+let type lmv
+go spectrum
+
+#PV diagrams
+let name SOURCE_LINE
+let type lmv
+go 3view
+
+(c) rms in map
+let name SOURCE_LINE
+let type lmv
+let first 1 	! select line free channel?
+let last 1 		! select line free channel?
+go bit
+poly
+mean
+
+Output should look like this,
+
+I-MEAN,  Found 12817 non-blanked pixels, of area: 8.5755E-06 Radians squared
+I-MEAN,  Integrated intensity:-6.485984E-08 (Map Units * Radians squared)
+I-MEAN,  Mean value: -7.56336E-03, r.m.s.:  0.64183
+I-MEAN,  Min value:  -2.7983    , max value:   2.8658
+
+(d) write to fits cube to analyze in less painful software
+
+vector\fits SOURCE_LINE_final.fits from SOURCE_LINE.lmv ! output fits file created from input lmv file
