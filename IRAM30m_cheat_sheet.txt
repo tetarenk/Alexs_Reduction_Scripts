@@ -8,7 +8,7 @@ https://www.iram.fr/IRAMFR/GILDAS/doc/pdf/class.pdf
 
 1. Your starting point is pipeline calibrated *.30m files for each day of 
 observations. These files contain everything: all calibration data, all target
-sources, all lines, all scans. To obtian this data you should be able to rsync
+sources, all lines, all scans. To obtain this data you should be able to rsync
 these files (using your observer account) off of the IRAM computers.
 
 2. First you will need to install and start up GILDAS/CLASS.
@@ -28,6 +28,7 @@ class
 
 file in *.30m	! loads data set
 list in /toc	! lists "table of contents" for data
+find 	! build index of files
 list /scan /brief	! lists scans
 
 4. To create a file that only contains 1 source and 1 line,
@@ -51,7 +52,7 @@ file out merged_SOURCE_LINE single /over 	! create output file
 file in DAY1.30m 	! read in first file
 list in /toc 	! list contents of first file
 find /line LINE /source SOURCE 	! select desired line/source from first file
-copy 	!copy selected data from first file into output file
+copy 	! copy selected data from first file into output file
 file in DAY2.30m 	! repeat procedure for all other files you want to merge
 list in /toc
 find /line LINE /source SOURCE
@@ -102,7 +103,7 @@ plot 	! plot averaged spectra
 set window -3 25 -10 -4 	! make a window around all lines/spikes; syntax is add a pair of values (lower_limit upper_limit) for each window
 draw window 	! show selected windows on plot
 base 0 /plot 	! start with fitting a polynomial of order 0 (i.e., a constant) to data outside set window
-				! Now you can try a bunch of other polynomials by repeating same command with different order.
+				! Now you can try a bunch of other polynomials by repeating same command with different order, but clear plot and run find,average again first
 plot 	! plot the averaged spectra after correcting the baseline with the model from the last run of the base command
 
 
@@ -115,7 +116,7 @@ get zero
 quiet 	! this is supposed to stop printing to terminal to speed up process, but command doesnt exist??? Never mind then...
 for ient 1 to found 	! loop over all spectra fitting a polynomial to the baseline, correcting, and writing to output file
 get next
-base 1
+base 0
 write
 next ient
 verbose 	! again this was supposed to turn printing to terminal back on, but command doesn't exist either???
@@ -262,6 +263,6 @@ I-MEAN,  Integrated intensity:-6.485984E-08 (Map Units * Radians squared)
 I-MEAN,  Mean value: -7.56336E-03, r.m.s.:  0.64183
 I-MEAN,  Min value:  -2.7983    , max value:   2.8658
 
-(d) write to fits cube to analyze in less painful software
+(d) write to fits cube to analyze in less painful software,
 
 vector\fits SOURCE_LINE_final.fits from SOURCE_LINE.lmv ! output fits file created from input lmv file
