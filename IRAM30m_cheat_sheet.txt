@@ -73,7 +73,10 @@ set nomatch
 set align f c
 average 	! average all spectra in data set
 set unit v f 	! unit is velocity
+modify frequency [reffreq] 	! modify ref frequency if you want
 plot 	! plot averaged spectra
+
+
 
 2D spectra plot (i.e., x-axis is velocity, y-axis is spectra number, z-axis is line intensity):
 
@@ -104,6 +107,7 @@ set window -3 25 -10 -4 	! make a window around all lines/spikes; syntax is add 
 draw window 	! show selected windows on plot
 base 0 /plot 	! start with fitting a polynomial of order 0 (i.e., a constant) to data outside set window
 				! Now you can try a bunch of other polynomials by repeating same command with different order, but clear plot and run find,average again first
+				! base sinus [amp] [period] [phase] will fit sinusoid with amp,period,phase initial guesses.
 plot 	! plot the averaged spectra after correcting the baseline with the model from the last run of the base command
 
 
