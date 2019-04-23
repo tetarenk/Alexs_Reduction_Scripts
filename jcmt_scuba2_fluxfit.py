@@ -13,7 +13,7 @@ NOTES: It is recommended to use image RMS as an uncertainty measurment on flux.
 The beam is fixed in target fitting, so only flux and position vary.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018'''
+Last Updated: Apr 22, 2019'''
 
 #needed packages
 from astropy.io import fits
@@ -117,19 +117,20 @@ print 'Reading in parameters...'
 #User input
 ####################################
 #input/output directory
-my_dir='/export/data2/atetarenko/JCMT_maxi1820/results/oct24/'
+my_dir=''
 #fits images
-fitsim=my_dir+'maxi1820p070_20181024_17_850_fullmap_cal_crop_mf.fits'
-cal_im=my_dir+'crl2688_20181024_13_850_fullmap_cal.fits'
+fitsim=my_dir+'target.fits'
+cal_im=my_dir+'cal.fits'
 #flux guesses for cal and target in mJy
-flux_guess=[5000,10]
+flux_guess=[5000,700]
 #size of gaussian beam in arcsec,pa in deg
-w=[14.87,14.51,135.87]
+w=[15.54,14.40,177.31]
 #boxes to search for source x1,x2,y1,y2
-ranges=[45,57,45,57]
-ranges_cal=[120,130,110,120]
+ranges=[45,55,44,56]
+ranges_cal=[132,149,116,132]
 #fit algorithm -- mcmc or lsq
 fit_alg='mcmc'
+outf=my_dir+'fit_results.txt'
 #########################################
 
 
@@ -143,7 +144,7 @@ header_cal=getheader(cal_im)
 header_target=getheader(fitsim)
 wmapcal=wcs.WCS(header_cal)
 wmaptar=wcs.WCS(header_target)
-outfile=open(my_dir+'fit_results.txt','w')
+outfile=open(outf,'w')
 outfile.write('JCMT SCUBA-2 Fit Results-->\n')
 outfile.write('\n')
 

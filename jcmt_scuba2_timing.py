@@ -2,7 +2,7 @@
 # JCMT SCUBA-2 Timing Script
 #######################################
 '''Fits a 2D Gaussian to every plane of a set of JCMT fits timing cubes to get a high time resuloution light curve.
-This script uses a simple least squares algorithm implmented by astropy models to do the fitting.
+This script uses a simple least squares algorithm implmented by astropy models to do the fitting quickly.
 INPUT: my_dir: Output directory
        shortmaps: List of shortmap FITS cubes from STARLINK for each scan
        w: Beam Parameters from STARLINK; [BMAJ (arcsec), BMIN (arcsec), BPA (deg)]
@@ -19,7 +19,7 @@ NOTES: - The uncertainties output are simply from the least squares covariance m
          and save to an sdf file, (4) convert sdf to ascii with ndf2ascii task in STARLINK.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct 24, 2018'''
+Last Updated: Apr 22, 2019'''
 
 #needed packages
 from astropy.io import fits
@@ -34,7 +34,8 @@ import matplotlib.pyplot as plt
 from astropy.modeling import models,fitting
 import matplotlib as mpl
 import matplotlib.dates as mdates
-
+from matplotlib import rc
+from matplotlib.ticker import AutoMinorLocator
 
 
 print 'Reading in parameters...'
@@ -42,18 +43,20 @@ print 'Reading in parameters...'
 #User input
 ####################################
 #input/output directory
-my_dir='/path/to/files/'
+my_dir=''
 #list of shortmaps fits cubes from starlink reduction for all scans
-shortmaps=[my_dir+'shortmaps_scan1.fits',my_dir+'shortmaps_scan2.fits',my_dir+'shortmaps_scan3.fits']
+shortmaps=[my_dir+'shortmap_cube_cal.fits']
 #calibrator scan fits file for beam fitting
 cal_im=my_dir+'cal.fits'
 #size of gaussian beam in arcsec,pa in deg from starlink cal reduction
-w=[14.97,14.23,0.]
+w=[15.54,14.40,177.31]
 #boxes to search for source x1,x2,y1,y2 in all scans
-ranges=[[45,57,45,57],[45,57,45,57],[45,57,45,57]]
-ranges_cal=[115,135,115,135]
+ranges=[[125,137,118,130]]
+ranges_cal=[132,149,116,132]
 #file with MJDs from mosaiced shortmaps cube
-mjd_file=my_dir+'MJDS.txt'
+mjd_file=my_dir+'mjd_full.txt'
+#lightcurve binsize
+interv='5sec'
 #########################################
 
 
@@ -69,7 +72,7 @@ wmapcal=wcs.WCS(header_cal)
 cal_fit=raw_input('Do you want to fit beam size from calibrator? y or n?--> ')
 if cal_fit=='y':
 	#fit calibrator to get beam size
-	data_psf=getdata(cal_im,0)[0,ranges_cal[0]:ranges_cal[1],ranges_cal[2]:ranges_cal[3]]
+	data_psf=getdata(cal_im,0)[0,ranges_cal[2]:ranges_cal[3],ranges_cal[0]:ranges_cal[1]]
 	print "Fitting calibator scan..."
 	param_guess=[1.,data_psf.shape[0]/2.,data_psf.shape[0]/2.,w[0]/(2.*pixsize),w[1]/(2.*pixsize),w[2]]#amplitude,X,Y,width_x,width_y,rota
 	psf_fixed_params={'amplitude':False,'x_mean':False,'y_mean':False,'x_stddev':False,'y_stddev':False,'theta':True}
@@ -89,6 +92,7 @@ if cal_fit=='y':
 	print 'Beam Min (arcsec) = ','%.2f'%(res.parameters[4]*2.*pixsize)
 	print 'Beam PA (deg) = ','%.2f'%(res.parameters[4])
 	print 'Starlink Beam Maj, Min, PA = ',w[0],w[1],w[2],'\n'
+	outfile=open(my_dir+'cal_fits_timing_res.txt','w')
 	outfile.write('Calibrator scan fit results:\n')
 	outfile.write('\n')
 	outfile.write('Cal Flux = '+'%.2f'%(res.parameters[0]*1e3)+' +/- '+'%.2f'%(1e3*np.sqrt(np.diag(lmf.fit_info['param_cov']))[0])+'mJy\n')
@@ -97,6 +101,7 @@ if cal_fit=='y':
 	outfile.write('Beam PA (deg) = '+'%.2f'%(res.parameters[4])+'\n')
 	outfile.write('Input Starlink Beam Maj, Min, PA = '+str(w[0])+','+str(w[1])+','+str(w[2])+'\n')
 	outfile.write('\n')
+	outfile.close()
 	#show results
 	print 'Plotting result...'
 	fig=plt.figure()
@@ -124,11 +129,6 @@ if cal_fit=='y':
 #fit target by fixing beam size in each plane of shortmaps cube
 print 'Beginning to fit target...'
 fix=raw_input('Do you want to fix the beam to the starlink values or the calibrator fit (if selected above)? star or cal?--> ')
-if fix=='cal':
-	param_guess=[1.,ranges[0]+(abs(ranges[1]-ranges[0])/2.),ranges[2]+(abs(ranges[3]-ranges[2])/2.),res.parameters[3],res.parameters[4],res.parameters[5]]
-elif fix=='star':
-	param_guess=[1.,ranges[0]+(abs(ranges[1]-ranges[0])/2.),ranges[2]+(abs(ranges[3]-ranges[2])/2.),w[0]/(2.*pixsize),w[1]/(2.*pixsize),w[2]]
-tar_fixed_params={'amplitude':False,'x_mean':False,'y_mean':False,'x_stddev':True,'y_stddev':True,'theta':True}
 
 
 flux=[]
@@ -136,10 +136,15 @@ error=[]
 for i in range(0,len(shortmaps)):
 	print "Fitting Target in scan ",i+1,'...'
 	fitsim=shortmaps[i]
+	if fix=='cal':
+		param_guess=[1.,(abs(ranges[i][1]-ranges[i][0])/2.),(abs(ranges[i][3]-ranges[i][2])/2.),res.parameters[3],res.parameters[4],res.parameters[5]]
+	elif fix=='star':
+		param_guess=[1.,(abs(ranges[i][1]-ranges[i][0])/2.),(abs(ranges[i][3]-ranges[i][2])/2.),w[0]/(2.*pixsize),w[1]/(2.*pixsize),w[2]]
+	tar_fixed_params={'amplitude':False,'x_mean':False,'y_mean':False,'x_stddev':True,'y_stddev':True,'theta':True}
 	data_target=getdata(fitsim,0)
 	shape_data=data_target.shape
 	for k in range(0,shape_data[0]):
-		data_target=getdata(fitsim,0)[k,ranges[0]:ranges[1],ranges[2]:ranges[3]]
+		data_target=getdata(fitsim,0)[k,ranges[i][2]:ranges[i][3],ranges[i][0]:ranges[i][1]]
 		x=np.arange(0,len(data_target[0,:]))
 		y=np.arange(0,len(data_target[:,0]))
 		X, Y = np.meshgrid(x, y)
@@ -153,33 +158,44 @@ for i in range(0,len(shortmaps)):
 
 #read in MJDs
 mjd_list=np.loadtxt(mjd_file)
-mjd=mjd_list[:,0]
+#mjds now off by 12 hours coming out of Gaia?
+mjd=mjd_list[:,0]+0.5
 if len(mjd)!=len(flux):
 	raise Exception('MJDs dont match fluxes, please double check your input files')
 
 #write results to file
 print 'Writing results to file...'
-file_res=open(my_dir+'JCMT_timing_fit_mJy.txt','w')
+file_res=open(my_dir+'JCMT_timing_fit_mJy_'+interv+'.txt','w')
 for j in range(0,len(mjd)):
 	if flux[j] != np.nan:
 		file_res.write(' {0} {1} {2}\n'.format(mjd[j],flux[j],error[j]))
 file_res.close()
 
 #show results
+plt.rcdefaults()
 print 'Plotting result...'
 fig=plt.figure()
-ax=plt.subplot(111,projection=wmaptar.celestial)
+font={'family':'serif','weight':'bold','size' : '14'}
+rc('font',**font)
+mpl.rcParams['xtick.direction']='in'
+mpl.rcParams['ytick.direction']='in'
+ax=plt.subplot(111)
 ax.errorbar(mjd,flux,yerr=error,marker='o',color='m',ls='')
-ax.set_title('Target Light Curve')
+#ax.set_title('Target Light Curve')
 ax.set_ylabel('Flux Density (mJy)')
-ax.set_ylabel('Time (HH:MM)')
-locater=mdates.MinuteLocator(interval=15)
+ax.set_xlabel('Time (HH:MM)')
+locator=mdates.MinuteLocator(interval=30)
 locator2=mdates.MinuteLocator(interval=5)
 ax.xaxis.set_major_locator(locator)
 ax.xaxis.set_minor_locator(locator2)
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-plt.setp(ax.get_xtixklabels(),roation=45,horizontalalignment='right')
-plt.savefig(my_dir+'target_lightcurve.png')
+plt.setp(ax.get_xticklabels(),rotation=45,horizontalalignment='right')
+ax.yaxis.set_minor_locator(AutoMinorLocator(5))
+ax.tick_params(axis='x',which='major', labelsize=9,length=5,width=1.5,top='on',bottom='on',pad=7)
+ax.tick_params(axis='x',which='minor', labelsize=9,length=3.5,width=1.,top='on',bottom='on',pad=7)
+ax.tick_params(axis='y',which='major', labelsize=10,length=5,width=1.5,right='on',left='on')
+ax.tick_params(axis='y',which='minor', labelsize=9,length=3.5,width=1.,right='on',left='on',pad=7)
+plt.savefig(my_dir+'target_lightcurve_'+interv+'.png',bbox_inches='tight')
 plt.show()
 
 
