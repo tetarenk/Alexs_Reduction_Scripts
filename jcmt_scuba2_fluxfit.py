@@ -131,6 +131,8 @@ ranges_cal=[132,149,116,132]
 #fit algorithm -- mcmc or lsq
 fit_alg='mcmc'
 outf=my_dir+'fit_results.txt'
+#append to already existing outfile ('a') or create newfile ('w')
+file_choice='w'
 #########################################
 
 
@@ -144,7 +146,7 @@ header_cal=getheader(cal_im)
 header_target=getheader(fitsim)
 wmapcal=wcs.WCS(header_cal)
 wmaptar=wcs.WCS(header_target)
-outfile=open(outf,'w')
+outfile=open(outf,file_choice)
 outfile.write('JCMT SCUBA-2 Fit Results-->\n')
 outfile.write('\n')
 
