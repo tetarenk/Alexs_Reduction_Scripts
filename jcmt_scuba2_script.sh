@@ -10,12 +10,12 @@
 #        (6) Combined scans timing cube (if scans >1) -- [target]_[date]_[band]_shortmap_cube_cal_all.sdf/.fits
 #        (7) Log file of FCFs, beam sizes, and maps RMS for individual scans -- output_results.logg
 #Written by: Alex J Tetarenko
-#Last Updated: Apr 22, 2018
+#Last Updated: April 26, 2019
 
 ############################
 #Defining variables section
 ############################
-data_dir=/path/to/raw/data
+data_dir=/path/to/raw
 my_dir=/path/to/results
 #file_lst=/export/data2/atetarenko/JCMT_maxi1820/cadcUrlList5.txt
 date=20190422
@@ -148,8 +148,8 @@ do
 		echo 'BMAJ850_'$scan8'='$bmaj8 >> $my_dir/output_results.logg
 		echo 'BMIN850_'$scan8'='$bmin8 >> $my_dir/output_results.logg
 		echo 'BPA850_'$scan8'='$bpa8 >> $my_dir/output_results.logg
-		cmult in=$my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.sdf' scalar=$fcf8
-		ndf2fits $my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan4'_850_fullmap_cal.fits'
+		cmult in=$my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap_cal.sdf' scalar=$fcf8
+		ndf2fits $my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan8'_850_fullmap_cal.fits'
 		read -r -p 'Please press enter when ready to continue >>> '
 		## Storing new FCF for 850: 549.081 +/-   9.185 Jy/beam/pW (cf 537: 2.2% higher)
 	fi
@@ -354,6 +354,8 @@ do
 			#echo 'Running SCUBA2_CHECK_CAL recipe for 850um cal shortmap cube...'
 			#picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$date'_'$cal_scan8'_850_shortmap_cube.sdf'
 			fcf8short=$fcf8
+			cmult in=$my_dir/$cal'_'$date'_'$cal_scan8'_850_shortmap_cube.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan8'_850_shortmap_cube_cal.sdf' scalar=$fcf8short
+			ndf2fits $my_dir/$cal'_'$date'_'$cal_scan8'_850_shortmap_cube_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan8'_850_shortmap_cube_cal.fits'
 			#read -r -p 'Please enter fcf for 850um >>> ' fcf8short
 			read -r -p 'Please press enter when ready to continue >>> '
 		fi
@@ -386,6 +388,8 @@ do
 				#picard -log sf SCUBA2_CHECK_CAL $my_dir/$cal'_'$date'_'$cal_scan4'_450_shortmap_cube.sdf'
 				#read -r -p 'Please enter fcf for 450um >>> ' fcf4short
 				fcf4short=$fcf4
+				cmult in=$my_dir/$cal'_'$date'_'$cal_scan4'_450_shortmap_cube.sdf' out=$my_dir/$cal'_'$date'_'$cal_scan4'_450_shortmap_cube_cal.sdf' scalar=$fcf4short
+				ndf2fits $my_dir/$cal'_'$date'_'$cal_scan4'_450_shortmap_cube_cal.sdf' $my_dir/$cal'_'$date'_'$cal_scan4'_450_shortmap_cube_cal.fits'
 				read -r -p 'Please press enter when ready to continue >>> '
 			fi
 			echo 'Running cmult to do absolute flux calibration on target shortmaps cube...'
