@@ -34,7 +34,7 @@ import sys
 import imp
 import os
 import linecache
-import find
+#import find
 import warnings
 import webbrowser
 import datetime
@@ -46,7 +46,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/mnt/bigdata/tetarenk/VLA_neutrino2/tester/'
+my_dir='/export/data2/atetarenko/Cygx3/VLA/results/ep1/subB_C/'
 if not os.path.isdir(my_dir):
 	os.system('mkdir '+my_dir)
 	os.system('chown ubuntu '+my_dir)
@@ -57,7 +57,7 @@ print 'You have set your output directory to ', my_dir,'\n'
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/mnt/bigdata/tetarenk/VLA_neutrino2/params_vla.txt'
+param_dir_file='/export/data2/atetarenko/Cygx3/VLA/params_vla_subA_K.txt'
 print 'You have set your param file to ', param_dir_file,'\n'
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -225,7 +225,7 @@ for kk in range(0,len(ms_name_list)):
 		else:
 			raise ValueError ('Unknown source intent parameter, please check listobs')
 		if pol_calib=='y':
-			pol_values=ascii.read("pol_vla_prop.txt", delimiter=' ',data_start=0,names=['B','Freq','3C48Pol','3C48Ang','3C138Pol','3C138Ang','3C147Pol','3C147Ang','3C286Pol','3C286Ang'],guess=False)
+			pol_values=ascii.read("pol_vla_prop.txt",names=['B','Freq','3C48Pol','3C48Ang','3C138Pol','3C138Ang','3C147Pol','3C147Ang','3C286Pol','3C286Ang'])
 			bands_dict={}
 			bands_dict['Band']={}
 			bands_dict['Band']['C']=['C5','C7']
