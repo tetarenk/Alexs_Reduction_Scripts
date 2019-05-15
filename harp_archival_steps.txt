@@ -1,0 +1,62 @@
+############################################
+#HARP archival data products analysis
+############################################
+
+(1) statup starlink
+
+starlink
+kappa
+smurf
+convert
+
+(2)set input/output directories
+
+datadir=path/to/data
+export ORAC_DATA_IN=$datadir
+export ORAC_DATA_OUT=$datadir
+
+(3)convert fits to ndf file
+
+fits2ndf jcmt_archivalfile.fits jcmt_archivalfile.sdf
+
+(4) archival reduced data has a GHz velocity axis that is in the baryocentric frame, we need to fix this
+
+# Set the 3rd axis of the coordinate system to be in units of radio velocity
+wcsattrib ndf=jcmt_archivalfile.sdf mode=set name=system\(3\) newval=vrad
+
+# Set the standard of rest to be the LSRK
+wcsattrib ndf=jcmt_archivalfile.sdf mode=set name=StdofRest newval=LSRK
+
+#rewrite fixed files
+ndf2fits jcmt_archivalfile.sdf jcmt_archivalfile_vrad.fits
+fits2ndf jcmt_archivalfile_vrad.fits jcmt_archivalfile_vrad.sdf
+
+(5) archival reduced data has Ta* temp scale, need to change to Tmb to fix temp scale
+
+cdiv in=jcmt_archivalfile_vrad.sdf scalar=0.63 out=jcmt_archivalfile_vrad_tmb.sdf
+
+(6) (optionl) crop map to area of interest
+#open in gaia to make mask first (image-analysis,image regions,save ard description)
+
+gaia jcmt_archivalfile_vrad_tmb.sdf
+ardmask jcmt_archivalfile_vrad_tmb.sdf inside=False ard=jcmt_mask out=jcmt_archivalfile_vrad_tmb_crop.sdf
+ndfcopy jcmt_archivalfile_vrad_tmb_crop.sdf trimbad out=jcmt_archivalfile_vrad_tmb_crop_trim.sdf
+
+(7) make moment 0 map
+
+#################
+params_moments.lst
+###################
+[CREATE_MOMENTS_MAP]
+BASELINE_ORDER = 1
+FREQUENCY_SMOOTH = 10
+SPATIAL_SMOOTH = 5
+MOMENTS_LOWER_VELOCITY = -110
+MOMENTS_UPPER_VELOCITY = 0
+#################
+
+picard -recpars params_moments.lst CREATE_MOMENTS_MAP jcmt_archivalfile_vrad_tmb_crop_trim.sdf -log sf
+gaia jcmt_archivalfile_vrad_tmb_crop_integ.sdf
+ndf2fits jcmt_archivalfile_vrad_tmb_crop_integ.sdf jcmt_archivalfile_vrad_tmb_crop_integ.fits
+
+(8) may need to reproject to better coordinate frame. If you have template image, can use reproject package in python

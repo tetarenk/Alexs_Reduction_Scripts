@@ -1,0 +1,144 @@
+#######################################
+#HARP Reduction Notes/Commands
+########################################
+
+#first define paths
+
+data_path=/path/to/rawdata
+res_path=/path/to/results
+
+STEP 1: download data
+
+wget --http-user=[cadc_user] --http-password=[cadc_password] --content-disposition -i /path/to/cadcUrlList.txt
+
+
+STEP2: start and intitalize starlink modules
+
+starlink
+kappa
+smurf
+convert
+oracdr_acsis
+export ORAC_DATA_IN=$data_path
+export ORAC_DATA_OUT=$res_path
+
+STEP 3: Explore Metadata
+
+fitslist $data_path/a20180822_00028_02_0003.sdf
+ndftrace $data_path/a20180822_00028_02_0003.sdf
+hdstrace $data_path/a20180822_00028_02_0003.MORE.ACSIS.TSYS
+hdstrace $data_path/a20180822_00028_02_0003.MORE.ACSIS.TRX
+
+STEP 4: Make lists of paths to raw data files (do for each seperate line/field)
+
+Example for 12 CO:
+
+field=12CO_Field1
+touch $res_path/$field'_files.lis'
+for entry in $data_path/*.sdf
+do
+	targ=$(fitsval $entry MSBTITLE)
+	if [ "$targ" == "$field" ]
+	then
+		ls $entry >> $res_path/$field'_files.lis'
+	fi
+done
+
+
+
+STEP 5: run pipeline and rename log file (do for each line/field)
+
+#############################################
+general command format fo rrunning pipeline: 
+
+oracdr -files files.lis -loop file -batch -log sf -calib qaparams=myqa.ini
+bad_receptors=index -recpars mypar.ini -nodisplay REDUCE_SCIENCE_NARROWLINE
+###
+-mypar.ini is reduction recipe paramters
+-myqa.ini is qa parameters (see cookbook)
+-bad_receptors also apart of qa, masterorindex (default; use both master file and pipeline generated file-index.bad_receptors), master, index, file (reads bad_receptors.lis file in oracdr out directory; file must contain a space separated list of bad receptors), list ( e.g., bad_receptors=H01:H06), append multiple options witha a colon separation (e.g., bad_receptors=H14:index)
+-files supplies a txt file listing all raw data files
+-loop makes sure you loop over all lines in the supplied raw data file list
+-batch delays group processing until all individual fiels reduced
+-nodisplay turns off graphical output, speeds up processing times
+-log logfile format options s=screen, w=xwindow, f=file, h=html
+-recipe at end, default is in fits headers
+#############################################
+
+oracdr -files $res_path/'12CO_Field1_files.lis' -loop file -batch -log sf -nodisplay
+
+mv .oracdr_19897.log oracdr_19897.log
+
+
+STEP 6: Paste together seperate tiles if needed
+
+paste ga20180911_10_1_reduced\*.sdf tiledmap ga20180911_10_1_reduced_all.sdf
+
+STEP 7a: Convert cubes and integrated intensity maps output from pipeline to fits
+
+ndf2fits ga20180911_10_1_reduced_all.sdf ga20180911_10_1_reduced_all.fits
+ndf2fits ga20180911_10_1_integ.sdf ga20180911_10_1_integ.fits
+
+STEP 7b - crop edges off maps
+
+Need to create ARD mask for each field first. To do this open fits file in Gaia, go to image analysis, image regions, pick shape,
+then file save ARD description.
+
+gaia /export/data2/atetarenko/JCMT_SS433/results/CO12_Field1/ga20180911_10_1_reduced_all.fits
+
+**can repeat for all fields, but really only need one, saved mask as /export/data2/atetarenko/JCMT_SS433/results/CO12_Field1/Field_mask
+
+Now, apply ARD mask,
+
+ardmask ga20180911_10_1_reduced_all.fits inside=False ard=/export/data2/atetarenko/JCMT_SS433/results/CO12_Field4/Field_mask out=ga20180911_10_1_reduced_all_crop.fits
+
+Now, trim off blank pixels,
+
+ndfcopy ga20180911_10_1_reduced_all_crop.fits trimbad out=ga20180911_10_1_reduced_all_crop_trim.fits
+
+
+STEP 8: Mosaic fields together if needed
+
+ls g*1_integ.sdf > integ_lst_12CO.lst
+wcsmosaic in=^integ_lst_12CO.lst out=mosaic_integ_12CO lbnd=! ubnd=!
+ndf2fits mosaic_integ_12CO.sdf mosaic_integ_12CO.fits
+
+ls /export/data2/atetarenko/JCMT_SS433/results/CO12_Field*/g*1_reduced_all.fits > cube_lst_12CO.lst
+wcsmosaic in=^cube_lst_12CO.lst out=mosaic_cube_12CO lbnd=! ubnd=!
+ndf2fits mosaic_cube_12CO.sdf mosaic_cube_12CO.fits
+
+ls /export/data2/atetarenko/JCMT_SS433/results/CO12_Field*/g*1_reduced_all_crop_trim.fits > cube_lst_12CO_crop_trim.lst
+wcsmosaic in=^cube_lst_12CO_crop_trim.lst out=mosaic_cube_12CO_crop_trim lbnd=! ubnd=!
+ndf2fits mosaic_cube_12CO_crop_trim.sdf mosaic_cube_12CO_crop_trim.fits
+
+
+STEP 9: Temperature scale
+The cubes that come out of the pipeline are in units of TA*. To convert to main-beam brightness temperature, TMB, we
+need to divide the cube by the main-beam efficiency, eta_MB=0.63 (according to HARP cookbook).
+
+cdiv in=mosaic_cube_12CO.sdf scalar=0.63 out=mosaic_cube_12CO_tmb.sdf
+ndf2fits mosaic_cube_12CO_tmb.sdf mosaic_cube_12CO_tmb.fits
+
+cdiv in=mosaic_cube_12CO_crop_trim.sdf scalar=0.63 out=mosaic_cube_12CO_crop_trim_tmb.sdf
+ndf2fits mosaic_cube_12CO_crop_trim_tmb.sdf mosaic_cube_12CO_crop_trim_tmb.fits
+
+
+STEP:10 Integrated intensity maps in specific velocity range
+#################
+params_moments.lst
+###################
+[CREATE_MOMENTS_MAP]
+BASELINE_ORDER = 1
+FREQUENCY_SMOOTH = 10
+SPATIAL_SMOOTH = 5
+MOMENTS_LOWER_VELOCITY = -110
+MOMENTS_UPPER_VELOCITY = 0
+#################
+
+picard -recpars params_moments.lst CREATE_MOMENTS_MAP mosaic_cube_12CO_crop_trim_tmb.sdf -log sf
+ndf2fits mosaic_cube_12CO_crop_trim_integ.sdf mosaic_cube_12CO_crop_trim_integ.fits
+
+
+STEP: 11 PV diagrams; found a C shell script in starlink that should run with the following command. I have not got it to work though!
+
+pvslice -i mosaic_cube_12CO_tmb.sdf -o mosaic_cube_12CO_tmb_pv.sdf -p 45.0
