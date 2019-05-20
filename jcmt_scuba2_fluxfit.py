@@ -27,6 +27,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from astropy.modeling import models,fitting
 import matplotlib as mpl
+from astropy.time import Time
 import emcee
 from astropy.utils.console import ProgressBar
 import scipy.stats as ss
@@ -278,6 +279,11 @@ ax.coords['ra'].set_major_formatter('hh:mm:ss')
 ax.set_title('Target Fit (beam size/angle fixed)')
 plt.savefig(my_dir+'target_fit.png')
 plt.show()
+
+print 'MJD midpoint:'
+hdu=fits.open(fitsim)[0]
+print Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd+((Time(hdu.header['DATE-END'],format='isot',scale='utc').mjd-Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd)/2.)
+
 
 
 print '\n'

@@ -14,9 +14,9 @@ OUTPUT: Light curve data file (my_dir/JCMT_timing_fit_mJy.txt)
 NOTES: - The uncertainties output are simply from the least squares covariance matrix.
        - The beam is fixed in target fitting, so only flux and position vary (pointing can change from plane
          to plane in shortmaps cube so dont fix position!).
-       - To get MJD file: (1) Open a mosaice dshortmaps cube in gaia, (2) click on central source pixel,
+       - To get MJD file: (1) Open a mosaiced shortmaps cube in gaia, (2) click on central source pixel,
          (3) a window will pop up showing lightcurve, (4) you can extract the light curve for this pixel
-         and save to an sdf file, (4) convert sdf to ascii with ndf2ascii task in STARLINK.
+         and save to an txt file. MAKE SURE TO USE SDF not FITS version to do this!
 
 Written by: Alex J. Tetarenko
 Last Updated: Apr 22, 2019'''
