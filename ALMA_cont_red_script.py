@@ -12,13 +12,13 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - All input logged in user_input.logg.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct. 2018
-Tested in CASA versions up to 5.3
+Last Updated: Aug 2019
+Tested in CASA versions up to 5.4
 
 USAGE: Set path to parameter file (line 46) and output directory (line 57), then,
 run execfile('ALMA_cont_red_script.py') within CASA
 '''
-
+#au.getObservationDateRangeFromASDM(asdm)
 print '##################################################'
 print 'Welcome to Alexs ALMA Continuum Reduction Script'
 print '##################################################\n'
@@ -43,7 +43,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/export/data/atetarenko/ALMA_maxi1535/reduced/ep5/b6/'
+my_dir='/export/data2/atetarenko/ALMA_maxi1820/reduced/ep3_jul06_B/'
 if not os.path.isdir(my_dir):
 	os.system('mkdir '+my_dir)
 	os.system('chown ubuntu '+my_dir)
@@ -54,7 +54,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/export/data/atetarenko/ALMA_maxi1535/params_alma.txt'
+param_dir_file='/export/data2/atetarenko/ALMA_maxi1820/reduced/params_alma3B.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -798,7 +798,7 @@ if doImage=='T':
 				print 'Using interactive mode so you can make a mask...'
 				print 'Cleaning...'
 				os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim*')
-				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'fullbandim',\
+				tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID_cal'+'fullbandim',\
 					specmode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 					gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',\
 					interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
@@ -847,8 +847,8 @@ if doImage=='T':
 					print 'Using interactive mode so you can make a mask...'
 					print 'Cleaning...'
 					os.system('rm -rf '+my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im*')
-					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target_lst[iii]+'_spw'+str(j)+'im',\
-						mode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
+					tclean(vis=vis,imagename=my_dir+target+'_'+obsDate+'_'+band+'_TID'+target+'_spw'+str(j)+'im',\
+						specmode='mfs',gridder='standard',imsize=myimsize,cell=mycell,spw='',deconvolver=decon,\
 						gain=0.1,weighting=weighting,robust=robust,nterms=mynterms, mask='',\
 						interactive=True,threshold=mythreshold,niter=myniter,pbcor=False,scales=multiscale)
 					raw_input('Please press enter to continue when you are done.')

@@ -9,7 +9,7 @@ from astropy.time import Time
 ####################p
 #User input
 ####################
-path_dir = '/mnt/bigdata/tetarenk/timing_test'
+path_dir = '/Users/atetarenko/Desktop/Research/dynamicimaging/simulate_data/test/'
 #flux model vs time
 integ=10.
 total_time=10.*60.
@@ -21,7 +21,7 @@ plt.plot(time_bins,fluxarray,marker='o',ls='')
 raw_input('press enter to continue')
 #array config
 #configf='/Applications/CASA-4.6.app/Contents/data/alma/simmos/vla.c.cfg'
-configf='/usr/local/bin/CASA-4.6/casa-release-4.6.0-el6/data/alma/simmos/vla.c.cfg'
+configf='/Applications/CASA.app/Contents/data/alma/simmos/vla.c.cfg'
 data = ascii.read(configf,data_start=1,\
 	names=['X','Y','Z','DIAM','ANT'],guess=True)
 xx=data['X']

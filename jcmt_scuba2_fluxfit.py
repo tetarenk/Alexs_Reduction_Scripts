@@ -282,7 +282,8 @@ plt.show()
 
 print 'MJD midpoint:'
 hdu=fits.open(fitsim)[0]
-print Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd+((Time(hdu.header['DATE-END'],format='isot',scale='utc').mjd-Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd)/2.)
+mjderr=((Time(hdu.header['DATE-END'],format='isot',scale='utc').mjd-Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd)/2.)
+print Time(hdu.header['DATE-OBS'],format='isot',scale='utc').mjd+mjderr, "+/-", mjderr
 
 
 

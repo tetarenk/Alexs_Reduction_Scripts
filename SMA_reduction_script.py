@@ -13,16 +13,16 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
 	   	 There are 2 methods to get from raw data to CASA MS
          (1) -see instructions in how_to_sma_scripts.txt (recommended!)
          (2) Alternatively, the old way to convert is through miriad. 
-         If you can create raw miriad files (from idl2miriad task in MIR),
+         If you have can create raw miriad files (from idl2miriad task in MIR),
          run miriad bash script (miriad2fits.sh) and run CASA script (fits2casa.py).
 WARNING: If you have SMA data calibrated in MIR or MIRIAD, use instructions here,
 https://www.cfa.harvard.edu/rtdc/SMAdata/process/casa/convertcasa/
 to convert to CASA MS for imaging.
-The MIR version is implemented in mircal_to_casa.py script.
+The MIR versin is implemented in mircal_to_casa.py script.
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct. 2018
-Tested in CASA versions up to 5.3
+Last Updated: Aug 2019
+Tested in CASA versions up to 5.4
 
 USAGE: Set path to parameter file (line 54) and output directory (line 65), then,
 run execfile('SMA_reduction_script.py') within CASA
@@ -51,7 +51,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/April12/redo/rec240/'
+my_dir='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/redo_final/rec240/'
 if not os.path.isdir(my_dir):
 	os.system('mkdir '+my_dir)
 	os.system('chown ubuntu '+my_dir)
@@ -62,7 +62,7 @@ print 'You have set your output directory to ', my_dir
 print 'All output images & intermediate data products are put in this directory.\n'
 
 #param file location
-param_dir_file='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/April12/redo/rec240/params_sma.txt'
+param_dir_file='/export/data2/atetarenko/SMA_maxi1820/raw_data/final_MS/Sep29/params_sma.txt'
 print 'You have set your param file to ', param_dir_file
 print 'Please make sure all parameters are correct, they will change for each data set!\n'
 
@@ -288,7 +288,7 @@ if skipflag=='n':
 	dict_log.append(('dum_spw_flag',dum0))
 	if dum0=='y':
 		print 'Flagging dummy spw in both side-bands...'
-		dum0spw=raw_input('Enter dummy spe ID. e.g., 0--> ')
+		dum0spw=raw_input('Enter dummy spw ID. e.g. 0--> ')
 		flagdata(vis=ms_namel,spw=dum0spw,field='',antenna='',mode='manual')
 		flagdata(vis=ms_nameu,spw=dum0spw,field='',antenna='',mode='manual')
 		raw_input('Please press enter when ready to continue.')
@@ -308,13 +308,13 @@ if skipflag=='n':
 			print 'For flux cal id: ',flux_lst[i]
 			flagfluxlsb=raw_input('Please enter channels to flag. e.g., 0~3-->')
 			dict_log.append(('lines_lsb_channels_srcid_'+flux_lst[i],flagfluxlsb))
-			flagdata(vis=ms_namel,mode='manual',spw=spw_low+':'+flagfluxlsb,field=flux_lst[i],antenna='')
+			flagdata(vis=ms_namel,mode='manual',spw=flagfluxlsb,field=flux_lst[i],antenna='')
 		print 'USB...'
 		for i in range(0,len(flux_lst)):
 			print 'For flux cal id: ',flux_lst[i]
 			flagfluxusb=raw_input('Please enter channels to flag. e.g., 0~3-->')
 			dict_log.append(('lines_usb_channels_srcid_'+flux_lst[i],flagfluxusb))
-			flagdata(vis=ms_nameu,mode='manual',spw=spw_high+':'+flagfluxusb,field=flux_lst[i],antenna='')
+			flagdata(vis=ms_nameu,mode='manual',spw=flagfluxusb,field=flux_lst[i],antenna='')
 	#end channels
 	flag_end=raw_input('Do you want to flag the end channels?y or n-->')
 

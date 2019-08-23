@@ -16,8 +16,8 @@ NOTES: - All output images & intermediate data products are put in my_dir direct
        - If autoflag is used summary presented in autoflag_log.txt
 
 Written by: Alex J. Tetarenko
-Last Updated: Oct. 2018
-Tested in CASA versions up to 5.3
+Last Updated: Aug 2019
+Tested in CASA versions up to 5.4
 
 USAGE: Set path to parameter file (line 49) and output directory (line 60), then,
 run execfile('VLA_reduction_script.py') within CASA'''
@@ -46,7 +46,7 @@ from astropy.io import ascii
 import analysisUtils as au
 
 #define output directory
-my_dir='/export/data2/atetarenko/Cygx3/VLA/results/ep1/subB_C/'
+my_dir='/export/data2/atetarenko/Cygx3/VLA/results/ep1/subC_K/'
 if not os.path.isdir(my_dir):
 	os.system('mkdir '+my_dir)
 	os.system('chown ubuntu '+my_dir)

@@ -9,10 +9,10 @@ OUTPUT: (1) Calibrated Split MS for full band (and each spw) -- [target]_[obsDat
         (3) Fits point source and prints flux/rms to terminal
 NOTES: - All output images & intermediate data products are put in current working directory.
 Written by: Alex J. Tetarenko
-Last Updated: Dec 23 2017
-Works in CASA-5.1.1 now!
+Last Updated: Aug 2019
+Works in CASA-5.4 now!
 
-USAGE: start CASA pipeline with casapy-5.1 --pipeline, enter parameters below, run script
+USAGE: start CASA pipeline with casapy-5.4 --pipeline, enter parameters below, run script
 '''
 
 import glob
@@ -30,13 +30,13 @@ band='B3'
 mythreshold='1mJy'
 myimsize=[4096]
 mycell=['0.015arcsec']
-mynterms=2
+mynterms=1
+decon='hogbom'#hogbom if nterms=1,mtmfs if nterms>1,multiscale if using scales
 myniter=5000
 mystokes='I'
-outlierfile=''
 multiscale=[]
 weighting='natural'
-robust=0.0
+robust=2.0
 ##################
 
 #start of script
@@ -57,7 +57,7 @@ raw_input('Please press enter to continue when you are done.')
 print 'Check you have all ingredients for pipeline...'
 print 'MS,flagversions,flux.csv.'
 os.system('ls')
-os.system('pluma flux.csv &')
+os.system('sublime flux.csv &')
 raw_input('Please press enter to continue when you are done.')
 
 #(4) Run pipeline-- only calibration
@@ -87,16 +87,17 @@ split(vis=ms_name,outputvis=target+'_'+obsDate+'_'+band+'_cal.ms',spw=spws,\
 ms_name=target+'_'+obsDate+'_'+band+'_cal.ms'
 
 print 'Cleaning...'
-clean(vis=ms_name,imagename=target+'_'+obsDate+'_'+band+'_clean1',mode='mfs',\
-	imagermode='csclean',imsize=myimsize,cell=mycell,spw='',gain=0.1,\
-	weighting=myweighting,interactive=True,threshold=mythreshold,nterms=mynterms,\
-	mask='',niter=0,pbcor=False)
+tclean(vis=ms_name,imagename=target+'_'+obsDate+'_'+band+'_clean1',specmode='mfs',\
+	imsize=myimsize,cell=mycell,spw='',gain=0.1,deconvolver=decon,gridder='standard',niter=myniter,\
+	nterms=mynterms,stokes=mystokes,scales=multiscale,robust=robust,\
+	weighting=myweighting,interactive=True,threshold=mythreshold,\
+	mask='')
 if mynterms >1:
 	im=target+'_'+obsDate+'_'+band+'_clean1.image.tt0'
 else:
 	im=target+'_'+obsDate+'_'+band+'_clean1.image'
 print 'Fitting point source to image...'
-fluxbb,errbb,unitbb,freqbb,errbb_real=imfit_point(im, os.getcwd()+'/')
+fluxbb,errbb,unitbb,freqbb,errbb_real=imfit_point(im, os.getcwd()+'/',mystokes)
 print 'Flux density  of ',fluxbb,' +/- ',errbb, unitbb
 print 'Local RMS is: ',errbb_real,' Jy'
 
